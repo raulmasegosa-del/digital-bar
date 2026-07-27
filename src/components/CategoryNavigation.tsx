@@ -1,5 +1,4 @@
-import { categories } from "@/data/menu";
-
+import { categories } from "@/data";
 export default function CategoryNavigation() {
   return (
     <nav className="sticky top-0 z-10 bg-amber-50 py-4">

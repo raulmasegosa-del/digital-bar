@@ -1,7 +1,7 @@
 import ProductCard from "@/components/ProductCard";
-import { items } from "@/data/menu";
+import { items } from "@/data";
 import { MenuCategory } from "@/types/menu";
-
+import SectionTitle from "@/components/ui/SectionTitle";
 type Props = {
   category: MenuCategory;
 };
@@ -16,9 +16,7 @@ export default function CategorySection({ category }: Props) {
       id={category.id}
       className="mb-10 scroll-mt-28"
     >
-      <h2 className="mb-4 text-2xl font-bold text-amber-800">
-        {category.icon} {category.name}
-      </h2>
+      <SectionTitle category={category} />
 
       <div className="space-y-4">
         {categoryItems.map((item) => (

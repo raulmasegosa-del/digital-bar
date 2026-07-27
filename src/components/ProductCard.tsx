@@ -1,5 +1,6 @@
+import Badge from "@/components/ui/Badge";
 import { MenuItem } from "@/types/menu";
-
+import PriceList from "@/components/ui/PriceList";
 type ProductCardProps = {
   product: MenuItem;
 };
@@ -13,33 +14,31 @@ export default function ProductCard({ product }: ProductCardProps) {
         !isAvailable ? "opacity-60" : ""
       }`}
     >
-      {product.featured && (
-        <div className="mb-3 inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-          ⭐ Recomendado
-        </div>
+      {product.featured && <Badge>Recomendado</Badge>}
+
+      <h3 className="mt-4 text-2xl font-bold text-gray-900">
+        {product.name}
+      </h3>
+
+      {product.subtitle && (
+        <p className="mt-1 text-sm italic text-gray-500">
+          {product.subtitle}
+        </p>
       )}
 
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">
-            {product.name}
-          </h3>
+      {!isAvailable && (
+        <p className="mt-2 text-sm font-semibold text-red-600">
+          🚫 Agotado
+        </p>
+      )}
 
-          {!isAvailable && (
-            <p className="mt-1 text-sm font-semibold text-red-600">
-              🚫 Agotado
-            </p>
-          )}
-        </div>
+      {product.description && (
+        <p className="mt-4 text-gray-600">
+          {product.description}
+        </p>
+      )}
 
-        <span className="whitespace-nowrap text-lg font-bold text-amber-700">
-          {product.price.toFixed(2)} €
-        </span>
-      </div>
-
-      <p className="mt-2 text-sm leading-6 text-gray-600">
-        {product.description}
-      </p>
+      <PriceList prices={product.prices} />
     </article>
   );
 }
