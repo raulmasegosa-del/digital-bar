@@ -3,19 +3,20 @@ export type MenuCategory = {
   name: string;
   icon: string;
 };
+
 export type MenuPrice = {
   label: string;
   price: number;
 };
+
 export type MenuItem = {
   id: string;
   categoryId: string;
-image?: string;
   name: string;
   subtitle?: string;
   description: string;
 
-  prices: Price[];
+  prices: MenuPrice[];
 
   image?: string;
 
