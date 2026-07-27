@@ -3,7 +3,7 @@ export const items: MenuItem[] = [
   {
     id: "bacon-queso",
     categoryId: "bocadillos-calientes",
-
+    image: "/images/menu/bacon-queso.jpg",
     name: "Bacon y queso",
     subtitle: "Bacó i formatge",
     description: "",

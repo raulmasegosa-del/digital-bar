@@ -8,3 +8,6 @@ export function getItemsByCategory(
     (item) => item.categoryId === categoryId
   );
 }
+export function getFeaturedItems(items: MenuItem[]) {
+  return items.filter((item) => item.featured);
+}

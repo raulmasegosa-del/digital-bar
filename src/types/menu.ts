@@ -10,7 +10,7 @@ export type MenuPrice = {
 export type MenuItem = {
   id: string;
   categoryId: string;
-
+image?: string;
   name: string;
   subtitle?: string;
   description: string;

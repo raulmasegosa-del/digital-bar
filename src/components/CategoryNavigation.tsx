@@ -1,15 +1,17 @@
 import { categories } from "@/data";
+
 export default function CategoryNavigation() {
   return (
-    <nav className="sticky top-0 z-10 bg-amber-50 py-4">
-      <div className="flex gap-3 overflow-x-auto">
+    <nav className="sticky top-0 z-30 -mx-6 mb-8 border-b border-amber-200 bg-white/90 px-6 py-4 backdrop-blur-md">
+      <div className="flex gap-3 overflow-x-auto whitespace-nowrap scrollbar-hide">
         {categories.map((category) => (
           <a
             key={category.id}
             href={`#${category.id}`}
-            className="whitespace-nowrap rounded-full bg-white px-4 py-2 shadow border hover:bg-amber-100 transition"
+            className="flex items-center gap-2 rounded-full border border-amber-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-amber-100 hover:shadow-md"
           >
-            {category.icon} {category.name}
+            <span className="text-lg">{category.icon}</span>
+            <span>{category.name}</span>
           </a>
         ))}
       </div>

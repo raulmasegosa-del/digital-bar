@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import CategoryNavigation from "@/components/CategoryNavigation";
+
 import Menu from "@/components/Menu";
 
 export default function Home() {
