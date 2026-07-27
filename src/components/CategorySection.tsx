@@ -1,15 +1,20 @@
 import ProductCard from "@/components/ProductCard";
-import { items } from "@/data";
-import { MenuCategory } from "@/types/menu";
 import SectionTitle from "@/components/ui/SectionTitle";
+
+import { MenuCategory, MenuItem } from "@/types/menu";
+
 type Props = {
   category: MenuCategory;
+  items: MenuItem[];
 };
 
-export default function CategorySection({ category }: Props) {
-  const categoryItems = items.filter(
-    (item) => item.categoryId === category.id
-  );
+export default function CategorySection({
+  category,
+  items,
+}: Props) {
+  if (items.length === 0) {
+    return null;
+  }
 
   return (
     <section
@@ -19,11 +24,11 @@ export default function CategorySection({ category }: Props) {
       <SectionTitle category={category} />
 
       <div className="space-y-4">
-        {categoryItems.map((item) => (
+        {items.map((item) => (
           <ProductCard
             key={item.id}
             product={item}
-            />
+          />
         ))}
       </div>
     </section>

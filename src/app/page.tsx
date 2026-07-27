@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import CategoryNavigation from "@/components/CategoryNavigation";
-import CategorySection from "@/components/CategorySection";
-import { categories, items } from "@/data";
+import Menu from "@/components/Menu";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-amber-50 p-6">
@@ -10,12 +10,7 @@ export default function Home() {
 
         <CategoryNavigation />
 
-        {categories.map((category) => (
-          <CategorySection
-            key={category.id}
-            category={category}
-          />
-        ))}
+        <Menu />
       </div>
     </main>
   );
