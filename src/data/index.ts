@@ -1,2 +1,3 @@
-export { categories } from "./categories";
-export { items } from "./items";
+export const items = [];
+export * from "./categories";
+export * from "./items";
