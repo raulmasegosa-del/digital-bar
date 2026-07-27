@@ -27,6 +27,17 @@ export default function Menu() {
         value={search}
         onChange={setSearch}
       />
+      {search && (
+  <p className="mb-6 text-sm text-gray-600">
+    {filteredItems.length === 0
+      ? "No se encontraron productos."
+      : `${filteredItems.length} producto${
+          filteredItems.length === 1 ? "" : "s"
+        } encontrado${
+          filteredItems.length === 1 ? "" : "s"
+        }`}
+  </p>
+)}
 
       {categories.map((category) => {
         const categoryItems = getItemsByCategory(
@@ -40,8 +51,12 @@ export default function Menu() {
             category={category}
             items={categoryItems}
           />
+          
         );
+        
       })}
+      
     </>
+    
   );
 }
