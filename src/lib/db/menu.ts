@@ -1,35 +1,13 @@
-import { supabase } from "@/lib/supabase";
+import { MenuItem } from "@/types/menu";
 
-export async function getCategories() {
-  const { data, error } = await supabase
-    .from("categories")
-    .select("*")
-    .order("order");
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
+export function getItemsByCategory(
+  items: MenuItem[],
+  categoryId: string
+) {
+  return items.filter(
+    (item) => item.categoryId === categoryId
+  );
 }
-
-export async function getMenuItems() {
-  const { data, error } = await supabase
-    .from("menu_items")
-    .select(`
-      *,
-      menu_prices (
-        id,
-        label,
-        price,
-        order
-      )
-    `)
-    .order("order");
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
+export function getFeaturedItems(items: MenuItem[]) {
+  return items.filter((item) => item.featured);
 }
