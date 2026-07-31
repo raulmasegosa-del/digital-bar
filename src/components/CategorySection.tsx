@@ -1,4 +1,4 @@
-import ProductCard from "@/components/ProductCard";
+import ProductCard from "@/components/admin/ProductCard";
 import SectionTitle from "@/components/ui/SectionTitle";
 
 import { MenuCategory, MenuItem } from "@/types/menu";

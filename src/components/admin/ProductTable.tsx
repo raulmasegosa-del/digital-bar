@@ -1,7 +1,9 @@
-import { items } from "@/data";
+import { getAdminProducts } from "@/lib/db/admin";
 import ProductRow from "./ProductRow";
 
-export default function ProductTable() {
+export default async function ProductTable() {
+  const items = await getAdminProducts();
+
   return (
     <div className="overflow-hidden rounded-xl border bg-white shadow">
       <table className="w-full">
@@ -17,7 +19,7 @@ export default function ProductTable() {
         </thead>
 
         <tbody>
-          {items.map((item) => (
+          {items?.map((item) => (
             <ProductRow
               key={item.id}
               item={item}

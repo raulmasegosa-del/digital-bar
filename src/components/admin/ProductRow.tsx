@@ -1,7 +1,8 @@
-import { MenuItem } from "@/types/menu";
+import Link from "next/link";
+import { AdminProduct } from "@/types/admin";
 
 type Props = {
-  item: MenuItem;
+  item: AdminProduct;
 };
 
 export default function ProductRow({ item }: Props) {
@@ -12,13 +13,13 @@ export default function ProductRow({ item }: Props) {
       </td>
 
       <td className="p-3">
-        {item.categoryId}
+        {item.categories?.name ?? "-"}
       </td>
 
       <td className="p-3">
-        {item.prices
-          .map((p) => `${p.price.toFixed(2)} €`)
-          .join(" / ")}
+        {item.menu_prices?.length
+          ? `${Number(item.menu_prices[0].price).toFixed(2)} €`
+          : "-"}
       </td>
 
       <td className="p-3 text-center">
@@ -29,9 +30,16 @@ export default function ProductRow({ item }: Props) {
         {item.featured ? "⭐" : ""}
       </td>
 
-      <td className="p-3 text-center">
-        <button className="rounded bg-amber-600 px-3 py-1 text-sm text-white transition hover:bg-amber-700">
+      <td className="p-3 text-center space-x-2">
+        <Link
+          href={`/admin/edit/${item.id}`}
+          className="rounded bg-amber-600 px-3 py-1 text-sm text-white hover:bg-amber-700"
+        >
           Editar
+        </Link>
+
+        <button className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700">
+          Eliminar
         </button>
       </td>
     </tr>

@@ -1,5 +1,4 @@
-import { supabase } from "@/lib/supabase";
-
+import { supabaseAdmin } from "@/lib/supabase/server";
 export async function getCategories() {
   const { data, error } = await supabase
     .from("categories")

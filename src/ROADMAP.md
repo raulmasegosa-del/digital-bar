@@ -22,3 +22,46 @@
 - [ ] CMS
 - [ ] Estadísticas
 - [ ] IA
+# Roadmap
+
+## RC1
+
+- Carrito
+- Pedidos
+- Cocina
+- Barra
+
+## v1.1
+
+- Estadísticas
+
+## v1.2
+
+- Reservas
+
+## v2.0
+
+- Multinegocio
+# Roadmap
+
+## RC1
+
+- Carta
+- Carrito
+- Pedidos
+- Cocina
+- Barra
+- QR
+- Horarios
+
+## v1.1
+
+- Estadísticas
+
+## v1.2
+
+- Promociones
+
+## v2.0
+
+- Multinegocio

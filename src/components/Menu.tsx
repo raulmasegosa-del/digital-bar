@@ -1,28 +1,38 @@
-import { getCategories } from "@/lib/db/categories";
+import { getFullMenu } from "@/lib/db/fullMenu";
 
 export default async function Menu() {
-  const categories = await getCategories();
+  const menu = await getFullMenu();
+  console.log(JSON.stringify(menu, null, 2));
 
   return (
-    <section className="space-y-6">
-      <h2 className="text-3xl font-bold text-amber-700">
-        Nuestra carta
-      </h2>
-
-      {categories.map((category: any) => (
-        <article
-          key={category.id}
-          className="rounded-xl border bg-white p-5 shadow-sm"
-        >
-          <h3 className="text-xl font-semibold">
+    <div className="space-y-10">
+      {menu.map((category) => (
+        <section key={category.id}>
+          <h2 className="text-3xl font-bold text-amber-700 mb-4">
             {category.name}
-          </h3>
+          </h2>
 
-          <p className="text-gray-500">
-            Próximamente aparecerán aquí los productos.
-          </p>
-        </article>
+{category.items.map((item: any) => (            <div
+              key={item.id}
+              className="border-b py-4"
+            >
+              <div className="flex justify-between">
+                <h3 className="font-semibold">{item.name}</h3>
+
+                <span>
+                  {item.prices[0]?.price} €
+                </span>
+              </div>
+
+              {item.description && (
+                <p className="text-sm text-gray-500">
+                  {item.description}
+                </p>
+              )}
+            </div>
+          ))}
+        </section>
       ))}
-    </section>
+    </div>
   );
 }

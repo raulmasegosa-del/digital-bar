@@ -1,15 +1,26 @@
-import ProductTable from "@/components/admin/ProductTable";
+import Link from "next/link";
+import ProductGrid from "@/components/admin/ProductGrid";
+import PageHeader from "@/components/admin/PageHeader";
+
+export const dynamic = "force-dynamic";
 
 export default function AdminPage() {
   return (
-    <main className="min-h-screen bg-amber-50 p-6">
-      <div className="mx-auto max-w-6xl">
-        <h1 className="mb-8 text-4xl font-bold text-amber-700">
-          Panel de administración
-        </h1>
+    <>
+      <PageHeader
+        title="Productos"
+        description="Gestiona los productos de tu carta."
+        action={
+          <Link
+            href="/admin/new"
+            className="rounded-xl bg-amber-600 px-6 py-3 font-semibold text-white transition hover:bg-amber-700"
+          >
+            + Nuevo producto
+          </Link>
+        }
+      />
 
-        <ProductTable />
-      </div>
-    </main>
+      <ProductGrid />
+    </>
   );
 }

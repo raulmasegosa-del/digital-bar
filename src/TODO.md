@@ -17,3 +17,20 @@
 
 - [ ] Buscador
 - [ ] Filtros
+- [ ] Finalizar OptionForm
+- [ ] CRUD de option_items
+- [ ] Asociar grupos a productos
+- [ ] Carrito
+# TODO
+
+## RC1
+
+- [ ] Finalizar CRUD de opciones
+- [ ] Asociar grupos a productos
+- [ ] Carta pública
+- [ ] Carrito
+- [ ] Envío de pedidos
+- [ ] Panel cocina
+- [ ] Panel barra
+- [ ] Horario de apertura
+- [ ] Código QR
