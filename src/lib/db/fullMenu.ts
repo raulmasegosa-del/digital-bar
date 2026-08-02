@@ -2,47 +2,99 @@ import { supabase } from "@/lib/supabase";
 
 export async function getFullMenu() {
   // Categorías
-  const { data: categories, error: categoryError } = await supabase
-    .from("categories")
-    .select("*")
-    .order("order");
+  const { data: categories, error: categoryError } =
+    await supabase
+      .from("categories")
+      .select("*")
+      .order("order");
 
-  if (categoryError) {
-    throw categoryError;
-  }
+  if (categoryError) throw categoryError;
 
   // Productos
-  const { data: items, error: itemError } = await supabase
-    .from("menu_items")
-    .select("*")
-    .order("order");
+  const { data: items, error: itemError } =
+    await supabase
+      .from("menu_items")
+      .select("*")
+      .order("order");
 
-  if (itemError) {
-    throw itemError;
-  }
+  if (itemError) throw itemError;
 
   // Precios
-  const { data: prices, error: priceError } = await supabase
-    .from("menu_prices")
+  const { data: prices, error: priceError } =
+    await supabase
+      .from("menu_prices")
+      .select("*");
+
+  if (priceError) throw priceError;
+
+  // Relación producto ↔ grupo
+  const {
+    data: productGroups,
+    error: productGroupError,
+  } = await supabase
+    .from("product_option_groups")
+    .select("*");
+console.log("PRODUCT GROUPS");
+console.log(productGroups);
+  if (productGroupError) throw productGroupError;
+
+  // Grupos
+  const {
+    data: groups,
+    error: groupError,
+  } = await supabase
+    .from("option_groups")
     .select("*")
     .order("order");
 
-  if (priceError) {
-    throw priceError;
-  }
+  if (groupError) throw groupError;
 
-  // Construcción del menú
-  const menu = (categories ?? []).map((category) => ({
+  // Opciones
+  const {
+    data: options,
+    error: optionError,
+  } = await supabase
+    .from("option_items")
+    .select("*")
+    .order("order");
+
+  if (optionError) throw optionError;
+
+  return (categories ?? []).map((category) => ({
     ...category,
-    items: (items ?? [])
-      .filter((item) => item.category_id === category.id)
-      .map((item) => ({
-        ...item,
-        prices: (prices ?? []).filter(
-          (price) => price.item_id === item.id
-        ),
-      })),
-  }));
 
-  return menu;
+    items: (items ?? [])
+      .filter(
+        (item) => item.category_id === category.id
+      )
+      .map((item) => {
+        const groupIds = (productGroups ?? [])
+          .filter(
+            (g) => g.product_id === item.id
+          )
+          .map((g) => g.group_id);
+console.log("ITEM:", item.name);
+console.log("ID:", item.id);
+console.log("GROUP IDS:", groupIds);
+        return {
+          ...item,
+
+          prices: (prices ?? []).filter(
+            (p) => p.item_id === item.id
+          ),
+
+          option_groups: (groups ?? [])
+            .filter((g) =>
+              groupIds.includes(g.id)
+            )
+            .map((group) => ({
+              ...group,
+
+              items: (options ?? []).filter(
+                (o) => o.group_id === group.id
+              ),
+            })),
+        };
+      }),
+  }));
 }

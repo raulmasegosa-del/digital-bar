@@ -1,34 +1,23 @@
 import Link from "next/link";
-import ProductGrid from "@/components/admin/ProductGrid";
 
-export const dynamic = "force-dynamic";
-
-export default function AdminPage() {
+export default function EditPage() {
   return (
-    <main className="min-h-screen bg-amber-50 p-8">
-      <div className="mx-auto max-w-7xl">
+    <main className="min-h-screen bg-amber-50 p-6">
+      <div className="mx-auto max-w-2xl rounded-xl bg-white p-8 shadow">
+        <h1 className="text-2xl font-bold">
+          Selecciona un producto
+        </h1>
 
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold">
-              Panel de administración
-            </h1>
+        <p className="mt-3 text-gray-600">
+          Debes acceder a esta página desde el listado de productos.
+        </p>
 
-            <p className="mt-2 text-gray-600">
-              Gestiona todos los productos de tu carta.
-            </p>
-          </div>
-
-          <Link
-            href="/admin/new"
-            className="rounded-xl bg-amber-600 px-6 py-3 font-semibold text-white transition hover:bg-amber-700"
-          >
-            + Nuevo producto
-          </Link>
-        </div>
-
-        <ProductGrid />
-
+        <Link
+          href="/admin"
+          className="mt-6 inline-block rounded-lg bg-amber-600 px-6 py-3 font-medium text-white hover:bg-amber-700"
+        >
+          Volver al panel
+        </Link>
       </div>
     </main>
   );

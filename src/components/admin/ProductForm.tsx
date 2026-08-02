@@ -7,6 +7,11 @@ type Category = {
   name: string;
 };
 
+type OptionGroup = {
+  id: string;
+  name: string;
+};
+
 type Product = {
   id?: string;
   name?: string;
@@ -22,11 +27,15 @@ type Product = {
 type Props = {
   item?: Product;
   categories: Category[];
+  optionGroups?: OptionGroup[];
+  selectedOptionGroups?: string[];
 };
 
 export default function ProductForm({
   item,
   categories,
+  optionGroups = [],
+  selectedOptionGroups = [],
 }: Props) {
   const product = item ?? {
     name: "",
@@ -134,6 +143,49 @@ export default function ProductForm({
             defaultValue={product.description}
             className="w-full rounded-lg border p-3"
           />
+        </div>
+
+        {/* Grupos de opciones */}
+
+        <div>
+          <div className="mb-3 flex items-center justify-between">
+            <label className="text-sm font-medium">
+              Grupos de opciones
+            </label>
+
+            <Link
+  href="/admin/options/new"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="text-sm font-medium text-amber-600 transition hover:text-amber-700 hover:underline"
+>
+  + Nueva opción
+</Link>
+          </div>
+
+          <div className="space-y-2 rounded-lg border p-4">
+            {optionGroups.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                No hay grupos de opciones creados.
+              </p>
+            ) : (
+              optionGroups.map((group) => (
+                <label
+                  key={group.id}
+                  className="flex items-center gap-3"
+                >
+                  <input
+                    type="checkbox"
+                    name="option_groups"
+                    value={group.id}
+                    defaultChecked={selectedOptionGroups.includes(group.id)}
+                  />
+
+                  {group.name}
+                </label>
+              ))
+            )}
+          </div>
         </div>
 
         <div className="flex gap-6">

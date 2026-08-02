@@ -6,15 +6,11 @@ import {
 
 export const dynamic = "force-dynamic";
 
-type Props = {
-  params: Promise<{
-    id: string;
-  }>;
-};
-
 export default async function EditProductPage({
   params,
-}: Props) {
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
 
   const product = await getProduct(id);

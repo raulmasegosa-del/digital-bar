@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { CartProvider } from "@/context/CartContext";
 
 export const metadata: Metadata = {
   title: "Digital Bar",
@@ -13,7 +14,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        <CartProvider>
+          {children}
+        </CartProvider>
+      </body>
     </html>
   );
 }

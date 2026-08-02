@@ -10,7 +10,18 @@ export type AdminPrice = {
   label: string;
   price: number;
 };
+export type OptionItem = {
+  id: string;
+  group_id: string;
+  name: string;
+  extra_price: number;
+  order: number;
+  available: boolean;
 
+  option_groups?: {
+    name: string;
+  };
+};
 export type AdminProduct = {
   id: string;
   name: string;
@@ -27,4 +38,16 @@ export type AdminProduct = {
   };
 
   menu_prices?: AdminPrice[];
+};
+export type AdminOptionItem = {
+  id: string;
+  group_id: string;
+  name: string;
+  extra_price: number;
+  order: number;
+  available: boolean;
+
+  option_groups?: {
+    name: string;
+  };
 };

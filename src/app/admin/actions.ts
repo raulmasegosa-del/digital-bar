@@ -1,12 +1,18 @@
 "use server";
 
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export async function deleteProduct(id: string) {
+  // Eliminar asociaciones con grupos de opciones
+  await supabaseAdmin
+    .from("product_option_groups")
+    .delete()
+    .eq("product_id", id);
+
   // Eliminar precios
-  const { error: priceError } = await supabase
+  const { error: priceError } = await supabaseAdmin
     .from("menu_prices")
     .delete()
     .eq("item_id", id);
@@ -14,7 +20,7 @@ export async function deleteProduct(id: string) {
   if (priceError) throw priceError;
 
   // Eliminar producto
-  const { error: itemError } = await supabase
+  const { error: itemError } = await supabaseAdmin
     .from("menu_items")
     .delete()
     .eq("id", id);
@@ -37,17 +43,20 @@ export async function createProduct(formData: FormData) {
   const featured = formData.get("featured") === "on";
 
   const price = Number(formData.get("price"));
+  const optionGroups = formData.getAll("option_groups") as string[];
 
   if (!name) throw new Error("El nombre es obligatorio.");
 
-  if (!category_id) throw new Error("La categoría es obligatoria.");
+  if (!category_id)
+    throw new Error("La categoría es obligatoria.");
 
   if (isNaN(price) || price < 0)
     throw new Error("El precio no es válido.");
 
   const id = crypto.randomUUID();
 
-  const { error: itemError } = await supabase
+  // Crear producto
+  const { error: itemError } = await supabaseAdmin
     .from("menu_items")
     .insert({
       id,
@@ -62,7 +71,8 @@ export async function createProduct(formData: FormData) {
 
   if (itemError) throw itemError;
 
-  const { error: priceError } = await supabase
+  // Crear precio
+  const { error: priceError } = await supabaseAdmin
     .from("menu_prices")
     .insert({
       item_id: id,
@@ -72,12 +82,25 @@ export async function createProduct(formData: FormData) {
 
   if (priceError) throw priceError;
 
+  // Asociar grupos de opciones
+  if (optionGroups.length > 0) {
+    const rows = optionGroups.map((group_id) => ({
+      product_id: id,
+      group_id,
+    }));
+
+    const { error: optionError } = await supabaseAdmin
+      .from("product_option_groups")
+      .insert(rows);
+
+    if (optionError) throw optionError;
+  }
+
   revalidatePath("/");
   revalidatePath("/admin");
 
   redirect("/admin");
 }
-
 export async function updateProduct(formData: FormData) {
   const id = formData.get("id") as string;
 
@@ -96,28 +119,20 @@ export async function updateProduct(formData: FormData) {
   const featured = formData.get("featured") === "on";
 
   const price = Number(formData.get("price"));
+  const optionGroups = formData.getAll("option_groups") as string[];
 
-  if (!name) throw new Error("El nombre es obligatorio.");
+  if (!name)
+    throw new Error("El nombre es obligatorio.");
 
-  if (!category_id) throw new Error("La categoría es obligatoria.");
+  if (!category_id)
+    throw new Error("La categoría es obligatoria.");
 
   if (isNaN(price) || price < 0)
     throw new Error("El precio no es válido.");
 
-  console.log("===== UPDATE =====");
-  console.log({
-    id,
-    name,
-    subtitle,
-    description,
-    image,
-    category_id,
-    available,
-    featured,
-    price,
-  });
-
-  const { error: itemError } = await supabase
+  // Actualizar producto
+  
+  const { error: itemError } = await supabaseAdmin
     .from("menu_items")
     .update({
       name,
@@ -132,7 +147,8 @@ export async function updateProduct(formData: FormData) {
 
   if (itemError) throw itemError;
 
-  const { error: priceError } = await supabase
+  // Actualizar precio
+  const { error: priceError } = await supabaseAdmin
     .from("menu_prices")
     .update({
       price,
@@ -141,8 +157,110 @@ export async function updateProduct(formData: FormData) {
 
   if (priceError) throw priceError;
 
+  // Eliminar asociaciones anteriores
+  const { error: deleteOptionsError } = await supabaseAdmin
+    .from("product_option_groups")
+    .delete()
+    .eq("product_id", id);
+
+  if (deleteOptionsError) throw deleteOptionsError;
+
+  // Crear nuevas asociaciones
+  if (optionGroups.length > 0) {
+    const rows = optionGroups.map((group_id) => ({
+      product_id: id,
+      group_id,
+    }));
+
+    const { error: optionError } = await supabaseAdmin
+      .from("product_option_groups")
+      .insert(rows);
+
+    if (optionError) throw optionError;
+  }
+
   revalidatePath("/");
   revalidatePath("/admin");
 
   redirect("/admin");
+}
+export async function createOptionItem(formData: FormData) {
+  console.log("========== CREATE OPTION ==========");
+console.log(Object.fromEntries(formData.entries()));
+  const group_id = formData.get("group_id") as string;
+  const name = (formData.get("name") as string)?.trim();
+
+  const extra_price = Number(formData.get("extra_price"));
+  const order = Number(formData.get("order"));
+  const available = formData.get("available") === "on";
+
+  if (!group_id) {
+    throw new Error("Debe seleccionar un grupo.");
+  }
+
+  if (!name) {
+    throw new Error("El nombre es obligatorio.");
+  }
+console.log({
+  group_id,
+  name,
+  extra_price,
+  order,
+  available,
+});
+  const { error } = await supabaseAdmin
+    .from("option_items")
+    .insert({
+      group_id,
+      name,
+      extra_price,
+      order,
+      available,
+    });
+
+  if (error) throw error;
+
+  revalidatePath("/admin/options");
+
+  redirect("/admin/options");
+}
+
+export async function updateOptionItem(formData: FormData) {
+  const id = formData.get("id") as string;
+
+  if (!id) {
+    throw new Error("Opción no encontrada.");
+  }
+
+  const group_id = formData.get("group_id") as string;
+  const name = (formData.get("name") as string)?.trim();
+
+  const extra_price = Number(formData.get("extra_price"));
+  const order = Number(formData.get("order"));
+  const available = formData.get("available") === "on";
+
+  if (!group_id) {
+    throw new Error("Debe seleccionar un grupo.");
+  }
+
+  if (!name) {
+    throw new Error("El nombre es obligatorio.");
+  }
+
+  const { error } = await supabaseAdmin
+    .from("option_items")
+    .update({
+      group_id,
+      name,
+      extra_price,
+      order,
+      available,
+    })
+    .eq("id", id);
+
+  if (error) throw error;
+
+  revalidatePath("/admin/options");
+
+  redirect("/admin/options");
 }
