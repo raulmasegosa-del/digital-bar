@@ -9,7 +9,7 @@ type Props = {
 export default function CartButton({
   onClick,
 }: Props) {
-  const { items } = useCart();
+const { items } = useCart();
 
   const count = items.reduce(
     (sum, item) => sum + item.quantity,

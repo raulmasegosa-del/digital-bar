@@ -26,9 +26,16 @@ export type CartItem = {
 
 type CartContextType = {
   items: CartItem[];
+
+  notes: string;
+  setNotes: (value: string) => void;
+
   addItem: (item: CartItem) => void;
   removeItem: (index: number) => void;
+  increaseQuantity: (index: number) => void;
+  decreaseQuantity: (index: number) => void;
   clearCart: () => void;
+
   totalItems: number;
   total: number;
 };
@@ -43,6 +50,8 @@ export function CartProvider({
 }) {
   const [items, setItems] = useState<CartItem[]>([]);
 
+  const [notes, setNotes] = useState("");
+
   function addItem(item: CartItem) {
     setItems((current) => {
       const index = current.findIndex((existing) => {
@@ -56,17 +65,10 @@ export function CartProvider({
           return false;
         }
 
-        const existingOptions = existing.options
-          .map((o) => o.optionId)
-          .sort()
-          .join(",");
-
-        const newOptions = item.options
-          .map((o) => o.optionId)
-          .sort()
-          .join(",");
-
-        return existingOptions === newOptions;
+        return existing.options.every(
+          (option, i) =>
+            option.optionId === item.options[i]?.optionId
+        );
       });
 
       if (index === -1) {
@@ -85,6 +87,38 @@ export function CartProvider({
     });
   }
 
+  function increaseQuantity(index: number) {
+    setItems((current) =>
+      current.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              quantity: item.quantity + 1,
+            }
+          : item
+      )
+    );
+  }
+
+  function decreaseQuantity(index: number) {
+    setItems((current) =>
+      current.flatMap((item, i) => {
+        if (i !== index) {
+          return item;
+        }
+
+        if (item.quantity <= 1) {
+          return [];
+        }
+
+        return {
+          ...item,
+          quantity: item.quantity - 1,
+        };
+      })
+    );
+  }
+
   function removeItem(index: number) {
     setItems((current) =>
       current.filter((_, i) => i !== index)
@@ -93,6 +127,7 @@ export function CartProvider({
 
   function clearCart() {
     setItems([]);
+    setNotes("");
   }
 
   const totalItems = useMemo(
@@ -125,9 +160,16 @@ export function CartProvider({
     <CartContext.Provider
       value={{
         items,
+
+        notes,
+        setNotes,
+
         addItem,
         removeItem,
+        increaseQuantity,
+        decreaseQuantity,
         clearCart,
+
         totalItems,
         total,
       }}
