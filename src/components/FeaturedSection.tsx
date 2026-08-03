@@ -1,11 +1,13 @@
-import ProductCard from "@/components/admin/ProductCard";
+import MenuItemCard from "@/components/MenuItemCard";
 import { MenuItem } from "@/types/menu";
 
 type Props = {
   items: MenuItem[];
 };
 
-export default function FeaturedSection({ items }: Props) {
+export default function FeaturedSection({
+  items,
+}: Props) {
   if (items.length === 0) {
     return null;
   }
@@ -18,9 +20,9 @@ export default function FeaturedSection({ items }: Props) {
 
       <div className="space-y-4">
         {items.map((item) => (
-          <ProductCard
+          <MenuItemCard
             key={item.id}
-            product={item}
+            item={item}
           />
         ))}
       </div>

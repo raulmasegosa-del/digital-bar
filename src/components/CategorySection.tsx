@@ -1,4 +1,4 @@
-import ProductCard from "@/components/admin/ProductCard";
+import MenuItemCard from "@/components/MenuItemCard";
 import SectionTitle from "@/components/ui/SectionTitle";
 
 import { MenuCategory, MenuItem } from "@/types/menu";
@@ -25,9 +25,9 @@ export default function CategorySection({
 
       <div className="space-y-4">
         {items.map((item) => (
-          <ProductCard
+          <MenuItemCard
             key={item.id}
-            product={item}
+            item={item}
           />
         ))}
       </div>

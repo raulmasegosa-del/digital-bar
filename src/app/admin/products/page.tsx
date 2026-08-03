@@ -1,8 +1,11 @@
 import ProductForm from "@/components/admin/ProductForm";
 import {
   getCategories,
+  getOptionGroups,
   getProduct,
+  getProductOptionGroups,
 } from "@/lib/db/admin";
+import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +17,15 @@ export default async function EditProductPage({
   const { id } = await params;
 
   const product = await getProduct(id);
+
+  if (!product) {
+    notFound();
+  }
+
   const categories = await getCategories();
+  const optionGroups = await getOptionGroups();
+  const selectedOptionGroups =
+    await getProductOptionGroups(id);
 
   return (
     <main className="min-h-screen bg-amber-50 p-6">
@@ -22,9 +33,18 @@ export default async function EditProductPage({
         <ProductForm
           item={{
             ...product,
-            price: product.menu_prices?.[0]?.price ?? 0,
+            subtitle: product.subtitle ?? "",
+            description:
+              product.description ?? "",
+            image: product.image ?? "",
+            price:
+              product.menu_prices?.[0]?.price ?? 0,
           }}
           categories={categories}
+          optionGroups={optionGroups}
+          selectedOptionGroups={
+            selectedOptionGroups
+          }
         />
       </div>
     </main>

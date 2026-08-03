@@ -1,9 +1,23 @@
-import { supabaseAdmin } from "@/lib/supabase/admin";
-import { OptionGroupInput } from "@/types/option";
+import { supabaseAdmin } from "@/lib/supabase/server";
+import type {
+  OptionGroupInput,
+  ActionResult,
+} from "@/types/options";
+
+export async function getOptionGroups() {
+  const { data, error } = await supabaseAdmin
+    .from("option_groups")
+    .select("*")
+    .order("order");
+
+  if (error) throw error;
+
+  return data ?? [];
+}
 
 export async function createOptionGroup(
   group: OptionGroupInput
-) {
+): Promise<ActionResult> {
   const { data, error } = await supabaseAdmin
     .from("option_groups")
     .insert({
@@ -17,20 +31,19 @@ export async function createOptionGroup(
     .select()
     .single();
 
-  if (error) {
+  if (error || !data) {
     return {
       success: false,
-      message: error.message,
+      message: error?.message ?? "Error al crear el grupo.",
     };
   }
 
   if (group.items.length > 0) {
-    const rows = group.items.map((item, index) => ({
+    const rows = group.items.map((item) => ({
       group_id: data.id,
       name: item.name,
       extra_price: item.extra_price,
       available: item.available,
-      order: index,
     }));
 
     const { error: itemsError } = await supabaseAdmin

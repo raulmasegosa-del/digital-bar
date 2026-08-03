@@ -1,3 +1,4 @@
+import { notFound } from "next/navigation";
 import ProductForm from "@/components/admin/ProductForm";
 import {
   getCategories,
@@ -8,35 +9,32 @@ import {
 
 export const dynamic = "force-dynamic";
 
+type Props = {
+  params: Promise<{
+    id: string;
+  }>;
+};
+
 export default async function EditProductPage({
   params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+}: Props) {
   const { id } = await params;
 
-  const product = await getProduct(id);
+  const [
+    product,
+    categories,
+    optionGroups,
+    productGroups,
+  ] = await Promise.all([
+    getProduct(id),
+    getCategories(),
+    getOptionGroups(),
+    getProductOptionGroups(id),
+  ]);
 
   if (!product) {
-    return (
-      <main className="min-h-screen bg-amber-50 p-6">
-        <div className="mx-auto max-w-2xl rounded-xl bg-white p-8 shadow">
-          <h1 className="text-2xl font-bold">
-            Producto no encontrado
-          </h1>
-
-          <p className="mt-2 text-gray-600">
-            No existe ningún producto con ese ID.
-          </p>
-        </div>
-      </main>
-    );
+    notFound();
   }
-
-  const categories = await getCategories();
-  const optionGroups = await getOptionGroups();
-  const selectedOptionGroups =
-    await getProductOptionGroups(id);
 
   return (
     <main className="min-h-screen bg-amber-50 p-6">
@@ -44,11 +42,15 @@ export default async function EditProductPage({
         <ProductForm
           item={{
             ...product,
-            price: product.menu_prices?.[0]?.price ?? 0,
+            subtitle: product.subtitle ?? "",
+            description: product.description ?? "",
+            image: product.image ?? "",
+            price:
+              product.menu_prices?.[0]?.price ?? 0,
           }}
           categories={categories}
           optionGroups={optionGroups}
-          selectedOptionGroups={selectedOptionGroups}
+          selectedOptionGroups={productGroups}
         />
       </div>
     </main>

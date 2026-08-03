@@ -44,39 +44,46 @@ export function CartProvider({
   const [items, setItems] = useState<CartItem[]>([]);
 
   function addItem(item: CartItem) {
-  setItems((current) => {
-    const index = current.findIndex((existing) => {
-      if (existing.productId !== item.productId) {
-        return false;
+    setItems((current) => {
+      const index = current.findIndex((existing) => {
+        if (existing.productId !== item.productId) {
+          return false;
+        }
+
+        if (
+          existing.options.length !== item.options.length
+        ) {
+          return false;
+        }
+
+        const existingOptions = existing.options
+          .map((o) => o.optionId)
+          .sort()
+          .join(",");
+
+        const newOptions = item.options
+          .map((o) => o.optionId)
+          .sort()
+          .join(",");
+
+        return existingOptions === newOptions;
+      });
+
+      if (index === -1) {
+        return [...current, item];
       }
 
-      if (
-        existing.options.length !== item.options.length
-      ) {
-        return false;
-      }
+      const updated = [...current];
 
-      return existing.options.every(
-        (option, i) =>
-          option.optionId === item.options[i]?.optionId
-      );
+      updated[index] = {
+        ...updated[index],
+        quantity:
+          updated[index].quantity + item.quantity,
+      };
+
+      return updated;
     });
-
-    if (index === -1) {
-      return [...current, item];
-    }
-
-    const updated = [...current];
-
-    updated[index] = {
-      ...updated[index],
-      quantity:
-        updated[index].quantity + item.quantity,
-    };
-
-    return updated;
-  });
-}
+  }
 
   function removeItem(index: number) {
     setItems((current) =>

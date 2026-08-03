@@ -79,7 +79,7 @@ export default function Cart({
                       {item.options.map(
                         (option, i) => (
                           <li key={i}>
-                            • {option.name}
+                            • {option.optionName}
                           </li>
                         )
                       )}
