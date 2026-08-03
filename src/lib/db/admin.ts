@@ -31,11 +31,13 @@ export async function getCategories(): Promise<AdminCategory[]> {
     .select("*")
     .order("order");
 
+  console.log("GET CATEGORIES DATA:", data);
+  console.log("GET CATEGORIES ERROR:", error);
+
   if (error) throw error;
 
   return (data ?? []) as AdminCategory[];
 }
-
 export async function getProduct(
   id: string
 ): Promise<AdminProduct | null> {

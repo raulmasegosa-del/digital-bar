@@ -15,18 +15,11 @@ export type MenuItem = {
   name: string;
   subtitle?: string;
   description: string;
-
   prices: MenuPrice[];
-
   image?: string;
-
   featured?: boolean;
-
   available?: boolean;
-
   allergens?: string[];
-
   order: number;
-
   tags?: string[];
 };

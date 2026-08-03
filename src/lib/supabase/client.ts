@@ -1,5 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
-
+console.log("URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+console.log(
+  "SERVICE ROLE:",
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+    ? "OK"
+    : "NO EXISTE"
+);
 export const supabaseClient = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
