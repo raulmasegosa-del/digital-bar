@@ -118,7 +118,7 @@ export async function getOptionItems(): Promise<AdminOptionItem[]> {
 
   if (error) throw error;
 
-  console.log("OPTION ITEMS:", data);
+
 
   return (data ?? []) as AdminOptionItem[];
 }

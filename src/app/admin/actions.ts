@@ -185,8 +185,7 @@ export async function updateProduct(formData: FormData) {
   redirect("/admin");
 }
 export async function createOptionItem(formData: FormData) {
-  console.log("========== CREATE OPTION ==========");
-console.log(Object.fromEntries(formData.entries()));
+  
   const group_id = formData.get("group_id") as string;
   const name = (formData.get("name") as string)?.trim();
 
@@ -201,13 +200,7 @@ console.log(Object.fromEntries(formData.entries()));
   if (!name) {
     throw new Error("El nombre es obligatorio.");
   }
-console.log({
-  group_id,
-  name,
-  extra_price,
-  order,
-  available,
-});
+
   const { error } = await supabaseAdmin
     .from("option_items")
     .insert({

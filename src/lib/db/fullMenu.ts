@@ -34,8 +34,7 @@ export async function getFullMenu() {
   } = await supabase
     .from("product_option_groups")
     .select("*");
-console.log("PRODUCT GROUPS");
-console.log(productGroups);
+
   if (productGroupError) throw productGroupError;
 
   // Grupos
@@ -73,9 +72,7 @@ console.log(productGroups);
             (g) => g.product_id === item.id
           )
           .map((g) => g.group_id);
-console.log("ITEM:", item.name);
-console.log("ID:", item.id);
-console.log("GROUP IDS:", groupIds);
+
         return {
           ...item,
 

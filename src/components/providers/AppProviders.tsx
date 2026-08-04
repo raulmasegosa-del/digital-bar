@@ -13,17 +13,21 @@ type Props = {
   children: ReactNode;
 };
 
+import { ToastProvider } from "@/context/ToastContext";
+
 export default function AppProviders({
   settings,
   children,
 }: Props) {
   return (
-    <SettingsProvider settings={settings}>
-      <CartProvider>
-        <TableProvider>
-          {children}
-        </TableProvider>
-      </CartProvider>
-    </SettingsProvider>
+    <ToastProvider>
+      <SettingsProvider settings={settings}>
+        <CartProvider>
+          <TableProvider>
+            {children}
+          </TableProvider>
+        </CartProvider>
+      </SettingsProvider>
+    </ToastProvider>
   );
 }

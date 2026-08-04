@@ -22,9 +22,10 @@ export async function createOrder({
     .select()
     .single();
 
-  if (error) {
-    throw error;
-  }
+if (error) {
+  console.error("ORDER ERROR:", error);
+  throw new Error(error.message);
+}
 
   const rows = items.map((item) => ({
     order_id: order.id,
@@ -40,8 +41,9 @@ export async function createOrder({
     .insert(rows);
 
   if (itemError) {
-    throw itemError;
-  }
+  console.error("ORDER ITEMS ERROR:", itemError);
+  throw new Error(itemError.message);
+}
 
   return order;
 }

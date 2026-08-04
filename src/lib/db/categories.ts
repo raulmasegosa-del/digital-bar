@@ -5,8 +5,7 @@ export async function getCategories() {
     .from("categories")
     .select("*");
 
-  console.log("DATA:", data);
-  console.log("ERROR:", error);
+
 
   if (error) throw error;
 

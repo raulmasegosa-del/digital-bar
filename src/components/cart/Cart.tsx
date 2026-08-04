@@ -1,4 +1,6 @@
 "use client";
+import { useToast } from "@/context/ToastContext";
+
 import { useSettings } from "@/context/SettingsContext";
 import { Trash2, Minus, Plus } from "lucide-react";
 import { useState } from "react";
@@ -44,7 +46,9 @@ export default function Cart({
   } = useTable();
 
 const { settings } = useSettings();
-  const [sending, setSending] = useState(false);
+//const { showToast } = useToast();
+
+const [sending, setSending] = useState(false);
 
 
 
@@ -53,64 +57,49 @@ const { settings } = useSettings();
 
 
   async function sendOrder() {
+  if (items.length === 0) return;
 
-    if (items.length === 0) return;
+  try {
+    setSending(true);
 
+    // Guardar pedido en Supabase
+    await createOrder({
+      table,
+      items,
+      notes,
+      total,
+    });
 
-    try {
+    // Crear mensaje WhatsApp
+    const message = buildWhatsAppMessage({
+      items,
+      tableNumber: table,
+      notes,
+      total,
+    });
 
-      setSending(true);
+    // Abrir WhatsApp
+    openWhatsApp(
+      settings.whatsapp,
+      message
+    );
 
+    // Limpiar carrito
+    clearCart();
 
-      // Guardar pedido en Supabase
-      await createOrder({
-        table,
-        items,
-        notes,
-        total,
-      });
+    // Cerrar panel
+    onClose();
+  } catch (error) {
+    console.error("ERROR COMPLETO:", error);
 
+   if (error instanceof Error) {
+} else {
+}
 
-
-      // Crear mensaje WhatsApp
-const message = buildWhatsAppMessage({
-  items,
-  tableNumber: table,
-  notes,
-  total,
-});
-
-// Abrir WhatsApp
-openWhatsApp(
-  settings.whatsapp,
-  message
-);
-
-// Limpiar carrito
-clearCart();
-
-// Cerrar panel
-onClose();
-
-
-
-
-    } catch (error) {
-
-      console.error(error);
-
-      alert(
-        "❌ Error enviando el pedido"
-      );
-
-
-    } finally {
-
-      setSending(false);
-
-    }
-
+  } finally {
+    setSending(false);
   }
+}
 
 
 
@@ -411,67 +400,66 @@ onClose();
         {/* PIE */}
 
 
-        <div className="
-          border-t p-5
-        ">
+        <div className="border-t p-5">
+  <div className="mb-5 flex justify-between">
+    <span className="text-xl font-bold">
+      Total
+    </span>
 
+    <span className="text-3xl font-bold text-amber-600">
+      {total.toFixed(2)} €
+    </span>
+  </div>
 
-          <div className="
-            mb-5 flex justify-between
-          ">
+  <div className="flex gap-3">
+    <button
+      type="button"
+      onClick={() => {
+        if (
+          confirm(
+            "¿Cancelar el pedido y vaciar el carrito?"
+          )
+        ) {
+          clearCart();
+          onClose();
+        }
+      }}
+      disabled={sending || items.length === 0}
+      className="
+        flex-1 rounded-xl
+        border border-red-300
+        bg-white
+        py-3
+        font-semibold
+        text-red-600
+        transition
+        hover:bg-red-50
+        disabled:opacity-50
+      "
+    >
+      🗑️ Cancelar pedido
+    </button>
 
-
-            <span className="text-xl font-bold">
-              Total
-            </span>
-
-
-
-            <span className="
-              text-3xl font-bold
-              text-amber-600
-            ">
-
-              {total.toFixed(2)} €
-
-            </span>
-
-
-          </div>
-
-
-
-
-
-          <button
-
-            onClick={sendOrder}
-
-            disabled={sending}
-
-            className="
-            w-full rounded-xl
-            bg-green-600
-            py-3
-            font-semibold
-            text-white
-            hover:bg-green-700
-            disabled:opacity-50
-            "
-
-          >
-
-            {sending
-              ? "Enviando..."
-              : "Enviar pedido"
-            }
-
-
-          </button>
-
-
-
-        </div>
+    <button
+      onClick={sendOrder}
+      disabled={sending || items.length === 0}
+      className="
+        flex-1 rounded-xl
+        bg-green-600
+        py-3
+        font-semibold
+        text-white
+        transition
+        hover:bg-green-700
+        disabled:opacity-50
+      "
+    >
+      {sending
+        ? "Enviando..."
+        : "Enviar pedido"}
+    </button>
+  </div>
+</div>
 
 
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Menu from "./Menu";
-import Cart from "./Cart";
+import Cart from "./cart/Cart";
 import CartButton from "./CartButton";
 
 export default function ClientMenu() {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Cart from "./Cart";
+import Cart from "./cart/Cart";
 import CartButton from "./CartButton";
 import { useTable } from "@/context/TableContext";
 

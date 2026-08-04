@@ -19,7 +19,7 @@ export default function KitchenRealtime() {
           table: "orders",
         },
         (payload) => {
-          console.log("Realtime:", payload);
+         
 
           // Solo reproducimos sonido cuando llega un pedido nuevo
           if (payload.eventType === "INSERT") {
@@ -40,7 +40,6 @@ export default function KitchenRealtime() {
         }
       )
       .subscribe((status) => {
-        console.log("Realtime status:", status);
       });
 
     return () => {
