@@ -17,18 +17,15 @@ export default function KitchenCard({
     order.created_at
   );
 
-  let borderClass =
-    "border-gray-200";
+  let borderClass = "border-gray-200";
 
   switch (priority) {
     case "warning":
-      borderClass =
-        "border-amber-400";
+      borderClass = "border-amber-400";
       break;
 
     case "urgent":
-      borderClass =
-        "border-red-500";
+      borderClass = "border-red-500";
       break;
   }
 
@@ -45,12 +42,10 @@ export default function KitchenCard({
         duration-300
       `}
     >
-      {/* Cabecera */}
-
       <div className="mb-5 flex items-start justify-between">
         <div>
           <h2 className="text-2xl font-bold">
-            Mesa {order.table_number || "-"}
+            Mesa {order.table}
           </h2>
 
           <OrderTimer
@@ -63,21 +58,23 @@ export default function KitchenCard({
         />
       </div>
 
-      {/* Productos */}
-
       <div className="mb-5 space-y-3">
-        {order.order_items?.map((item) => (
+        {order.order_items.map((item) => (
           <div
             key={item.id}
-            className="border-b pb-3"
+            className="border-b pb-3 last:border-b-0"
           >
             <div className="flex justify-between">
               <span className="font-semibold">
                 {item.quantity} × {item.name}
               </span>
+
+              <span>
+                {(item.price * item.quantity).toFixed(2)} €
+              </span>
             </div>
 
-            {item.options?.length > 0 && (
+            {item.options.length > 0 && (
               <ul className="mt-1 text-sm text-gray-500">
                 {item.options.map(
                   (option, index) => (
@@ -92,8 +89,6 @@ export default function KitchenCard({
         ))}
       </div>
 
-      {/* Observaciones */}
-
       {order.notes && (
         <div className="mb-5 rounded-xl bg-amber-50 p-3">
           <p className="font-semibold">
@@ -106,7 +101,15 @@ export default function KitchenCard({
         </div>
       )}
 
-      {/* Acciones */}
+      <div className="mb-5 flex items-center justify-between border-t pt-4">
+        <span className="font-semibold">
+          Total
+        </span>
+
+        <span className="text-lg font-bold text-green-600">
+          {order.total.toFixed(2)} €
+        </span>
+      </div>
 
       <OrderActions
         orderId={order.id}

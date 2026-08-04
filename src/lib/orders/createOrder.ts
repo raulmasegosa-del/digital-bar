@@ -1,16 +1,18 @@
 import { supabase } from "@/lib/supabase/client";
 
+type CreateOrderParams = {
+  table: string;
+  items: any[];
+  notes: string;
+  total: number;
+};
+
 export async function createOrder({
   table,
   items,
   notes,
   total,
-}: {
-  table: string;
-  items: any[];
-  notes: string;
-  total: number;
-}) {
+}: CreateOrderParams) {
   const { data: order, error } = await supabase
     .from("orders")
     .insert({
@@ -22,10 +24,9 @@ export async function createOrder({
     .select()
     .single();
 
-if (error) {
-  console.error("ORDER ERROR:", error);
-  throw new Error(error.message);
-}
+  if (error) {
+    throw error;
+  }
 
   const rows = items.map((item) => ({
     order_id: order.id,
@@ -41,9 +42,8 @@ if (error) {
     .insert(rows);
 
   if (itemError) {
-  console.error("ORDER ITEMS ERROR:", itemError);
-  throw new Error(itemError.message);
-}
+    throw itemError;
+  }
 
   return order;
 }

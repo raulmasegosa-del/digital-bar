@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { updateOrderStatus } from "@/lib/orders/updateOrderStatus";
 
 type Props = {
@@ -13,193 +12,106 @@ export default function OrderActions({
   orderId,
   currentStatus,
 }: Props) {
-
-  const router = useRouter();
-
   const [status, setStatus] = useState(
-    currentStatus || "pendiente"
+    currentStatus || "pending"
   );
 
-  const [loading, setLoading] = useState(false);
-
+  const [loading, setLoading] =
+    useState(false);
 
   async function changeStatus(
     newStatus: string
   ) {
-
     try {
-
       setLoading(true);
-
 
       await updateOrderStatus(
         orderId,
         newStatus
       );
 
-
       setStatus(newStatus);
-
-
-      // Actualiza los datos del servidor
-      router.refresh();
-
-
-    } catch (error) {
-
-      console.error(error);
-
+    } catch {
       alert(
         "❌ Error actualizando el pedido"
       );
-
-
     } finally {
-
       setLoading(false);
-
     }
-
   }
-
-
 
   return (
     <div className="mt-5 space-y-3">
-
-
-      <div className="
-        flex
-        items-center
-        justify-between
-      ">
-
+      <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-gray-600">
           Estado:
         </span>
 
-
-        <span className="
-          rounded-full
-          bg-gray-100
-          px-3
-          py-1
-          text-sm
-          font-semibold
-        ">
+        <span
+          className="
+            rounded-full
+            bg-gray-100
+            px-3
+            py-1
+            text-sm
+            font-semibold
+          "
+        >
           {status}
         </span>
-
       </div>
 
-
-
-      <div className="
-        grid
-        grid-cols-3
-        gap-2
-      ">
-
+      <div className="grid grid-cols-4 gap-2">
+        <button
+          disabled={loading}
+          onClick={() =>
+            changeStatus("pending")
+          }
+          className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-100 disabled:opacity-50"
+        >
+          🟡
+        </button>
 
         <button
           disabled={loading}
           onClick={() =>
-            changeStatus("pendiente")
+            changeStatus("preparing")
           }
-          className="
-            rounded-lg
-            border
-            px-3
-            py-2
-            text-sm
-            hover:bg-gray-100
-            disabled:opacity-50
-          "
+          className="rounded-lg bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          🟡 Pendiente
+          👨‍🍳
         </button>
-
-
 
         <button
           disabled={loading}
           onClick={() =>
-            changeStatus("preparando")
+            changeStatus("ready")
           }
-          className="
-            rounded-lg
-            bg-blue-600
-            px-3
-            py-2
-            text-sm
-            text-white
-            hover:bg-blue-700
-            disabled:opacity-50
-          "
+          className="rounded-lg bg-amber-500 px-3 py-2 text-sm text-white hover:bg-amber-600 disabled:opacity-50"
         >
-          🔵 Preparar
+          🍽️
         </button>
-
-
 
         <button
           disabled={loading}
           onClick={() =>
-            changeStatus("servido")
+            changeStatus("served")
           }
-          className="
-            rounded-lg
-            bg-green-600
-            px-3
-            py-2
-            text-sm
-            text-white
-            hover:bg-green-700
-            disabled:opacity-50
-          "
+          className="rounded-lg bg-green-600 px-3 py-2 text-sm text-white hover:bg-green-700 disabled:opacity-50"
         >
-          🟢 Servido
+          ✅
         </button>
-
-
       </div>
-
-
 
       <button
         disabled={loading}
         onClick={() =>
-          changeStatus("cerrado")
+          changeStatus("cancelled")
         }
-        className="
-          w-full
-          rounded-lg
-          border
-          border-gray-300
-          px-3
-          py-2
-          text-sm
-          hover:bg-gray-100
-          disabled:opacity-50
-        "
+        className="w-full rounded-lg border border-red-300 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
       >
-        ⚫ Cerrar pedido
+        ❌ Cancelar pedido
       </button>
-
-
-      {
-        loading && (
-          <p className="
-            text-center
-            text-sm
-            text-gray-500
-          ">
-            Actualizando...
-          </p>
-        )
-      }
-
-
     </div>
   );
 }

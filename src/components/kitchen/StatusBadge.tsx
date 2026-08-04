@@ -1,5 +1,7 @@
+import type { OrderStatus } from "@/types/orders";
+
 type Props = {
-  status: string;
+  status: OrderStatus;
 };
 
 export default function StatusBadge({
@@ -16,14 +18,28 @@ export default function StatusBadge({
     case "preparing":
       return (
         <span className="rounded-full bg-blue-100 px-3 py-1 font-semibold text-blue-700">
-          🔵 Preparando
+          👨‍🍳 Preparando
+        </span>
+      );
+
+    case "ready":
+      return (
+        <span className="rounded-full bg-emerald-100 px-3 py-1 font-semibold text-emerald-700">
+          🍽️ Listo
         </span>
       );
 
     case "served":
       return (
-        <span className="rounded-full bg-green-100 px-3 py-1 font-semibold text-green-700">
-          🟢 Listo
+        <span className="rounded-full bg-gray-200 px-3 py-1 font-semibold text-gray-700">
+          ✅ Servido
+        </span>
+      );
+
+    case "cancelled":
+      return (
+        <span className="rounded-full bg-red-100 px-3 py-1 font-semibold text-red-700">
+          ❌ Cancelado
         </span>
       );
 

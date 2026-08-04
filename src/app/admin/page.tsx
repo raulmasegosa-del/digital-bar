@@ -1,79 +1,48 @@
-import Link from "next/link";
+import DashboardHeader from "@/components/admin/dashboard/DashboardHeader";
+import DashboardRealtime from "@/components/admin/dashboard/DashboardRealtime";
+import RecentOrders from "@/components/admin/dashboard/RecentOrders";
+import StatsGrid from "@/components/admin/dashboard/StatsGrid";
+import TopProducts from "@/components/admin/dashboard/TopProducts";
+import KitchenMetrics from "@/components/admin/dashboard/KitchenMetrics";
+import { getDashboardData } from "@/lib/dashboard/DashboardService";
+import RestaurantStatus from "@/components/admin/dashboard/RestaurantStatus";
+export default async function AdminPage() {
+  const dashboard =
+    await getDashboardData();
 
-import PageHeader from "@/components/admin/PageHeader";
-import StatCard from "@/components/admin/StatCard";
-
-export const dynamic = "force-dynamic";
-
-export default function AdminPage() {
   return (
-    <div className="space-y-8">
-      <PageHeader
-        title="Panel de administración"
-        description="Resumen general del restaurante."
-      />
+    <main className="min-h-screen bg-gray-100 p-8">
+      <div className="mx-auto max-w-7xl space-y-8">
+        <DashboardHeader />
 
-      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          icon="📋"
-          title="Pedidos pendientes"
-          value={3}
+        <DashboardRealtime />
+<RestaurantStatus
+  title={dashboard.restaurantStatus.title}
+  description={dashboard.restaurantStatus.description}
+  status={dashboard.restaurantStatus.status}
+/>
+        <StatsGrid
+          stats={dashboard.stats}
         />
 
-        <StatCard
-          icon="👨‍🍳"
-          title="Preparando"
-          value={2}
-        />
+        <div className="grid gap-8 lg:grid-cols-2">
+          <RecentOrders
+            orders={dashboard.recentOrders}
+          />
 
-        <StatCard
-          icon="🍔"
-          title="Productos"
-          value={42}
-        />
-
-        <StatCard
-          icon="📂"
-          title="Categorías"
-          value={8}
-        />
-      </section>
-
-      <section className="rounded-2xl bg-white p-8 shadow">
-        <h2 className="mb-4 text-xl font-bold">
-          Accesos rápidos
-        </h2>
-
-        <div className="flex flex-wrap gap-4">
-          <Link
-            href="/admin/orders"
-            className="rounded-xl bg-amber-600 px-5 py-3 font-semibold text-white hover:bg-amber-700"
-          >
-            📋 Pedidos
-          </Link>
-
-          <Link
-            href="/admin/new"
-            className="rounded-xl bg-amber-600 px-5 py-3 font-semibold text-white hover:bg-amber-700"
-          >
-            ➕ Nuevo producto
-          </Link>
-
-          <Link
-            href="/admin/settings"
-            className="rounded-xl bg-amber-600 px-5 py-3 font-semibold text-white hover:bg-amber-700"
-          >
-            ⚙️ Configuración
-          </Link>
-
-          <Link
-            href="/admin/qr"
-            className="rounded-xl bg-amber-600 px-5 py-3 font-semibold text-white hover:bg-amber-700"
-          >
-            🖨️ QR
-          </Link>
+          <TopProducts
+            products={dashboard.topProducts}
+          />
+          <KitchenMetrics
+  averagePreparationTime={
+    dashboard.averagePreparationTime
+  }
+  activeTables={
+    dashboard.activeTables
+  }
+/>
         </div>
-      </section>
-    </div>
+      </div>
+    </main>
   );
 }

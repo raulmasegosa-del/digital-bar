@@ -1,8 +1,8 @@
 import { supabase } from "@/lib/supabase/client";
+import type { Order } from "@/types/orders";
 
-export async function getOrders() {
-
-  const { data: orders, error } = await supabase
+export async function getOrders(): Promise<Order[]> {
+  const { data, error } = await supabase
     .from("orders")
     .select(`
       id,
@@ -11,7 +11,6 @@ export async function getOrders() {
       total,
       status,
       created_at,
-
       order_items (
         id,
         product_id,
@@ -21,15 +20,21 @@ export async function getOrders() {
         options
       )
     `)
+    .in("status", [
+      "pending",
+      "preparing",
+      "ready",
+    ])
     .order("created_at", {
-      ascending: false,
+      ascending: true,
     });
-
 
   if (error) {
     throw error;
   }
 
-
-  return orders ?? [];
+  return (data ?? []).map((order) => ({
+    ...order,
+    table: order.table_number,
+  })) as Order[];
 }

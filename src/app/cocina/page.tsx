@@ -1,29 +1,18 @@
 import KitchenBoard from "@/components/kitchen/KitchenBoard";
-import { getOrders } from "../admin/getOrders";
+import ServiceCallsBoard from "@/components/service/ServiceCallsBoard";
 
-
-export default async function CocinaPage() {
-
-  const orders = await getOrders();
-
-
+export default function CocinaPage() {
   return (
-
     <main className="min-h-screen bg-gray-100 p-6">
-
-      <div className="mx-auto max-w-6xl">
-
-        <h1 className="mb-8 text-4xl font-bold">
+      <div className="mx-auto max-w-7xl space-y-8">
+        <h1 className="text-4xl font-bold">
           👨‍🍳 Cocina
         </h1>
 
+        <ServiceCallsBoard />
 
-        <KitchenBoard orders={orders}/>
-
-
+        <KitchenBoard />
       </div>
-
     </main>
-
   );
 }

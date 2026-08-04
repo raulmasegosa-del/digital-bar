@@ -4,21 +4,20 @@ export async function updateOrderStatus(
   orderId: string,
   status: string
 ) {
+  console.log("UPDATE ORDER:", orderId, status);
 
   const { data, error } = await supabase
     .from("orders")
-    .update({
-      status,
-    })
+    .update({ status })
     .eq("id", orderId)
-    .select()
-    .single();
+    .select();
 
+  console.log("DATA:", data);
+  console.log("ERROR:", error);
 
   if (error) {
     throw error;
   }
-
 
   return data;
 }

@@ -2,6 +2,9 @@ import Header from "@/components/Header";
 import CategoryNavigation from "@/components/CategoryNavigation";
 import Menu from "@/components/Menu";
 import CartUI from "@/components/CartUI";
+import OrderRealtime from "@/components/order/OrderRealtime";
+
+import WaiterActions from "@/components/waiter/WaiterActions";
 
 export default function Home() {
   return (
@@ -9,11 +12,15 @@ export default function Home() {
       <div className="mx-auto max-w-4xl">
         <Header />
 
+        <WaiterActions />
+
         <CategoryNavigation />
 
         <Menu />
 
         <CartUI />
+
+        <OrderRealtime />
       </div>
     </main>
   );

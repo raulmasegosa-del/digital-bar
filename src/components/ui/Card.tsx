@@ -10,18 +10,16 @@ export default function Card({
   className = "",
 }: Props) {
   return (
-    <div
+    <section
       className={`
         rounded-2xl
         bg-white
         p-6
         shadow
-        border
-        border-gray-100
         ${className}
       `}
     >
       {children}
-    </div>
+    </section>
   );
 }

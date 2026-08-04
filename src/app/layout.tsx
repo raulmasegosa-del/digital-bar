@@ -7,6 +7,19 @@ import { getRestaurantSettings } from "@/lib/db/settings";
 export const metadata: Metadata = {
   title: "Digital Bar",
   description: "Carta digital",
+
+  manifest: "/manifest.webmanifest",
+
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Digital Bar",
+  },
+
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/icon-192.png",
+  },
 };
 
 export default async function RootLayout({
@@ -14,7 +27,8 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const settings = await getRestaurantSettings();
+  const settings =
+    await getRestaurantSettings();
 
   return (
     <html lang="es">

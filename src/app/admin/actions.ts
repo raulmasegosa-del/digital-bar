@@ -257,3 +257,37 @@ export async function updateOptionItem(formData: FormData) {
 
   redirect("/admin/options");
 }
+export async function toggleProductAvailable(
+  id: string,
+  available: boolean
+) {
+  const { error } = await supabaseAdmin
+    .from("menu_items")
+    .update({
+      available,
+    })
+    .eq("id", id);
+
+  if (error) {
+    throw error;
+  }
+
+  revalidatePath("/admin/products");
+}
+export async function toggleProductFeatured(
+  id: string,
+  featured: boolean
+) {
+  const { error } = await supabaseAdmin
+    .from("menu_items")
+    .update({
+      featured,
+    })
+    .eq("id", id);
+
+  if (error) {
+    throw error;
+  }
+
+  revalidatePath("/admin/products");
+}

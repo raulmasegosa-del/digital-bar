@@ -1,52 +1,36 @@
-import ProductForm from "@/components/admin/ProductForm";
-import {
-  getCategories,
-  getOptionGroups,
-  getProduct,
-  getProductOptionGroups,
-} from "@/lib/db/admin";
-import { notFound } from "next/navigation";
+import Link from "next/link";
+
+import ProductTable from "@/components/admin/ProductTable";
+
+import { getAdminProducts } from "@/lib/db/admin";
 
 export const dynamic = "force-dynamic";
 
-export default async function EditProductPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-
-  const product = await getProduct(id);
-
-  if (!product) {
-    notFound();
-  }
-
-  const categories = await getCategories();
-  const optionGroups = await getOptionGroups();
-  const selectedOptionGroups =
-    await getProductOptionGroups(id);
+export default async function ProductsPage() {
+  const products = await getAdminProducts();
 
   return (
-    <main className="min-h-screen bg-amber-50 p-6">
-      <div className="mx-auto max-w-2xl">
-        <ProductForm
-          item={{
-            ...product,
-            subtitle: product.subtitle ?? "",
-            description:
-              product.description ?? "",
-            image: product.image ?? "",
-            price:
-              product.menu_prices?.[0]?.price ?? 0,
-          }}
-          categories={categories}
-          optionGroups={optionGroups}
-          selectedOptionGroups={
-            selectedOptionGroups
-          }
-        />
+    <main className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold">
+            🍔 Productos
+          </h1>
+
+          <p className="mt-2 text-gray-500">
+            Gestiona la carta del restaurante.
+          </p>
+        </div>
+
+        <Link
+          href="/admin/new"
+          className="rounded-xl bg-amber-600 px-5 py-3 font-semibold text-white transition hover:bg-amber-700"
+        >
+          + Nuevo producto
+        </Link>
       </div>
+
+      <ProductTable items={products} />
     </main>
   );
 }

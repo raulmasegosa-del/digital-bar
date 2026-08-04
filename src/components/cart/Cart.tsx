@@ -7,7 +7,7 @@ import { useState } from "react";
 
 import { useCart } from "@/context/CartContext";
 import { useTable } from "@/context/TableContext";
-
+import { useOrder } from "@/context/OrderContext";
 import { createOrder } from "@/lib/orders/createOrder";
 
 import {
@@ -41,16 +41,16 @@ export default function Cart({
 
 
   const {
-    table,
-    setTable,
-  } = useTable();
+  table,
+  setTable,
+} = useTable();
+
+const { setOrder } = useOrder();
 
 const { settings } = useSettings();
-//const { showToast } = useToast();
+const { showToast } = useToast();
 
 const [sending, setSending] = useState(false);
-
-
 
   if (!open) return null;
 
@@ -63,13 +63,22 @@ const [sending, setSending] = useState(false);
     setSending(true);
 
     // Guardar pedido en Supabase
-    await createOrder({
-      table,
-      items,
-      notes,
-      total,
-    });
-
+const order = await createOrder({
+  table,
+  items,
+  notes,
+  total,
+});
+setOrder({
+  id: order.id,
+  table,
+  status: order.status,
+});
+console.log("SET ORDER", {
+  id: order.id,
+  table,
+  status: order.status,
+});
     // Crear mensaje WhatsApp
     const message = buildWhatsAppMessage({
       items,
@@ -79,10 +88,10 @@ const [sending, setSending] = useState(false);
     });
 
     // Abrir WhatsApp
-    openWhatsApp(
-      settings.whatsapp,
-      message
-    );
+  //  openWhatsApp(
+    //  settings.whatsapp,
+      //message
+    //);
 
     // Limpiar carrito
     clearCart();

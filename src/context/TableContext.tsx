@@ -4,171 +4,137 @@ import {
   createContext,
   useContext,
   useEffect,
-  useMemo,
   useState,
-  useSyncExternalStore,
-  ReactNode,
+  type ReactNode,
 } from "react";
-
 
 type TableContextType = {
   restaurant: string;
   table: string;
-
   setRestaurant: (
     restaurant: string
   ) => void;
-
   setTable: (
     table: string
   ) => void;
 };
 
-
 const TableContext =
-  createContext<TableContextType | null>(null);
+  createContext<TableContextType | null>(
+    null
+  );
 
+const TABLE_KEY =
+  "digital-bar-table";
 
+const RESTAURANT_KEY =
+  "digital-bar-restaurant";
 
 export function TableProvider({
   children,
 }: {
   children: ReactNode;
 }) {
+  const [
+    restaurant,
+    setRestaurantState,
+  ] = useState("");
 
-
-  const [restaurant, setRestaurant] =
+  const [table, setTableState] =
     useState("");
-
-
-  const [table, setTable] =
-    useState("");
-
-
 
   useEffect(() => {
-
     const params =
       new URLSearchParams(
         window.location.search
       );
 
-
     const mesa =
       params.get("mesa");
-
 
     const bar =
       params.get("bar");
 
-
-
     if (mesa) {
-
-      setTable(mesa);
-
+      setTableState(mesa);
       localStorage.setItem(
-        "digital-bar-table",
+        TABLE_KEY,
         mesa
       );
+    } else {
+      const saved =
+        localStorage.getItem(
+          TABLE_KEY
+        );
 
+      if (saved) {
+        setTableState(saved);
+      }
     }
-
-
 
     if (bar) {
-
-      setRestaurant(bar);
-
+      setRestaurantState(bar);
       localStorage.setItem(
-        "digital-bar-restaurant",
+        RESTAURANT_KEY,
         bar
       );
-
-    }
-
-
-
-    if (!mesa) {
-
-      const savedTable =
+    } else {
+      const saved =
         localStorage.getItem(
-          "digital-bar-table"
+          RESTAURANT_KEY
         );
 
-
-      if(savedTable){
-        setTable(savedTable);
+      if (saved) {
+        setRestaurantState(saved);
       }
-
     }
-
-
-
-    if (!bar) {
-
-      const savedRestaurant =
-        localStorage.getItem(
-          "digital-bar-restaurant"
-        );
-
-
-      if(savedRestaurant){
-        setRestaurant(
-          savedRestaurant
-        );
-      }
-
-    }
-
-
   }, []);
 
+  function setTable(
+    value: string
+  ) {
+    setTableState(value);
 
+    localStorage.setItem(
+      TABLE_KEY,
+      value
+    );
+  }
+
+  function setRestaurant(
+    value: string
+  ) {
+    setRestaurantState(value);
+
+    localStorage.setItem(
+      RESTAURANT_KEY,
+      value
+    );
+  }
 
   return (
-
     <TableContext.Provider
       value={{
-
         restaurant,
-
         table,
-
         setRestaurant,
-
         setTable,
-
       }}
     >
-
       {children}
-
     </TableContext.Provider>
-
   );
-
 }
 
-
-
-
-export function useTable(){
-
+export function useTable() {
   const context =
     useContext(TableContext);
 
-
-
-  if(!context){
-
+  if (!context) {
     throw new Error(
       "useTable debe usarse dentro de TableProvider"
     );
-
   }
 
-
   return context;
-
 }

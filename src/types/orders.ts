@@ -1,6 +1,7 @@
 export type OrderStatus =
   | "pending"
   | "preparing"
+  | "ready"
   | "served"
   | "completed"
   | "cancelled";
@@ -23,6 +24,7 @@ export type OrderItem = {
 export type Order = {
   id: string;
   table_number: string;
+  table: string;
   notes: string | null;
   total: number;
   status: OrderStatus;

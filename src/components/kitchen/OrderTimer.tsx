@@ -9,23 +9,38 @@ type Props = {
 export default function OrderTimer({
   createdAt,
 }: Props) {
-  const getMinutes = () =>
-    Math.floor(
-      (Date.now() -
-        new Date(createdAt).getTime()) /
-        60000
-    );
-
   const [minutes, setMinutes] =
-    useState(getMinutes());
+    useState<number | null>(null);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setMinutes(getMinutes());
-    }, 1000);
+    function update() {
+      setMinutes(
+        Math.floor(
+          (Date.now() -
+            new Date(createdAt).getTime()) /
+            60000
+        )
+      );
+    }
 
-    return () => clearInterval(interval);
+    update();
+
+    const interval = setInterval(
+      update,
+      1000
+    );
+
+    return () =>
+      clearInterval(interval);
   }, [createdAt]);
+
+  if (minutes === null) {
+    return (
+      <div className="text-lg font-bold text-gray-400">
+        🕒 ...
+      </div>
+    );
+  }
 
   let color = "text-green-600";
 

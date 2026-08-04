@@ -1,7 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useCart, CartOption } from "@/context/CartContext";
+
+import {
+  Check,
+  Plus,
+  X,
+} from "lucide-react";
+
+import {
+  useCart,
+  CartOption,
+} from "@/context/CartContext";
 
 type Props = {
   open: boolean;
@@ -16,8 +26,8 @@ export default function ProductOptionsModal({
 }: Props) {
   const { addItem } = useCart();
 
-  const [selectedOptions, setSelectedOptions] = useState<
-Record<string, string[]>  >({});
+  const [selectedOptions, setSelectedOptions] =
+    useState<Record<string, string>>({});
 
   if (!open) return null;
 
@@ -31,39 +41,44 @@ Record<string, string[]>  >({});
     }));
   }
 
-  const selected: CartOption[] = useMemo(() => {
-    return (
-      item.option_groups?.flatMap((group: any) => {
-        const optionId = selectedOptions[group.id];
+  const selected: CartOption[] =
+    useMemo(() => {
+      return (
+        item.option_groups?.flatMap(
+          (group: any) => {
+            const optionId =
+              selectedOptions[group.id];
 
-        if (!optionId) {
-          return [];
-        }
+            if (!optionId) return [];
 
-        const option = group.items.find(
-          (o: any) => o.id === optionId
-        );
+            const option =
+              group.items.find(
+                (o: any) =>
+                  o.id === optionId
+              );
 
-        if (!option) {
-          return [];
-        }
+            if (!option) return [];
 
-        return [
-          {
-            groupId: group.id,
-            groupName: group.name,
-            optionId: option.id,
-            optionName: option.name,
-            extraPrice:
-              Number(option.extra_price) || 0,
-          },
-        ];
-      }) ?? []
-    );
-  }, [item, selectedOptions]);
+            return [
+              {
+                groupId: group.id,
+                groupName: group.name,
+                optionId: option.id,
+                optionName: option.name,
+                extraPrice:
+                  Number(
+                    option.extra_price
+                  ) || 0,
+              },
+            ];
+          }
+        ) ?? []
+      );
+    }, [item, selectedOptions]);
 
   const extras = selected.reduce(
-    (sum, option) => sum + option.extraPrice,
+    (sum, option) =>
+      sum + option.extraPrice,
     0
   );
 
@@ -86,103 +101,118 @@ Record<string, string[]>  >({});
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl">
-        <div className="border-b p-6">
-          <h2 className="text-2xl font-bold">
-            {item.name}
-          </h2>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 md:items-center">
+      <div className="flex max-h-[90vh] w-full max-w-xl animate-in slide-in-from-bottom rounded-t-3xl bg-white shadow-2xl md:rounded-3xl">
+        <div className="flex w-full flex-col">
+          <div className="flex items-start justify-between border-b p-6">
+            <div>
+              <h2 className="text-2xl font-bold">
+                {item.name}
+              </h2>
 
-          {item.description && (
-            <p className="mt-2 text-gray-500">
-              {item.description}
-            </p>
-          )}
-        </div>
+              {item.description && (
+                <p className="mt-2 text-gray-500">
+                  {item.description}
+                </p>
+              )}
+            </div>
 
-        <div className="space-y-6 p-6">
-          {item.option_groups?.length > 0 ? (
-            item.option_groups.map((group: any) => (
-              <div key={group.id}>
-                <h3 className="mb-3 font-semibold">
-                  {group.name}
-                </h3>
+            <button
+              onClick={onClose}
+              className="rounded-full p-2 hover:bg-gray-100"
+            >
+              <X size={20} />
+            </button>
+          </div>
 
-                <div className="space-y-2">
-                  {group.items.map((option: any) => {
-                    const checked =
-                      selectedOptions[group.id] ===
-                      option.id;
+          <div className="flex-1 space-y-8 overflow-y-auto p-6">
+            {item.option_groups?.map(
+              (group: any) => (
+                <div key={group.id}>
+                  <h3 className="mb-4 text-lg font-bold">
+                    {group.name}
+                  </h3>
 
-                    return (
-                      <label
-                        key={option.id}
-                        className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 ${
-                          checked
-                            ? "border-amber-500 bg-amber-50"
-                            : ""
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="radio"
-                            name={group.id}
-                            checked={checked}
-                            onChange={() =>
+                  <div className="space-y-3">
+                    {group.items.map(
+                      (option: any) => {
+                        const checked =
+                          selectedOptions[
+                            group.id
+                          ] === option.id;
+
+                        return (
+                          <button
+                            key={option.id}
+                            onClick={() =>
                               toggleOption(
                                 group,
                                 option
                               )
                             }
-                          />
+                            className={`
+                              flex
+                              w-full
+                              items-center
+                              justify-between
+                              rounded-xl
+                              border
+                              p-4
+                              text-left
+                              transition
+                              ${
+                                checked
+                                  ? "border-amber-500 bg-amber-50"
+                                  : "hover:bg-gray-50"
+                              }
+                            `}
+                          >
+                            <div>
+                              <p className="font-semibold">
+                                {option.name}
+                              </p>
 
-                          <span>
-                            {option.name}
-                          </span>
-                        </div>
+                              <p className="text-sm text-gray-500">
+                                +{" "}
+                                {Number(
+                                  option.extra_price
+                                ).toFixed(
+                                  2
+                                )}{" "}
+                                €
+                              </p>
+                            </div>
 
-                        <span className="text-sm text-gray-500">
-                          +{Number(
-                            option.extra_price
-                          ).toFixed(2)} €
-                        </span>
-                      </label>
-                    );
-                  })}
+                            {checked && (
+                              <Check className="text-green-600" />
+                            )}
+                          </button>
+                        );
+                      }
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-500">
-              Este producto no tiene opciones.
-            </p>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between border-t p-6">
-          <div>
-            <p className="text-sm text-gray-500">
-              Total
-            </p>
-
-            <p className="text-2xl font-bold text-amber-600">
-              {total.toFixed(2)} €
-            </p>
+              )
+            )}
           </div>
 
-          <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              className="rounded-lg border px-5 py-2"
-            >
-              Cancelar
-            </button>
+          <div className="border-t bg-white p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-gray-500">
+                Total
+              </span>
+
+              <span className="text-3xl font-bold text-amber-600">
+                {total.toFixed(2)} €
+              </span>
+            </div>
 
             <button
               onClick={handleAdd}
-              className="rounded-lg bg-amber-600 px-5 py-2 text-white hover:bg-amber-700"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-600 py-4 text-lg font-bold text-white transition hover:bg-amber-700"
             >
-              Añadir
+              <Plus size={20} />
+              Añadir al pedido
             </button>
           </div>
         </div>

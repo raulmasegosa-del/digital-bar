@@ -1,18 +1,24 @@
+"use client";
+
+import MenuItemCard from "@/components/MenuItemCard";
+
 type Props = {
   menu: any[];
 };
-
-import MenuItemCard from "@/components/MenuItemCard";
 
 export default function MenuClient({
   menu,
 }: Props) {
   return (
-    <div className="space-y-10">
+    <div className="space-y-12">
       {menu.map((category) => (
-        <section key={category.id}>
-          <h2 className="mb-4 text-3xl font-bold text-amber-700">
-            {category.name}
+        <section
+          key={category.id}
+          id={category.id}
+          className="scroll-mt-28"
+        >
+          <h2 className="mb-5 text-3xl font-bold text-amber-700">
+            {category.icon} {category.name}
           </h2>
 
           <div className="space-y-4">

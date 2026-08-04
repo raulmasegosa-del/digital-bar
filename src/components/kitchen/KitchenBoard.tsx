@@ -1,40 +1,104 @@
-import KitchenCard from "@/components/kitchen/KitchenCard";
-import type { Order } from "@/types/orders";
+"use client";
 
-type Props = {
-  orders: Order[];
-};
+import { useEffect, useRef, useState } from "react";
+
+import { supabase } from "@/lib/supabase/client";
+import { getOrders } from "@/app/admin/getOrders";
+
+import KitchenCard from "@/components/kitchen/KitchenCard";
+
+import type { Order } from "@/types/orders";
 
 function sortByCreatedAt(
   orders: Order[]
 ) {
   return [...orders].sort(
     (a, b) =>
-      new Date(a.created_at).getTime() -
-      new Date(b.created_at).getTime()
+      new Date(b.created_at).getTime() -
+      new Date(a.created_at).getTime()
   );
 }
 
-export default function KitchenBoard({
-  orders,
-}: Props) {
-  const pending = sortByCreatedAt(
-    orders.filter(
-      (order) => order.status === "pending"
-    )
-  );
+export default function KitchenBoard() {
+  const [orders, setOrders] =
+    useState<Order[]>([]);
 
-  const preparing = sortByCreatedAt(
-    orders.filter(
-      (order) => order.status === "preparing"
-    )
-  );
+  const firstLoad =
+    useRef(true);
 
-  const served = sortByCreatedAt(
-    orders.filter(
-      (order) => order.status === "served"
-    )
-  );
+  async function loadOrders(
+    playSound = false
+  ) {
+    const data = await getOrders();
+
+    if (
+      playSound &&
+      !firstLoad.current &&
+      data.length > orders.length
+    ) {
+      new Audio(
+        "/sounds/notification.mp3"
+      )
+        .play()
+        .catch(() => {});
+    }
+
+    firstLoad.current = false;
+
+    setOrders(data);
+  }
+
+  useEffect(() => {
+    void loadOrders();
+
+    const channel = supabase
+      .channel("kitchen-orders")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "orders",
+        },
+        () => {
+          void loadOrders(true);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(
+        channel
+      );
+    };
+  }, []);
+
+  const pending =
+    sortByCreatedAt(
+      orders.filter(
+        (order) =>
+          order.status ===
+          "pending"
+      )
+    );
+
+  const preparing =
+    sortByCreatedAt(
+      orders.filter(
+        (order) =>
+          order.status ===
+          "preparing"
+      )
+    );
+
+  const ready =
+    sortByCreatedAt(
+      orders.filter(
+        (order) =>
+          order.status ===
+          "ready"
+      )
+    );
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
@@ -44,13 +108,13 @@ export default function KitchenBoard({
       />
 
       <KitchenColumn
-        title="🔵 Preparando"
+        title="👨‍🍳 Preparando"
         orders={preparing}
       />
 
       <KitchenColumn
-        title="🟢 Listos"
-        orders={served}
+        title="🍽️ Listos"
+        orders={ready}
       />
     </div>
   );
@@ -77,12 +141,22 @@ function KitchenColumn({
             Sin pedidos
           </div>
         ) : (
-          orders.map((order) => (
-            <KitchenCard
-              key={order.id}
-              order={order}
-            />
-          ))
+          orders.map(
+            (order, index) => (
+              <div
+                key={order.id}
+                className={
+                  index === 0
+                    ? "animate-pulse"
+                    : ""
+                }
+              >
+                <KitchenCard
+                  order={order}
+                />
+              </div>
+            )
+          )
         )}
       </div>
     </section>
