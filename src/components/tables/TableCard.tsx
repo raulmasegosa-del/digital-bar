@@ -64,6 +64,7 @@ export default function TableCard({
   createdAt,
 }: Props) {
   console.log(status);
+  console.log("STATUS:", status);
 const style = styles[status];
   const minutes = createdAt
     ? getElapsedMinutes(createdAt)

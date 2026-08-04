@@ -26,10 +26,7 @@ export async function getTablesStatus(): Promise<TableInfo[]> {
   return (orders ?? []).map((order) => ({
     number: order.table_number,
     orderId: order.id,
-status:
-  order.status === "ready"
-    ? "ready"
-    : (order.status as TableStatus),
+status: order.status as TableStatus,
         total: Number(order.total ?? 0),
     createdAt: order.created_at,
     items:

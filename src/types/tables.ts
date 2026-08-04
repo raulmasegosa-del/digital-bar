@@ -1,3 +1,4 @@
+
 export type OrderStatus =
   | "pending"
   | "preparing"
@@ -10,7 +11,6 @@ export type OrderStatus =
 export type TableStatus =
   | "free"
   | OrderStatus;
-
 export type TableItem = {
   id: string;
   quantity: number;

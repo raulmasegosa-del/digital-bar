@@ -49,6 +49,31 @@ export default function TableActions({
         </form>
       )}
 
+      {status === "served" && (
+        <form
+          action={changeStatus.bind(
+            null,
+            "bill"
+          )}
+        >
+          <button
+            className="
+              w-full
+              rounded-xl
+              bg-amber-600
+              px-5
+              py-3
+              font-semibold
+              text-white
+              transition
+              hover:bg-amber-700
+            "
+          >
+            💶 Solicitar cuenta
+          </button>
+        </form>
+      )}
+
       {status === "bill" && (
         <form
           action={changeStatus.bind(
@@ -69,7 +94,7 @@ export default function TableActions({
               hover:bg-emerald-700
             "
           >
-            💶 Cobrar mesa
+            💳 Cobrar mesa
           </button>
         </form>
       )}
