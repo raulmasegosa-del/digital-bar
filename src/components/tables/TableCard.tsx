@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { getElapsedMinutes } from "@/lib/time/getElapsedMinutes";
 
 type Props = {
@@ -104,6 +106,15 @@ export default function TableCard({
             ⏱️ Hace {minutes} min
           </p>
         )}
+      </div>
+
+      <div className="mt-6">
+        <Link
+          href={`/admin/tables/${number}`}
+          className="block rounded-xl bg-amber-600 px-4 py-2 text-center font-medium text-white transition hover:bg-amber-700"
+        >
+          Ver pedido
+        </Link>
       </div>
     </article>
   );
