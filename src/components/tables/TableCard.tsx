@@ -2,15 +2,11 @@ import Link from "next/link";
 
 import { getElapsedMinutes } from "@/lib/time/getElapsedMinutes";
 
+import type { TableStatus } from "@/types/tables";
+
 type Props = {
   number: string;
-  status:
-    | "free"
-    | "pending"
-    | "preparing"
-    | "ready"
-    | "served"
-    | "bill";
+  status: TableStatus;
   total: number;
   items: number;
   createdAt?: string;
@@ -47,6 +43,17 @@ const styles = {
     icon: "💶",
     text: "Pide cuenta",
   },
+  completed: {
+  color: "bg-gray-200",
+  icon: "✅",
+  text: "Finalizado",
+},
+
+cancelled: {
+  color: "bg-red-200",
+  icon: "❌",
+  text: "Cancelado",
+},
 };
 
 export default function TableCard({
@@ -56,8 +63,8 @@ export default function TableCard({
   items,
   createdAt,
 }: Props) {
-  const style = styles[status];
-
+  console.log(status);
+const style = styles[status];
   const minutes = createdAt
     ? getElapsedMinutes(createdAt)
     : null;

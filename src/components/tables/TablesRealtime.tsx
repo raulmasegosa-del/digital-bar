@@ -3,7 +3,10 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import { subscribeOrders } from "@/lib/realtime/orders";
+import {
+  subscribeOrders,
+  unsubscribeOrders,
+} from "@/lib/realtime/orders";
 
 export default function TablesRealtime() {
   const router = useRouter();
@@ -14,7 +17,7 @@ export default function TablesRealtime() {
     });
 
     return () => {
-      channel.unsubscribe();
+      unsubscribeOrders(channel);
     };
   }, [router]);
 

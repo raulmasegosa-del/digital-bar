@@ -9,7 +9,7 @@ export function subscribeOrders(
   callback: () => void
 ) {
   return realtime
-    .channel("orders")
+    .channel("orders-realtime")
     .on(
       "postgres_changes",
       {
@@ -20,4 +20,12 @@ export function subscribeOrders(
       callback
     )
     .subscribe();
+}
+
+export function unsubscribeOrders(
+  channel: ReturnType<
+    typeof realtime.channel
+  >
+) {
+  realtime.removeChannel(channel);
 }

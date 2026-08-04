@@ -1,10 +1,15 @@
-export type TableStatus =
-  | "free"
+export type OrderStatus =
   | "pending"
   | "preparing"
   | "ready"
   | "served"
-  | "bill";
+  | "bill"
+  | "completed"
+  | "cancelled";
+
+export type TableStatus =
+  | "free"
+  | OrderStatus;
 
 export type TableItem = {
   id: string;
