@@ -1,27 +1,27 @@
 import "./globals.css";
 import type { Metadata } from "next";
 
-import { CartProvider } from "@/context/CartContext";
-import { TableProvider } from "@/context/TableContext";
+import AppProviders from "@/components/providers/AppProviders";
+import { getRestaurantSettings } from "@/lib/db/settings";
 
 export const metadata: Metadata = {
   title: "Digital Bar",
   description: "Carta digital",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const settings = await getRestaurantSettings();
+
   return (
     <html lang="es">
       <body>
-        <TableProvider>
-          <CartProvider>
-            {children}
-          </CartProvider>
-        </TableProvider>
+        <AppProviders settings={settings}>
+          {children}
+        </AppProviders>
       </body>
     </html>
   );

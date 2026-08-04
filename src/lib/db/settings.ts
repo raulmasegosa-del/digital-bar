@@ -1,6 +1,10 @@
 import { supabaseAdmin } from "@/lib/supabase/server";
+import {
+  RestaurantSettings,
+  RestaurantSettingsInput,
+} from "@/types/settings";
 
-export async function getRestaurantSettings() {
+export async function getRestaurantSettings(): Promise<RestaurantSettings> {
   const { data, error } = await supabaseAdmin
     .from("restaurant_settings")
     .select("*")
@@ -8,20 +12,12 @@ export async function getRestaurantSettings() {
 
   if (error) throw error;
 
-  return data;
+  return data as RestaurantSettings;
 }
 
-export async function updateRestaurantSettings(values: {
-  name: string;
-  phone: string;
-  whatsapp: string;
-  email: string;
-  address: string;
-  description: string;
-  logo: string;
-  primary_color: string;
-  accept_orders: boolean;
-}) {
+export async function updateRestaurantSettings(
+  values: RestaurantSettingsInput
+): Promise<void> {
   const { error } = await supabaseAdmin
     .from("restaurant_settings")
     .update(values)

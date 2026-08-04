@@ -17,8 +17,7 @@ export default function ProductOptionsModal({
   const { addItem } = useCart();
 
   const [selectedOptions, setSelectedOptions] = useState<
-    Record<string, string>
-  >({});
+Record<string, string[]>  >({});
 
   if (!open) return null;
 

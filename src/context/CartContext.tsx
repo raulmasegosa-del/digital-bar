@@ -3,6 +3,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   ReactNode,
@@ -43,118 +44,229 @@ type CartContextType = {
 const CartContext =
   createContext<CartContextType | null>(null);
 
+
+function sameOptions(
+  first: CartOption[],
+  second: CartOption[]
+) {
+  if (first.length !== second.length) {
+    return false;
+  }
+
+  const firstSorted = [...first].sort((a, b) =>
+    a.optionId.localeCompare(b.optionId)
+  );
+
+  const secondSorted = [...second].sort((a, b) =>
+    a.optionId.localeCompare(b.optionId)
+  );
+
+  return firstSorted.every(
+    (option, index) =>
+      option.optionId ===
+      secondSorted[index]?.optionId
+  );
+}
+
+
 export function CartProvider({
   children,
 }: {
   children: ReactNode;
 }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+
+  const [items, setItems] = useState<CartItem[]>(() => {
+    if (typeof window === "undefined") {
+      return [];
+    }
+
+    const saved =
+      localStorage.getItem(
+        "digital-bar-cart"
+      );
+
+    return saved
+      ? JSON.parse(saved)
+      : [];
+  });
+
 
   const [notes, setNotes] = useState("");
 
+
+  useEffect(() => {
+    localStorage.setItem(
+      "digital-bar-cart",
+      JSON.stringify(items)
+    );
+  }, [items]);
+
+
   function addItem(item: CartItem) {
+
     setItems((current) => {
-      const index = current.findIndex((existing) => {
-        if (existing.productId !== item.productId) {
-          return false;
-        }
 
-        if (
-          existing.options.length !== item.options.length
-        ) {
-          return false;
-        }
+      const index = current.findIndex(
+        (existing) =>
+          existing.productId ===
+            item.productId &&
+          sameOptions(
+            existing.options,
+            item.options
+          )
+      );
 
-        return existing.options.every(
-          (option, i) =>
-            option.optionId === item.options[i]?.optionId
-        );
-      });
 
       if (index === -1) {
-        return [...current, item];
+        return [
+          ...current,
+          item,
+        ];
       }
 
-      const updated = [...current];
+
+      const updated = [
+        ...current,
+      ];
+
 
       updated[index] = {
         ...updated[index],
         quantity:
-          updated[index].quantity + item.quantity,
+          updated[index].quantity +
+          item.quantity,
       };
+
 
       return updated;
     });
   }
 
-  function increaseQuantity(index: number) {
-    setItems((current) =>
-      current.map((item, i) =>
-        i === index
+
+
+  function increaseQuantity(
+    index:number
+  ) {
+
+    setItems((current)=>
+      current.map(
+        (item,i)=>
+          i === index
           ? {
               ...item,
-              quantity: item.quantity + 1,
+              quantity:
+                item.quantity + 1,
             }
           : item
       )
     );
   }
 
-  function decreaseQuantity(index: number) {
-    setItems((current) =>
-      current.flatMap((item, i) => {
-        if (i !== index) {
-          return item;
-        }
 
-        if (item.quantity <= 1) {
-          return [];
-        }
 
-        return {
-          ...item,
-          quantity: item.quantity - 1,
-        };
-      })
+  function decreaseQuantity(
+    index:number
+  ) {
+
+    setItems((current)=>
+      current.flatMap(
+        (item,i)=>{
+
+          if(i !== index){
+            return item;
+          }
+
+
+          if(item.quantity <= 1){
+            return [];
+          }
+
+
+          return {
+            ...item,
+            quantity:
+              item.quantity - 1,
+          };
+
+        }
+      )
     );
   }
 
-  function removeItem(index: number) {
-    setItems((current) =>
-      current.filter((_, i) => i !== index)
+
+
+  function removeItem(
+    index:number
+  ){
+
+    setItems((current)=>
+      current.filter(
+        (_,i)=>i !== index
+      )
     );
+
   }
 
-  function clearCart() {
+
+
+  function clearCart(){
+
     setItems([]);
+
     setNotes("");
+
+    localStorage.removeItem(
+      "digital-bar-cart"
+    );
   }
+
+
 
   const totalItems = useMemo(
-    () =>
+    ()=> 
       items.reduce(
-        (sum, item) => sum + item.quantity,
+        (sum,item)=>
+          sum + item.quantity,
         0
       ),
     [items]
   );
 
-  const total = useMemo(
-    () =>
-      items.reduce((sum, item) => {
-        const extras = item.options.reduce(
-          (extra, option) =>
-            extra + option.extraPrice,
-          0
-        );
 
-        return (
-          sum +
-          (item.price + extras) * item.quantity
-        );
-      }, 0),
+
+  const total = useMemo(
+    ()=>{
+
+      return items.reduce(
+        (sum,item)=>{
+
+          const extras =
+            item.options.reduce(
+              (extra,option)=>
+                extra +
+                option.extraPrice,
+              0
+            );
+
+
+          return (
+            sum +
+            (
+              item.price +
+              extras
+            ) *
+            item.quantity
+          );
+
+        },
+        0
+      );
+
+    },
     [items]
   );
+
+
 
   return (
     <CartContext.Provider
@@ -177,16 +289,26 @@ export function CartProvider({
       {children}
     </CartContext.Provider>
   );
+
 }
 
-export function useCart() {
-  const context = useContext(CartContext);
 
-  if (!context) {
+
+export function useCart(){
+
+  const context =
+    useContext(CartContext);
+
+
+  if(!context){
+
     throw new Error(
       "useCart debe usarse dentro de CartProvider"
     );
+
   }
 
+
   return context;
+
 }
