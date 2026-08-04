@@ -72,12 +72,9 @@ export function CartProvider({
 }: {
   children: ReactNode;
 }) {
-  // Siempre empezamos vacío (SSR)
   const [items, setItems] = useState<CartItem[]>([]);
-
   const [notes, setNotes] = useState("");
 
-  // Al montar el componente cargamos el carrito
   useEffect(() => {
     const saved = localStorage.getItem(
       "digital-bar-cart"
@@ -88,7 +85,6 @@ export function CartProvider({
     }
   }, []);
 
-  // Guardar automáticamente
   useEffect(() => {
     localStorage.setItem(
       "digital-bar-cart",
@@ -124,25 +120,20 @@ export function CartProvider({
     });
   }
 
-  function increaseQuantity(
-    index: number
-  ) {
+  function increaseQuantity(index: number) {
     setItems((current) =>
       current.map((item, i) =>
         i === index
           ? {
               ...item,
-              quantity:
-                item.quantity + 1,
+              quantity: item.quantity + 1,
             }
           : item
       )
     );
   }
 
-  function decreaseQuantity(
-    index: number
-  ) {
+  function decreaseQuantity(index: number) {
     setItems((current) =>
       current.flatMap((item, i) => {
         if (i !== index) {
@@ -155,26 +146,20 @@ export function CartProvider({
 
         return {
           ...item,
-          quantity:
-            item.quantity - 1,
+          quantity: item.quantity - 1,
         };
       })
     );
   }
 
-  function removeItem(
-    index: number
-  ) {
+  function removeItem(index: number) {
     setItems((current) =>
-      current.filter(
-        (_, i) => i !== index
-      )
+      current.filter((_, i) => i !== index)
     );
   }
 
   function clearCart() {
     setItems([]);
-
     setNotes("");
 
     localStorage.removeItem(
@@ -185,32 +170,26 @@ export function CartProvider({
   const totalItems = useMemo(
     () =>
       items.reduce(
-        (sum, item) =>
-          sum + item.quantity,
+        (sum, item) => sum + item.quantity,
         0
       ),
     [items]
   );
 
   const total = useMemo(() => {
-    return items.reduce(
-      (sum, item) => {
-        const extras =
-          item.options.reduce(
-            (extra, option) =>
-              extra +
-              option.extraPrice,
-            0
-          );
+    return items.reduce((sum, item) => {
+      const extras = item.options.reduce(
+        (extra, option) =>
+          extra + option.extraPrice,
+        0
+      );
 
-        return (
-          sum +
-          (item.price + extras) *
-            item.quantity
-        );
-      },
-      0
-    );
+      return (
+        sum +
+        (item.price + extras) *
+          item.quantity
+      );
+    }, 0);
   }, [items]);
 
   return (
@@ -237,8 +216,7 @@ export function CartProvider({
 }
 
 export function useCart() {
-  const context =
-    useContext(CartContext);
+  const context = useContext(CartContext);
 
   if (!context) {
     throw new Error(
