@@ -1,7 +1,6 @@
 import TableCard from "./TableCard";
 
-import type { TableInfo } from "@/lib/tables/getTablesStatus";
-
+import type { TableInfo } from "@/types/tables";
 type Props = {
   items: TableInfo[];
 };

@@ -32,11 +32,11 @@ const styles = {
     icon: "👨‍🍳",
     text: "Preparando",
   },
-  ready: {
-    color: "bg-green-100",
-    icon: "🍽️",
-    text: "Listo",
-  },
+ ready: {
+  color: "bg-green-200",
+  icon: "🍽️",
+  text: "Listo para servir",
+},
   served: {
     color: "bg-emerald-100",
     icon: "🍻",

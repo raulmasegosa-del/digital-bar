@@ -1,8 +1,10 @@
 import { supabaseAdmin } from "@/lib/supabase/server";
 
+import { TableOrder } from "@/types/tables";
+
 export async function getTable(
   number: string
-) {
+): Promise<TableOrder | null> {
   const { data, error } = await supabaseAdmin
     .from("orders")
     .select(`
@@ -20,7 +22,9 @@ export async function getTable(
     .limit(1)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) {
+    throw error;
+  }
 
-  return data;
+  return data as TableOrder | null;
 }
