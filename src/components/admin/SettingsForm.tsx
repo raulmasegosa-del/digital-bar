@@ -1,6 +1,6 @@
 "use client";
 
-import { saveRestaurantSettings } from "@/lib/actions/settings";
+import { saveRestaurantSettings } from "@/app/admin/settings/actions";
 import type { RestaurantSettings } from "@/types/settings";
 
 type Props = {

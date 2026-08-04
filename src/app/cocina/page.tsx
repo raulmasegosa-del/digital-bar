@@ -1,5 +1,5 @@
-import { getOrders } from "@/lib/orders/getOrders";
-import KitchenBoard from "@/components/KitchenBoard";
+import KitchenBoard from "@/components/kitchen/KitchenBoard";
+import { getOrders } from "../admin/getOrders";
 
 
 export default async function CocinaPage() {

@@ -1,7 +1,6 @@
 "use client";
 
 import { deleteProduct } from "@/app/admin/actions";
-
 type Props = {
   id: string;
 };
