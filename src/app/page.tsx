@@ -14,8 +14,6 @@ export default function Home() {
 
         <WaiterActions />
 
-        <CategoryNavigation />
-
         <Menu />
 
         <CartUI />
