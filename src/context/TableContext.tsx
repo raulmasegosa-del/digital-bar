@@ -40,8 +40,7 @@ export function TableProvider({
     setRestaurantState,
   ] = useState("");
 
-  const [table, setTableState] =
-    useState("");
+  const [table, setTableState] =  useState("");
 
   useEffect(() => {
     const params =

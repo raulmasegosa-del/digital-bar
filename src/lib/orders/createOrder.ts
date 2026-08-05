@@ -1,8 +1,13 @@
 import { supabase } from "@/lib/supabase/client";
 
+import { getActiveOrder } from "./getActiveOrder";
+import { addItemsToOrder } from "./addItemsToOrder";
+
+import type { CartItem } from "@/context/CartContext";
+
 type CreateOrderParams = {
   table: string;
-  items: any[];
+  items: CartItem[];
   notes: string;
   total: number;
 };
@@ -13,16 +18,31 @@ export async function createOrder({
   notes,
   total,
 }: CreateOrderParams) {
-  const { data: order, error } = await supabase
-    .from("orders")
-    .insert({
-      table_number: table,
-      notes,
+  const activeOrder =
+    await getActiveOrder(table);
+
+  if (activeOrder) {
+    await addItemsToOrder(
+      activeOrder.id,
+      items,
       total,
-      status: "pending",
-    })
-    .select()
-    .single();
+      notes
+    );
+
+    return activeOrder;
+  }
+
+  const { data: order, error } =
+    await supabase
+      .from("orders")
+      .insert({
+        table_number: table,
+        notes,
+        total,
+        status: "pending",
+      })
+      .select()
+      .single();
 
   if (error) {
     throw error;
@@ -37,9 +57,10 @@ export async function createOrder({
     options: item.options,
   }));
 
-  const { error: itemError } = await supabase
-    .from("order_items")
-    .insert(rows);
+  const { error: itemError } =
+    await supabase
+      .from("order_items")
+      .insert(rows);
 
   if (itemError) {
     throw itemError;

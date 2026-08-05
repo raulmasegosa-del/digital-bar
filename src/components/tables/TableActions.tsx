@@ -1,6 +1,9 @@
 import { updateTableStatus } from "@/lib/tables/updateTableStatus";
 
-import { TableStatus } from "@/types/tables";
+import type {
+  OrderStatus,
+  TableStatus,
+} from "@/types/tables";
 
 type Props = {
   orderId: string;
@@ -12,7 +15,7 @@ export default function TableActions({
   status,
 }: Props) {
   async function changeStatus(
-    newStatus: TableStatus
+    newStatus: OrderStatus
   ) {
     "use server";
 
@@ -22,15 +25,25 @@ export default function TableActions({
     );
   }
 
+  async function serve() {
+    "use server";
+    await changeStatus("served");
+  }
+
+  async function requestBill() {
+    "use server";
+    await changeStatus("bill");
+  }
+
+  async function complete() {
+    "use server";
+    await changeStatus("completed");
+  }
+
   return (
     <div className="mt-8 space-y-3">
       {status === "preparing" && (
-        <form
-          action={changeStatus.bind(
-            null,
-            "served"
-          )}
-        >
+        <form action={serve}>
           <button
             className="
               w-full
@@ -50,12 +63,7 @@ export default function TableActions({
       )}
 
       {status === "served" && (
-        <form
-          action={changeStatus.bind(
-            null,
-            "bill"
-          )}
-        >
+        <form action={requestBill}>
           <button
             className="
               w-full
@@ -75,12 +83,7 @@ export default function TableActions({
       )}
 
       {status === "bill" && (
-        <form
-          action={changeStatus.bind(
-            null,
-            "completed"
-          )}
-        >
+        <form action={complete}>
           <button
             className="
               w-full

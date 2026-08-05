@@ -1,4 +1,3 @@
-
 export type OrderStatus =
   | "pending"
   | "preparing"
@@ -8,9 +7,15 @@ export type OrderStatus =
   | "completed"
   | "cancelled";
 
+export type ActiveOrderStatus = Exclude<
+  OrderStatus,
+  "completed" | "cancelled"
+>;
+
 export type TableStatus =
   | "free"
-  | OrderStatus;
+  | ActiveOrderStatus;
+
 export type TableItem = {
   id: string;
   quantity: number;
