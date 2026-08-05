@@ -1,30 +1,58 @@
 type Props = {
   children: React.ReactNode;
-  color?:
-    | "green"
-    | "red"
-    | "yellow"
-    | "blue";
+
+  variant?:
+    | "default"
+    | "success"
+    | "warning"
+    | "danger"
+    | "info"
+    | "neutral";
+
+  size?: "sm" | "md";
 };
 
 export default function Badge({
   children,
-  color = "green",
+  variant = "default",
+  size = "md",
 }: Props) {
-  const colors = {
-    green:
+  const variants = {
+    default:
+      "bg-amber-100 text-amber-800",
+
+    success:
       "bg-green-100 text-green-700",
-    red:
+
+    warning:
+      "bg-yellow-100 text-yellow-800",
+
+    danger:
       "bg-red-100 text-red-700",
-    yellow:
-      "bg-yellow-100 text-yellow-700",
-    blue:
+
+    info:
       "bg-blue-100 text-blue-700",
+
+    neutral:
+      "bg-gray-100 text-gray-700",
+  };
+
+  const sizes = {
+    sm: "px-2 py-1 text-xs",
+
+    md: "px-3 py-1 text-sm",
   };
 
   return (
     <span
-      className={`rounded-full px-3 py-1 text-sm ${colors[color]}`}
+      className={`
+        inline-flex
+        items-center
+        rounded-full
+        font-medium
+        ${variants[variant]}
+        ${sizes[size]}
+      `}
     >
       {children}
     </span>

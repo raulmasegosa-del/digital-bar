@@ -16,78 +16,88 @@ type Props = {
 export default function ProductTable({
   items,
 }: Props) {
-  const [search, setSearch] =
-    useState("");
+  const [search, setSearch] = useState("");
 
-  const filteredItems =
-    useMemo(() => {
-      const term =
-        search.toLowerCase();
+  const filteredItems = useMemo(() => {
+    const term = search.trim().toLowerCase();
 
-      return items.filter(
-        (item) =>
-          item.name
-            .toLowerCase()
-            .includes(term) ||
-          item.categories?.name
-            ?.toLowerCase()
-            .includes(term)
-      );
-    }, [items, search]);
+    return items.filter(
+      (item) =>
+        item.name.toLowerCase().includes(term) ||
+        item.categories?.name
+          ?.toLowerCase()
+          .includes(term)
+    );
+  }, [items, search]);
 
   return (
-    <div className="space-y-5">
-      <SearchInput
-        value={search}
-        onChange={setSearch}
-      />
+    <section className="space-y-6">
+
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+        />
+
+        <p className="text-sm text-gray-500">
+          {filteredItems.length} producto
+          {filteredItems.length !== 1 && "s"}
+        </p>
+
+      </div>
 
       {filteredItems.length === 0 ? (
         <EmptyState title="No se han encontrado productos." />
       ) : (
-        <div className="overflow-hidden rounded-xl border bg-white shadow">
-          <table className="w-full">
-            <thead className="bg-amber-100">
+        <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
+
+          <table className="min-w-full">
+
+            <thead className="border-b bg-gray-50">
               <tr>
-                <th className="p-3 text-left">
+
+                <th className="px-6 py-4 text-left text-sm font-semibold">
                   Producto
                 </th>
 
-                <th className="p-3 text-left">
+                <th className="px-6 py-4 text-left text-sm font-semibold">
                   Categoría
                 </th>
 
-                <th className="p-3 text-left">
+                <th className="px-6 py-4 text-left text-sm font-semibold">
                   Precio
                 </th>
 
-                <th className="p-3 text-center">
+                <th className="px-6 py-4 text-center text-sm font-semibold">
                   Disponible
                 </th>
 
-                <th className="p-3 text-center">
-                  ⭐
+                <th className="px-6 py-4 text-center text-sm font-semibold">
+                  Destacado
                 </th>
 
-                <th className="p-3 text-center">
+                <th className="px-6 py-4 text-center text-sm font-semibold">
                   Acciones
                 </th>
+
               </tr>
             </thead>
 
             <tbody>
-              {filteredItems.map(
-                (item) => (
-                  <ProductRow
-                    key={item.id}
-                    item={item}
-                  />
-                )
-              )}
+              {filteredItems.map((item) => (
+                <ProductRow
+                  key={item.id}
+                  item={item}
+                />
+              ))}
             </tbody>
+
           </table>
+
         </div>
       )}
-    </div>
+
+    </section>
   );
 }

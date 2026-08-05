@@ -14,46 +14,37 @@ type Props = {
 
 const styles = {
   free: {
-    color: "bg-gray-100",
-    icon: "⚪",
-    text: "Libre",
+    color: "bg-gray-50 border-gray-200",
+    badge: "⚪ Libre",
   },
   pending: {
-    color: "bg-yellow-100",
-    icon: "🟡",
-    text: "Pedido recibido",
+    color: "bg-amber-50 border-amber-300",
+    badge: "🟡 Pedido recibido",
   },
   preparing: {
-    color: "bg-blue-100",
-    icon: "👨‍🍳",
-    text: "Preparando",
+    color: "bg-blue-50 border-blue-300",
+    badge: "👨‍🍳 Preparando",
   },
- ready: {
-  color: "bg-green-200",
-  icon: "🍽️",
-  text: "Listo para servir",
-},
+  ready: {
+    color: "bg-green-50 border-green-300",
+    badge: "🍽️ Listo",
+  },
   served: {
-    color: "bg-emerald-100",
-    icon: "🍻",
-    text: "Comiendo",
+    color: "bg-emerald-50 border-emerald-300",
+    badge: "🍻 Comiendo",
   },
   bill: {
-    color: "bg-red-100",
-    icon: "💶",
-    text: "Pide cuenta",
+    color: "bg-red-50 border-red-300",
+    badge: "💰 Cobro",
   },
   completed: {
-  color: "bg-gray-200",
-  icon: "✅",
-  text: "Finalizado",
-},
-
-cancelled: {
-  color: "bg-red-200",
-  icon: "❌",
-  text: "Cancelado",
-},
+    color: "bg-gray-100 border-gray-300",
+    badge: "✅ Finalizada",
+  },
+  cancelled: {
+    color: "bg-red-100 border-red-300",
+    badge: "❌ Cancelada",
+  },
 };
 
 export default function TableCard({
@@ -63,67 +54,72 @@ export default function TableCard({
   items,
   createdAt,
 }: Props) {
-  console.log(status);
-  console.log("STATUS:", status);
-const style = styles[status];
+  const style = styles[status];
+
   const minutes = createdAt
     ? getElapsedMinutes(createdAt)
     : null;
 
-  const border =
-    minutes === null
-      ? "border-gray-200"
-      : minutes < 10
-      ? "border-green-500"
-      : minutes < 20
-      ? "border-yellow-500"
-      : "border-red-500";
-
   return (
-    <article
-      className={`${style.color} ${border} rounded-2xl border-2 p-6 shadow transition hover:shadow-lg`}
+    <Link
+      href={`/admin/tables/${number}`}
+      className={`
+        block
+        rounded-2xl
+        border-2
+        ${style.color}
+        p-6
+        shadow-sm
+        transition-all
+        hover:-translate-y-1
+        hover:shadow-xl
+      `}
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-2xl font-bold">
+        <h2 className="text-2xl font-bold">
           Mesa {number}
-        </h3>
+        </h2>
 
-        <span className="text-3xl">
-          {style.icon}
+        <span className="rounded-full bg-white px-3 py-1 text-sm font-semibold shadow-sm">
+          {style.badge}
         </span>
       </div>
 
-      <p className="mt-3 text-lg font-medium">
-        {style.text}
-      </p>
-
-      <div className="mt-5 space-y-2 text-sm text-gray-700">
-        <p>
-          🍔 {items}{" "}
-          {items === 1
-            ? "producto"
-            : "productos"}
-        </p>
-
-        <p>
-          💶 {total.toFixed(2)} €
-        </p>
-
-        {minutes !== null && (
-          <p>
-            ⏱️ Hace {minutes} min
+      <div className="mt-6 grid grid-cols-3 gap-4 text-center">
+        <div>
+          <p className="text-xs uppercase tracking-wide text-gray-500">
+            Productos
           </p>
-        )}
+
+          <p className="mt-1 text-xl font-bold">
+            {items}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-xs uppercase tracking-wide text-gray-500">
+            Total
+          </p>
+
+          <p className="mt-1 text-xl font-bold">
+            {total.toFixed(2)} €
+          </p>
+        </div>
+
+        <div>
+          <p className="text-xs uppercase tracking-wide text-gray-500">
+            Tiempo
+          </p>
+
+          <p className="mt-1 text-xl font-bold">
+            {minutes ?? "-"} min
+          </p>
+        </div>
       </div>
 
-      <div className="mt-6">
-        <Link
-          href={`/admin/tables/${number}`}
-          className="block rounded-xl bg-amber-600 px-4 py-2 text-center font-medium text-white transition hover:bg-amber-700"
-        >
-          Ver pedido
-        </Link>
+      <div className="mt-6 rounded-xl bg-white/70 py-3 text-center font-semibold">
+        Abrir mesa →
       </div>
-    </article>
+    </Link>
   );
 }

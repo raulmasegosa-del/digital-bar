@@ -30,7 +30,7 @@ export default function TableActions({
     await changeStatus("served");
   }
 
-  async function requestBill() {
+  async function bill() {
     "use server";
     await changeStatus("bill");
   }
@@ -42,65 +42,31 @@ export default function TableActions({
 
   return (
     <div className="mt-8 space-y-3">
+
       {status === "preparing" && (
         <form action={serve}>
-          <button
-            className="
-              w-full
-              rounded-xl
-              bg-green-600
-              px-5
-              py-3
-              font-semibold
-              text-white
-              transition
-              hover:bg-green-700
-            "
-          >
-            🟢 Servir pedido
+          <button className="w-full rounded-xl bg-green-600 px-5 py-3 font-semibold text-white transition hover:bg-green-700">
+            🍽️ Marcar como servido
           </button>
         </form>
       )}
 
       {status === "served" && (
-        <form action={requestBill}>
-          <button
-            className="
-              w-full
-              rounded-xl
-              bg-amber-600
-              px-5
-              py-3
-              font-semibold
-              text-white
-              transition
-              hover:bg-amber-700
-            "
-          >
-            💶 Solicitar cuenta
+        <form action={bill}>
+          <button className="w-full rounded-xl bg-emerald-600 px-5 py-3 font-semibold text-white transition hover:bg-emerald-700">
+            💰 Preparar cobro
           </button>
         </form>
       )}
 
       {status === "bill" && (
         <form action={complete}>
-          <button
-            className="
-              w-full
-              rounded-xl
-              bg-emerald-600
-              px-5
-              py-3
-              font-semibold
-              text-white
-              transition
-              hover:bg-emerald-700
-            "
-          >
+          <button className="w-full rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700">
             💳 Cobrar mesa
           </button>
         </form>
       )}
+
     </div>
   );
 }

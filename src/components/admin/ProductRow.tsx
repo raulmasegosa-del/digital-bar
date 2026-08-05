@@ -1,5 +1,7 @@
 import Link from "next/link";
+
 import ProductAvailabilitySwitch from "@/components/admin/ProductAvailabilitySwitch";
+
 import type { AdminProduct } from "@/types/admin";
 
 import Badge from "@/components/ui/Badge";
@@ -14,25 +16,28 @@ export default function ProductRow({
 }: Props) {
   return (
     <tr className="border-t transition hover:bg-amber-50">
-      <td className="p-4">
+
+      <td className="px-6 py-4">
         <div>
-          <p className="font-semibold">
+          <p className="font-semibold text-gray-900">
             {item.name}
           </p>
 
           {item.subtitle && (
-            <p className="text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500">
               {item.subtitle}
             </p>
           )}
         </div>
       </td>
 
-      <td className="p-4">
-        {item.categories?.name ?? "-"}
+      <td className="px-6 py-4">
+        <Badge>
+          {item.categories?.name ?? "Sin categoría"}
+        </Badge>
       </td>
 
-      <td className="p-4 font-semibold text-amber-700">
+      <td className="px-6 py-4 font-semibold text-amber-700">
         {item.menu_prices?.length
           ? `${Number(
               item.menu_prices[0].price
@@ -40,32 +45,33 @@ export default function ProductRow({
           : "-"}
       </td>
 
-      <td className="p-4 text-center">
-       <ProductAvailabilitySwitch
-  id={item.id}
-  available={item.available}
-/>
+      <td className="px-6 py-4 text-center">
+        <ProductAvailabilitySwitch
+          id={item.id}
+          available={item.available}
+        />
       </td>
 
-      <td className="p-4 text-center text-xl">
+      <td className="px-6 py-4 text-center">
         {item.featured ? "⭐" : "—"}
       </td>
 
-      <td className="p-4">
+      <td className="px-6 py-4">
         <div className="flex justify-center gap-2">
-          <Link
-            href={`/admin/edit/${item.id}`}
-          >
+
+          <Link href={`/admin/edit/${item.id}`}>
             <Button>
-              Editar
+              ✏️ Editar
             </Button>
           </Link>
 
           <Button variant="danger">
-            Eliminar
+            🗑 Eliminar
           </Button>
+
         </div>
       </td>
+
     </tr>
   );
 }

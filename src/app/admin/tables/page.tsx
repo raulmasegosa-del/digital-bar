@@ -1,20 +1,27 @@
+import PageHeader from "@/components/ui/PageHeader";
+
 import TablesGrid from "@/components/tables/TablesGrid";
-import { getTablesStatus } from "@/lib/tables/getTablesStatus";
 import TablesRealtime from "@/components/tables/TablesRealtime";
+
+import { getTablesStatus } from "@/lib/tables/getTablesStatus";
+
 export const dynamic = "force-dynamic";
 
 export default async function TablesPage() {
   const tables = await getTablesStatus();
 
- return (
-  <main className="space-y-8">
-    <TablesRealtime />
+  return (
+    <main className="space-y-8">
+      <PageHeader
+        title="Mesas"
+        description="Gestiona el servicio del restaurante."
+        backHref="/admin"
+        backLabel="Dashboard"
+      />
 
-    <h1 className="text-4xl font-bold">
-      🪑 Mesas
-    </h1>
+      <TablesRealtime />
 
-    <TablesGrid items={tables} />
-  </main>
-);
+      <TablesGrid items={tables} />
+    </main>
+  );
 }

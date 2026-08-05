@@ -1,11 +1,13 @@
 import DashboardHeader from "@/components/admin/dashboard/DashboardHeader";
 import DashboardRealtime from "@/components/admin/dashboard/DashboardRealtime";
-import RecentOrders from "@/components/admin/dashboard/RecentOrders";
 import StatsGrid from "@/components/admin/dashboard/StatsGrid";
+import RecentOrders from "@/components/admin/dashboard/RecentOrders";
 import TopProducts from "@/components/admin/dashboard/TopProducts";
 import KitchenMetrics from "@/components/admin/dashboard/KitchenMetrics";
+import AdminNavigation from "@/components/admin/AdminNavigation";
+
 import { getDashboardData } from "@/lib/dashboard/DashboardService";
-import RestaurantStatus from "@/components/admin/dashboard/RestaurantStatus";
+
 export default async function AdminPage() {
   const dashboard =
     await getDashboardData();
@@ -13,14 +15,13 @@ export default async function AdminPage() {
   return (
     <main className="min-h-screen bg-gray-100 p-8">
       <div className="mx-auto max-w-7xl space-y-8">
+
         <DashboardHeader />
 
+        <AdminNavigation />
+
         <DashboardRealtime />
-<RestaurantStatus
-  title={dashboard.restaurantStatus.title}
-  description={dashboard.restaurantStatus.description}
-  status={dashboard.restaurantStatus.status}
-/>
+
         <StatsGrid
           stats={dashboard.stats}
         />
@@ -33,15 +34,17 @@ export default async function AdminPage() {
           <TopProducts
             products={dashboard.topProducts}
           />
-          <KitchenMetrics
-  averagePreparationTime={
-    dashboard.averagePreparationTime
-  }
-  activeTables={
-    dashboard.activeTables
-  }
-/>
         </div>
+
+        <KitchenMetrics
+          averagePreparationTime={
+            dashboard.averagePreparationTime
+          }
+          activeTables={
+            dashboard.activeTables
+          }
+        />
+
       </div>
     </main>
   );

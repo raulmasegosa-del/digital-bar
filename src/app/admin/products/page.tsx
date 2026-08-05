@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import PageHeader from "@/components/ui/PageHeader";
+import PrimaryButton from "@/components/ui/form/PrimaryButton";
 import ProductTable from "@/components/admin/ProductTable";
 
 import { getAdminProducts } from "@/lib/db/admin";
@@ -11,22 +13,18 @@ export default async function ProductsPage() {
 
   return (
     <main className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold">
-            🍔 Productos
-          </h1>
+      <PageHeader
+        title="Productos"
+        description="Gestiona la carta del restaurante."
+        backHref="/admin"
+        backLabel="Dashboard"
+      />
 
-          <p className="mt-2 text-gray-500">
-            Gestiona la carta del restaurante.
-          </p>
-        </div>
-
-        <Link
-          href="/admin/new"
-          className="rounded-xl bg-amber-600 px-5 py-3 font-semibold text-white transition hover:bg-amber-700"
-        >
-          + Nuevo producto
+      <div className="flex items-center justify-end">
+        <Link href="/admin/new">
+          <PrimaryButton>
+            ➕ Nuevo producto
+          </PrimaryButton>
         </Link>
       </div>
 

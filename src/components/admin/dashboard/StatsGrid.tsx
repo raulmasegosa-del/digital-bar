@@ -1,3 +1,12 @@
+import {
+  Wallet,
+  ShoppingBag,
+  Clock3,
+  ChefHat,
+  UtensilsCrossed,
+  Receipt,
+} from "lucide-react";
+
 import StatCard from "./StatCard";
 
 type Props = {
@@ -19,37 +28,37 @@ export default function StatsGrid({
       <StatCard
         title="Ventas hoy"
         value={`${stats.sales.toFixed(2)} €`}
-        icon="💰"
+        icon={Wallet}
       />
 
       <StatCard
         title="Pedidos"
         value={stats.totalOrders}
-        icon="🍔"
+        icon={ShoppingBag}
       />
 
       <StatCard
         title="Pendientes"
         value={stats.pending}
-        icon="🟡"
+        icon={Clock3}
       />
 
       <StatCard
         title="Preparando"
         value={stats.preparing}
-        icon="👨‍🍳"
+        icon={ChefHat}
       />
 
       <StatCard
         title="Listos"
         value={stats.ready}
-        icon="🍽️"
+        icon={UtensilsCrossed}
       />
 
       <StatCard
         title="Ticket medio"
         value={`${stats.averageTicket.toFixed(2)} €`}
-        icon="🧾"
+        icon={Receipt}
       />
     </section>
   );

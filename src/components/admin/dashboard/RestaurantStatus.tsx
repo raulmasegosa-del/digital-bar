@@ -4,36 +4,68 @@ type Props = {
   status: string;
 };
 
+const styles = {
+  success: {
+    bg: "bg-green-50",
+    border: "border-green-200",
+    icon: "🟢",
+    text: "text-green-700",
+  },
+  warning: {
+    bg: "bg-yellow-50",
+    border: "border-yellow-200",
+    icon: "🟡",
+    text: "text-yellow-700",
+  },
+  danger: {
+    bg: "bg-red-50",
+    border: "border-red-200",
+    icon: "🔴",
+    text: "text-red-700",
+  },
+};
+
 export default function RestaurantStatus({
   title,
   description,
   status,
 }: Props) {
-  const color = {
-    success:
-      "border-green-500 bg-green-50",
-    warning:
-      "border-yellow-500 bg-yellow-50",
-    danger:
-      "border-red-500 bg-red-50",
-  }[
-    status as
-      | "success"
-      | "warning"
-      | "danger"
-  ];
+  const style =
+    styles[
+      status as
+        | "success"
+        | "warning"
+        | "danger"
+    ];
 
   return (
     <section
-      className={`rounded-2xl border-2 ${color} p-6 shadow`}
+      className={`
+        ${style.bg}
+        ${style.border}
+        rounded-2xl
+        border
+        p-6
+        shadow-sm
+      `}
     >
-      <h2 className="text-2xl font-bold">
-        {title}
-      </h2>
+      <div className="flex items-center gap-5">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white text-3xl shadow-sm">
+          {style.icon}
+        </div>
 
-      <p className="mt-2 text-gray-600">
-        {description}
-      </p>
+        <div className="flex-1">
+          <h2
+            className={`text-2xl font-bold ${style.text}`}
+          >
+            {title}
+          </h2>
+
+          <p className="mt-1 text-gray-600">
+            {description}
+          </p>
+        </div>
+      </div>
     </section>
   );
 }

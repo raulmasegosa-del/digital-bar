@@ -18,13 +18,17 @@ export type TableStatus =
 
 export type TableItem = {
   id: string;
+  product_id: string;
+
+  name: string;
+
   quantity: number;
-  unit_price: number;
+
+  price: number;
+
   notes?: string | null;
 
-  menu_items?: {
-    name: string;
-  };
+  options?: unknown;
 };
 
 export type TableOrder = {

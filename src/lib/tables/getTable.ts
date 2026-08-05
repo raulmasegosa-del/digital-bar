@@ -1,5 +1,4 @@
 import { supabaseAdmin } from "@/lib/supabase/server";
-
 import { TableOrder } from "@/types/tables";
 
 export async function getTable(
@@ -9,10 +8,7 @@ export async function getTable(
     .from("orders")
     .select(`
       *,
-      order_items(
-        *,
-        menu_items(name)
-      )
+      order_items(*)
     `)
     .eq("table_number", number)
     .neq("status", "cancelled")

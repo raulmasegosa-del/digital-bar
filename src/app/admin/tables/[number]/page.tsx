@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 
+import PageHeader from "@/components/ui/PageHeader";
 import TableDetail from "@/components/tables/TableDetail";
+
 import { getTable } from "@/lib/tables/getTable";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +25,14 @@ export default async function TablePage({
   }
 
   return (
-    <main className="min-h-screen bg-amber-50 p-6">
+    <main className="space-y-8">
+      <PageHeader
+        title={`Mesa ${number}`}
+        description="Pedido actual y estado de la mesa."
+        backHref="/admin/tables"
+        backLabel="Todas las mesas"
+      />
+
       <div className="mx-auto max-w-3xl">
         <TableDetail table={table} />
       </div>

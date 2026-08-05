@@ -8,6 +8,7 @@ export async function getTopProducts(
   const products = new Map<
     string,
     {
+      id: string;
       name: string;
       quantity: number;
       revenue: number;
@@ -20,22 +21,18 @@ export async function getTopProducts(
         products.get(item.product_id);
 
       if (current) {
-        current.quantity +=
-          item.quantity;
+        current.quantity += item.quantity;
 
         current.revenue +=
           item.quantity * item.price;
       } else {
-        products.set(
-          item.product_id,
-          {
-            name: item.name,
-            quantity: item.quantity,
-            revenue:
-              item.quantity *
-              item.price,
-          }
-        );
+        products.set(item.product_id, {
+          id: item.product_id,
+          name: item.name,
+          quantity: item.quantity,
+          revenue:
+            item.quantity * item.price,
+        });
       }
     }
   }

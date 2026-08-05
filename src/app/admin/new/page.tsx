@@ -1,4 +1,7 @@
+import PageHeader from "@/components/ui/PageHeader";
+
 import ProductForm from "@/components/admin/ProductForm";
+
 import {
   getCategories,
   getOptionGroups,
@@ -9,9 +12,17 @@ export const dynamic = "force-dynamic";
 export default async function NewProductPage() {
   const categories = await getCategories();
   const optionGroups = await getOptionGroups();
+
   return (
-    <main className="min-h-screen bg-amber-50 p-6">
-      <div className="mx-auto max-w-2xl">
+    <main className="space-y-8">
+      <PageHeader
+        title="Nuevo producto"
+        description="Añade un nuevo producto a la carta."
+        backHref="/admin/products"
+        backLabel="Productos"
+      />
+
+      <div className="mx-auto max-w-3xl">
         <ProductForm
           categories={categories}
           optionGroups={optionGroups}

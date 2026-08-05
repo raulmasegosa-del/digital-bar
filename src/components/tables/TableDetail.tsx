@@ -45,8 +45,7 @@ export default function TableDetail({
           >
             <div>
               <p className="font-medium">
-                {item.quantity} ×{" "}
-                {item.menu_items?.name}
+                {item.quantity} × {item.name}
               </p>
 
               {item.notes && (
@@ -57,12 +56,8 @@ export default function TableDetail({
             </div>
 
             <span className="font-semibold">
-              {Number(
-                item.unit_price *
-                  item.quantity
-              ).toFixed(2)}{" "}
-              €
-            </span>
+  {(item.price * item.quantity).toFixed(2)} €
+</span>
           </div>
         ))}
       </div>
