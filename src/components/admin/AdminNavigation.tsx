@@ -8,6 +8,7 @@ import {
   UtensilsCrossed,
   ChefHat,
   BookOpen,
+  QrCode,
   Settings,
   MonitorSmartphone,
   LucideIcon,
@@ -30,16 +31,20 @@ const modules: Module[] = [
     href: "/admin/tables",
     icon: UtensilsCrossed,
   },
-
   {
-  title: "Cocina",
-  href: "/cocina",
-  icon: ChefHat,
-},
+    title: "Cocina",
+    href: "/cocina",
+    icon: ChefHat,
+  },
   {
     title: "Carta",
     href: "/admin/products",
     icon: BookOpen,
+  },
+  {
+    title: "QR",
+    href: "/admin/qr",
+    icon: QrCode,
   },
   {
     title: "Configuración",
@@ -52,12 +57,11 @@ export default function AdminNavigation() {
   const pathname = usePathname();
 
   return (
-    <nav className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+    <nav className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
       {modules.map((module) => {
         const Icon = module.icon;
 
-        const active =
-          pathname === module.href;
+        const active = pathname === module.href;
 
         return (
           <Link

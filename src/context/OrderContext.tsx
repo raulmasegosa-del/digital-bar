@@ -10,7 +10,7 @@ import {
 
 import type { OrderStatus } from "@/types/orders";
 
-
+import { getOrder } from "@/lib/orders/getOrder";
 export type ActiveOrder = {
   id: string;
   table: string;

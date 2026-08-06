@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
+
 import { supabase } from "@/lib/supabase/client";
-import {
-  useOrder,
-  type OrderStatus,
-} from "@/context/OrderContext";
+
+import { useOrder } from "@/context/OrderContext";
 import { useToast } from "@/context/ToastContext";
+
+import type { OrderStatus } from "@/types/orders";
+import { handleOrderStatus } from "@/lib/orders/handleOrderStatus";
+
 
 export default function OrderRealtime() {
   const {
@@ -37,43 +40,12 @@ export default function OrderRealtime() {
 
           if (row.id !== order.id) return;
 
-          updateStatus(row.status);
-
-          switch (row.status) {
-            case "preparing":
-              showToast(
-                "👨‍🍳 La cocina está preparando tu pedido"
-              );
-              break;
-
-            case "ready":
-              showToast(
-                "🍽️ ¡Tu pedido está listo!"
-              );
-
-              if (
-                typeof window !== "undefined" &&
-                "vibrate" in navigator
-              ) {
-                navigator.vibrate([300, 150, 300]);
-              }
-
-              break;
-
-            case "served":
-              showToast(
-                "✅ Pedido servido"
-              );
-              clearOrder();
-              break;
-
-            case "cancelled":
-              showToast(
-                "❌ Pedido cancelado"
-              );
-              clearOrder();
-              break;
-          }
+          handleOrderStatus({
+            status: row.status,
+            showToast,
+            updateStatus,
+            clearOrder,
+          });
         }
       )
       .subscribe();
@@ -83,9 +55,9 @@ export default function OrderRealtime() {
     };
   }, [
     order?.id,
+    showToast,
     updateStatus,
     clearOrder,
-    showToast,
   ]);
 
   return null;
