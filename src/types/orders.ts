@@ -7,6 +7,8 @@ export type OrderStatus =
   | "cancelled";
 
 export type OrderOption = {
+  groupId: string;
+  groupName: string;
   optionId: string;
   optionName: string;
   extraPrice: number;
@@ -14,23 +16,23 @@ export type OrderOption = {
 
 export type OrderItem = {
   id: string;
+  order_id: string;
   product_id: string;
   name: string;
   quantity: number;
   price: number;
   options: OrderOption[];
 };
-export type ActiveOrderStatus = Exclude<
-  OrderStatus,
-  "completed"
->;
+
 export type Order = {
   id: string;
-  table_number: string;
   table: string;
-  notes: string | null;
-  total: number;
+  table_number: string;
   status: OrderStatus;
+  notes: string;
+  total: number;
   created_at: string;
+  updated_at?: string;
+
   order_items: OrderItem[];
 };

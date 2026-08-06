@@ -1,6 +1,6 @@
 const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ??
-  "http://localhost:3000";
+  "https://digital-bar-orpin.vercel.app/";
 
 export function getTableUrl(
   table: number
