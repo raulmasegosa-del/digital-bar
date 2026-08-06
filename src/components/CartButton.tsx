@@ -49,6 +49,11 @@ export default function CartButton({
         text: "Cancelado",
         color: "bg-red-600",
       },
+      completed: {
+  icon: "✔️",
+  text: "Finalizado",
+  color: "bg-gray-600",
+},
     }[order.status];
 
     return (

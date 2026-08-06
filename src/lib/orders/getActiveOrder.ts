@@ -1,8 +1,10 @@
 import { supabase } from "@/lib/supabase/client";
 
+import type { Order } from "@/types/orders";
+
 export async function getActiveOrder(
   table: string
-) {
+): Promise<Order | null> {
   const { data, error } = await supabase
     .from("orders")
     .select("*")
@@ -18,5 +20,5 @@ export async function getActiveOrder(
     throw error;
   }
 
-  return data;
+  return data as Order | null;
 }

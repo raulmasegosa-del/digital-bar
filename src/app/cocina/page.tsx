@@ -1,18 +1,21 @@
+import PageHeader from "@/components/ui/PageHeader";
+
 import KitchenBoard from "@/components/kitchen/KitchenBoard";
 import ServiceCallsBoard from "@/components/service/ServiceCallsBoard";
 
 export default function CocinaPage() {
   return (
-    <main className="min-h-screen bg-gray-100 p-6">
-      <div className="mx-auto max-w-7xl space-y-8">
-        <h1 className="text-4xl font-bold">
-          👨‍🍳 Cocina
-        </h1>
+    <main className="space-y-8">
+      <PageHeader
+        title="Cocina"
+        description="Gestiona los pedidos en preparación."
+        backHref="/admin"
+        backLabel="Dashboard"
+      />
 
-        <ServiceCallsBoard />
+      <ServiceCallsBoard />
 
-        <KitchenBoard />
-      </div>
+      <KitchenBoard />
     </main>
   );
 }

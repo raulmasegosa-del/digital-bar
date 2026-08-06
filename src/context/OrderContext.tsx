@@ -8,14 +8,8 @@ import {
   type ReactNode,
 } from "react";
 
-import { getOrder } from "@/lib/orders/getOrder";
+import type { OrderStatus } from "@/types/orders";
 
-export type OrderStatus =
-  | "pending"
-  | "preparing"
-  | "ready"
-  | "served"
-  | "cancelled";
 
 export type ActiveOrder = {
   id: string;

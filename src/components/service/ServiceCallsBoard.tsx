@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
+import { completeServiceCall } from "@/lib/service/completeServiceCall";
 import { supabase } from "@/lib/supabase/client";
 
 type ServiceCall = {
@@ -131,19 +131,9 @@ export default function ServiceCallsBoard() {
 
               <button
                 onClick={async () => {
-                  await supabase
-                    .from(
-                      "service_calls"
-                    )
-                    .update({
-                      status: "done",
-                    })
-                    .eq(
-                      "id",
-                      call.id
-                    );
+               await completeServiceCall(call.id);
 
-                  void loadCalls();
+void loadCalls();
                 }}
                 className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700"
               >

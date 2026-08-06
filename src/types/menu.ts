@@ -1,25 +1,62 @@
-export type MenuCategory = {
-  id: string;
-  name: string;
-  icon: string;
+export type MenuPrice = {
+  id: number;
+  item_id: string;
+  label: string | null;
+  price: number;
+  order?: number;
 };
 
-export type MenuPrice = {
-  label: string;
-  price: number;
+export type MenuOptionItem = {
+  id: string;
+  group_id: string;
+  name: string;
+  extra_price: number;
+  order: number;
+  available: boolean;
+};
+
+export type MenuOptionGroup = {
+  id: string;
+  name: string;
+  description?: string | null;
+
+  required: boolean;
+  multiple: boolean;
+
+  min_select: number;
+  max_select: number;
+
+  order: number;
+
+  items: MenuOptionItem[];
 };
 
 export type MenuItem = {
   id: string;
-  categoryId: string;
+  category_id: string;
+
   name: string;
-  subtitle?: string;
-  description: string;
+  subtitle?: string | null;
+  description?: string | null;
+
+  image?: string | null;
+
+  featured: boolean;
+  available: boolean;
+
+  order?: number;
+
   prices: MenuPrice[];
-  image?: string;
-  featured?: boolean;
-  available?: boolean;
-  allergens?: string[];
-  order: number;
-  tags?: string[];
+
+  option_groups: MenuOptionGroup[];
+};
+
+export type MenuCategory = {
+  id: string;
+  name: string;
+  icon?: string | null;
+  description?: string | null;
+  order?: number;
+
+  items: MenuItem[];
 };

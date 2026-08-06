@@ -1,5 +1,7 @@
 import OrderActions from "@/components/admin/OrderActions";
-import OrderTimer from "@/components/kitchen/OrderTimer";
+
+import ElapsedTime from "@/components/business/ElapsedTime";
+
 import StatusBadge from "@/components/kitchen/StatusBadge";
 
 import { getOrderPriority } from "@/lib/orders/getOrderPriority";
@@ -17,17 +19,12 @@ export default function KitchenCard({
     order.created_at
   );
 
-  let borderClass = "border-gray-200";
-
-  switch (priority) {
-    case "warning":
-      borderClass = "border-amber-400";
-      break;
-
-    case "urgent":
-      borderClass = "border-red-500";
-      break;
-  }
+  const borderClass =
+    priority === "urgent"
+      ? "border-red-500"
+      : priority === "warning"
+      ? "border-amber-400"
+      : "border-gray-200";
 
   return (
     <article
@@ -39,18 +36,21 @@ export default function KitchenCard({
         p-6
         shadow-lg
         transition-all
-        duration-300
       `}
     >
-      <div className="mb-5 flex items-start justify-between">
+      {/* Cabecera */}
+
+      <div className="mb-6 flex items-start justify-between">
         <div>
-          <h2 className="text-2xl font-bold">
+          <h2 className="text-3xl font-bold">
             Mesa {order.table}
           </h2>
 
-          <OrderTimer
-            createdAt={order.created_at}
-          />
+          <div className="mt-2">
+            <ElapsedTime
+              from={order.created_at}
+            />
+          </div>
         </div>
 
         <StatusBadge
@@ -58,63 +58,90 @@ export default function KitchenCard({
         />
       </div>
 
-      <div className="mb-5 space-y-3">
+      {/* Productos */}
+
+      <div className="space-y-4">
         {order.order_items.map((item) => (
           <div
             key={item.id}
-            className="border-b pb-3 last:border-b-0"
+            className="border-b pb-3 last:border-none"
           >
-            <div className="flex justify-between">
-              <span className="font-semibold">
-                {item.quantity} × {item.name}
-              </span>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-lg font-semibold">
+                  {item.quantity} × {item.name}
+                </p>
 
-              <span>
-                {(item.price * item.quantity).toFixed(2)} €
+                {item.options.length >
+                  0 && (
+                  <ul className="mt-2 space-y-1 text-sm text-gray-500">
+                    {item.options.map(
+                      (
+                        option,
+                        index
+                      ) => (
+                        <li
+                          key={index}
+                        >
+                          •{" "}
+                          {
+                            option.optionName
+                          }
+                        </li>
+                      )
+                    )}
+                  </ul>
+                )}
+              </div>
+
+              <span className="font-semibold">
+                {(
+                  item.price *
+                  item.quantity
+                ).toFixed(2)}{" "}
+                €
               </span>
             </div>
-
-            {item.options.length > 0 && (
-              <ul className="mt-1 text-sm text-gray-500">
-                {item.options.map(
-                  (option, index) => (
-                    <li key={index}>
-                      • {option.optionName}
-                    </li>
-                  )
-                )}
-              </ul>
-            )}
           </div>
         ))}
       </div>
 
+      {/* Observaciones */}
+
       {order.notes && (
-        <div className="mb-5 rounded-xl bg-amber-50 p-3">
-          <p className="font-semibold">
+        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <p className="font-semibold text-amber-800">
             📝 Observaciones
           </p>
 
-          <p className="text-sm">
+          <p className="mt-2 text-sm">
             {order.notes}
           </p>
         </div>
       )}
 
-      <div className="mb-5 flex items-center justify-between border-t pt-4">
+      {/* Total */}
+
+      <div className="mt-6 flex items-center justify-between border-t pt-5">
         <span className="font-semibold">
           Total
         </span>
 
-        <span className="text-lg font-bold text-green-600">
+        <span className="text-2xl font-bold text-emerald-600">
           {order.total.toFixed(2)} €
         </span>
       </div>
 
-      <OrderActions
-        orderId={order.id}
-        currentStatus={order.status}
-      />
+      {/* Acciones */}
+
+      <div className="mt-6">
+        <OrderActions
+          orderId={order.id}
+          currentStatus={
+            order.status
+          }
+        />
+      </div>
     </article>
   );
 }

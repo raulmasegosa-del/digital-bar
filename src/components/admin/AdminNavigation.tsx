@@ -38,7 +38,7 @@ const modules: Module[] = [
 },
   {
     title: "Carta",
-    href: "/admin/menu",
+    href: "/admin/products",
     icon: BookOpen,
   },
   {

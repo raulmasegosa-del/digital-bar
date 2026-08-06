@@ -13,7 +13,37 @@ export default function WaiterActions() {
 
   const [loading, setLoading] =
     useState(false);
+async function sendCall(
+  type: "waiter" | "bill"
+) {
+  if (!table) {
+    showToast("⚠️ No se ha detectado la mesa.");
+    return;
+  }
 
+  try {
+    setLoading(true);
+
+    await createServiceCall({
+      table,
+      type,
+    });
+
+    showToast(
+      type === "waiter"
+        ? `🙋 Camarero avisado para la mesa ${table}`
+        : `💶 Cuenta solicitada para la mesa ${table}`
+    );
+  } catch {
+    showToast(
+      type === "waiter"
+        ? "❌ No se pudo avisar al camarero."
+        : "❌ No se pudo solicitar la cuenta."
+    );
+  } finally {
+    setLoading(false);
+  }
+}
   async function callWaiter() {
     if (!table) {
       showToast("⚠️ No se ha detectado la mesa.");

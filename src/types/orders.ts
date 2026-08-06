@@ -20,7 +20,10 @@ export type OrderItem = {
   price: number;
   options: OrderOption[];
 };
-
+export type ActiveOrderStatus = Exclude<
+  OrderStatus,
+  "completed"
+>;
 export type Order = {
   id: string;
   table_number: string;

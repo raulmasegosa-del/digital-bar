@@ -1,5 +1,9 @@
 "use client";
-
+import type {
+  MenuItem,
+  MenuOptionGroup,
+  MenuOptionItem,
+} from "@/types/menu";
 import { useMemo, useState } from "react";
 
 import {
@@ -16,7 +20,7 @@ import {
 type Props = {
   open: boolean;
   onClose: () => void;
-  item: any;
+  item: MenuItem;
 };
 
 export default function ProductOptionsModal({
@@ -32,9 +36,9 @@ export default function ProductOptionsModal({
   if (!open) return null;
 
   function toggleOption(
-    group: any,
-    option: any
-  ) {
+  group: MenuOptionGroup,
+  option: MenuOptionItem
+){
     setSelectedOptions((current) => ({
       ...current,
       [group.id]: option.id,
@@ -45,7 +49,7 @@ export default function ProductOptionsModal({
     useMemo(() => {
       return (
         item.option_groups?.flatMap(
-          (group: any) => {
+(group: MenuOptionGroup) =>{
             const optionId =
               selectedOptions[group.id];
 
@@ -135,8 +139,8 @@ export default function ProductOptionsModal({
 
                   <div className="space-y-3">
                     {group.items.map(
-                      (option: any) => {
-                        const checked =
+(option: MenuOptionItem) => {
+                          const checked =
                           selectedOptions[
                             group.id
                           ] === option.id;
