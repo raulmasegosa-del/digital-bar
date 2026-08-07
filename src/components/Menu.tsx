@@ -3,11 +3,18 @@ import CategoryNavigation from "@/components/CategoryNavigation";
 import MenuClient from "./MenuClient";
 
 export default async function Menu() {
- const menu = await getFullMenu();
+  const menu = await getFullMenu();
 
-console.log(
-  "Categorías:", menu.length,
-  "Productos:",
-  menu.reduce((n, c) => n + c.items.length, 0)
-);
+  console.log(
+    "Categorías:", menu.length,
+    "Productos:",
+    menu.reduce((n, c) => n + c.items.length, 0)
+  );
+
+  return (
+    <>
+      <CategoryNavigation categories={menu} />
+      <MenuClient menu={menu} />
+    </>
+  );
 }
