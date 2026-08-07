@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
-
+import { debug } from "@/lib/debug";
 export async function getFullMenu() {
   // Categorías
   const { data: categories, error: categoryError } =
@@ -72,11 +72,13 @@ export async function getFullMenu() {
             (g) => g.product_id === item.id
           )
           .map((g) => g.group_id);
-console.log({
+if (process.env.NODE_ENV === "development") {
+ debug({
   categories: categories?.length,
   items: items?.length,
   prices: prices?.length,
 });
+}
         return {
           ...item,
 
