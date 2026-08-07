@@ -72,7 +72,11 @@ export async function getFullMenu() {
             (g) => g.product_id === item.id
           )
           .map((g) => g.group_id);
-
+console.log({
+  categories: categories?.length,
+  items: items?.length,
+  prices: prices?.length,
+});
         return {
           ...item,
 
