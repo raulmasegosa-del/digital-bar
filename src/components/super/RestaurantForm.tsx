@@ -31,6 +31,10 @@ export default function RestaurantForm() {
 
   return (
     <div className="rounded-2xl border bg-white p-8 shadow-sm">
+      <h1 className="mb-8 text-2xl font-bold">
+        Nuevo restaurante
+      </h1>
+
       <form
         action={createRestaurant}
         className="space-y-6"
@@ -44,9 +48,7 @@ export default function RestaurantForm() {
             name="name"
             required
             value={name}
-            onChange={(e) =>
-              setName(e.target.value)
-            }
+            onChange={(e) => setName(e.target.value)}
             className="w-full rounded-xl border px-4 py-3"
           />
         </div>

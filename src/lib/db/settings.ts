@@ -4,32 +4,29 @@ import {
   RestaurantSettingsInput,
 } from "@/types/settings";
 
-export async function getRestaurantSettings(): Promise<RestaurantSettings> {
+export async function getRestaurantSettings() {
   const { data, error } = await supabaseAdmin
     .from("restaurant_settings")
     .select("*")
-    .single();
+    .limit(1)
+    .maybeSingle();
 
-if (error) {
-  console.error(error);
-  throw error;
-}
-  return data as RestaurantSettings;
-}
+  if (error) {
+    throw error;
+  }
 
+  return data;
+}
 export async function updateRestaurantSettings(
+  restaurantId: string,
   values: RestaurantSettingsInput
-): Promise<void> {
+) {
   const { error } = await supabaseAdmin
     .from("restaurant_settings")
     .update(values)
-    .eq(
-      "id",
-      "27e62352-04ea-4881-a48b-83efe574bafa"
-    );
+    .eq("restaurant_id", restaurantId);
 
   if (error) {
-    console.error(error);
     throw error;
   }
 }

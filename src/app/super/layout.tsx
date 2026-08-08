@@ -60,13 +60,6 @@ export default function SuperLayout({
                   Gestión de la plataforma
                 </p>
               </div>
-
-              <Link
-                href="/admin"
-                className="rounded-xl border px-5 py-2 transition hover:bg-gray-50"
-              >
-                Ir al Admin
-              </Link>
             </div>
           </header>
 
