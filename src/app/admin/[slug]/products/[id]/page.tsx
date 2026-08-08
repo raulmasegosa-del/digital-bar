@@ -1,5 +1,9 @@
 import { notFound } from "next/navigation";
+
+import PageHeader from "@/components/ui/PageHeader";
 import ProductForm from "@/components/admin/ProductForm";
+
+import { getRestaurant } from "@/lib/db/restaurants/getRestaurant";
 import {
   getCategories,
   getOptionGroups,
@@ -11,6 +15,7 @@ export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{
+    slug: string;
     id: string;
   }>;
 };
@@ -18,7 +23,13 @@ type Props = {
 export default async function EditProductPage({
   params,
 }: Props) {
-  const { id } = await params;
+  const { slug, id } = await params;
+
+  const restaurant = await getRestaurant(slug);
+
+  if (!restaurant) {
+    notFound();
+  }
 
   const [
     product,
@@ -26,9 +37,9 @@ export default async function EditProductPage({
     optionGroups,
     productGroups,
   ] = await Promise.all([
-    getProduct(id),
-    getCategories(),
-    getOptionGroups(),
+    getProduct(restaurant.id, id),
+    getCategories(restaurant.id),
+    getOptionGroups(restaurant.id),
     getProductOptionGroups(id),
   ]);
 
@@ -37,8 +48,15 @@ export default async function EditProductPage({
   }
 
   return (
-    <main className="min-h-screen bg-amber-50 p-6">
-      <div className="mx-auto max-w-2xl">
+    <main className="space-y-8">
+      <PageHeader
+        title="Editar producto"
+        description={restaurant.name}
+        backHref={`/admin/${slug}/products`}
+        backLabel="Productos"
+      />
+
+      <div className="mx-auto max-w-3xl">
         <ProductForm
           item={{
             ...product,
@@ -48,6 +66,8 @@ export default async function EditProductPage({
             price:
               product.menu_prices?.[0]?.price ?? 0,
           }}
+          restaurantId={restaurant.id}
+          slug={slug}
           categories={categories}
           optionGroups={optionGroups}
           selectedOptionGroups={productGroups}

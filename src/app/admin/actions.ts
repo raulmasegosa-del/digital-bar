@@ -32,6 +32,8 @@ export async function deleteProduct(id: string) {
 }
 
 export async function createProduct(formData: FormData) {
+  const restaurant_id = formData.get("restaurant_id") as string;
+const slug = formData.get("slug") as string;
   const name = (formData.get("name") as string)?.trim();
   const subtitle = (formData.get("subtitle") as string)?.trim();
   const description = (formData.get("description") as string)?.trim();
@@ -67,6 +69,7 @@ export async function createProduct(formData: FormData) {
       image,
       available,
       featured,
+      restaurant_id,
     });
 
   if (itemError) throw itemError;
@@ -97,9 +100,8 @@ export async function createProduct(formData: FormData) {
   }
 
   revalidatePath("/");
-  revalidatePath("/admin");
-
-  redirect("/admin");
+revalidatePath(`/admin/${slug}/products`);
+redirect(`/admin/${slug}/products`);
 }
 export async function updateProduct(formData: FormData) {
   const id = formData.get("id") as string;

@@ -1,6 +1,9 @@
 import Link from "next/link";
 
-import { createProduct, updateProduct } from "@/app/admin/actions";
+import {
+  createProduct,
+  updateProduct,
+} from "@/app/admin/actions";
 
 import ImageUpload from "@/components/admin/ImageUpload";
 
@@ -34,6 +37,8 @@ type Product = {
 
 type Props = {
   item?: Product;
+  restaurantId?: string;
+  slug?: string;
   categories: Category[];
   optionGroups?: OptionGroup[];
   selectedOptionGroups?: string[];
@@ -41,6 +46,8 @@ type Props = {
 
 export default function ProductForm({
   item,
+  restaurantId,
+  slug,
   categories,
   optionGroups = [],
   selectedOptionGroups = [],
@@ -57,10 +64,10 @@ export default function ProductForm({
   };
 
   return (
-    <div className="rounded-2xl border bg-white p-8 shadow">
-      <h2 className="mb-8 text-3xl font-bold">
+    <div className="rounded-2xl border bg-white p-8 shadow-sm">
+      <h1 className="mb-8 text-2xl font-bold">
         {item ? "Editar producto" : "Nuevo producto"}
-      </h2>
+      </h1>
 
       <form
         action={item ? updateProduct : createProduct}
@@ -71,6 +78,22 @@ export default function ProductForm({
             type="hidden"
             name="id"
             value={item.id}
+          />
+        )}
+
+        {restaurantId && (
+          <input
+            type="hidden"
+            name="restaurant_id"
+            value={restaurantId}
+          />
+        )}
+
+        {slug && (
+          <input
+            type="hidden"
+            name="slug"
+            value={slug}
           />
         )}
 
@@ -123,9 +146,11 @@ export default function ProductForm({
             </label>
 
             <Link
-              href="/admin/options/new"
-              target="_blank"
-              rel="noopener noreferrer"
+              href={
+                slug
+                  ? `/admin/${slug}/options/new`
+                  : "/admin/options/new"
+              }
               className="text-sm font-medium text-amber-600 transition hover:text-amber-700 hover:underline"
             >
               + Nuevo grupo
@@ -147,7 +172,9 @@ export default function ProductForm({
                     type="checkbox"
                     name="option_groups"
                     value={group.id}
-                    defaultChecked={selectedOptionGroups.includes(group.id)}
+                    defaultChecked={selectedOptionGroups.includes(
+                      group.id
+                    )}
                   />
 
                   <span>{group.name}</span>
@@ -172,7 +199,13 @@ export default function ProductForm({
         </div>
 
         <div className="flex justify-end gap-3 border-t pt-6">
-          <Link href="/admin/products">
+          <Link
+            href={
+              slug
+                ? `/admin/${slug}/products`
+                : "/admin/products"
+            }
+          >
             <button
               type="button"
               className="rounded-xl border px-5 py-2 transition hover:bg-gray-50"

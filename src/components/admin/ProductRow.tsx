@@ -9,14 +9,15 @@ import Button from "@/components/ui/Button";
 
 type Props = {
   item: AdminProduct;
+  slug: string;
 };
 
 export default function ProductRow({
   item,
+  slug,
 }: Props) {
   return (
-    <tr className="border-t transition hover:bg-amber-50">
-
+    <tr>
       <td className="px-6 py-4">
         <div>
           <p className="font-semibold text-gray-900">
@@ -58,8 +59,9 @@ export default function ProductRow({
 
       <td className="px-6 py-4">
         <div className="flex justify-center gap-2">
-
-          <Link href={`/admin/edit/${item.id}`}>
+          <Link
+            href={`/admin/${slug}/products/${item.id}`}
+          >
             <Button>
               ✏️ Editar
             </Button>
@@ -68,10 +70,8 @@ export default function ProductRow({
           <Button variant="danger">
             🗑 Eliminar
           </Button>
-
         </div>
       </td>
-
     </tr>
   );
 }

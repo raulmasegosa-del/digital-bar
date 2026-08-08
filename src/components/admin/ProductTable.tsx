@@ -11,10 +11,12 @@ import ProductRow from "./ProductRow";
 
 type Props = {
   items: AdminProduct[];
+  slug: string;
 };
 
 export default function ProductTable({
   items,
+  slug,
 }: Props) {
   const [search, setSearch] = useState("");
 
@@ -86,10 +88,11 @@ export default function ProductTable({
 
             <tbody>
               {filteredItems.map((item) => (
-                <ProductRow
-                  key={item.id}
-                  item={item}
-                />
+               <ProductRow
+  key={item.id}
+  item={item}
+  slug={slug}
+/>
               ))}
             </tbody>
 
