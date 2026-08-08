@@ -13,6 +13,9 @@ export async function createRestaurant(
 
   const slug = (formData.get("slug") as string)?.trim();
 
+  const website =
+    (formData.get("website") as string)?.trim() || null;
+
   if (!name) {
     throw new Error("El nombre es obligatorio.");
   }
@@ -24,7 +27,8 @@ export async function createRestaurant(
   // 1. Crear restaurante
   const restaurant = await createRestaurantRecord(
     name,
-    slug
+    slug,
+    website
   );
 
   // 2. Crear configuración inicial

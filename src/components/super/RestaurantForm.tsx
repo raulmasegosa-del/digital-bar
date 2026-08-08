@@ -71,6 +71,13 @@ export default function RestaurantForm() {
         </div>
 
         <TextInput
+          label="🌐 Sitio web"
+          name="website"
+          type="url"
+          placeholder="https://www.mirestaurante.com"
+        />
+
+        <TextInput
           label="Número de mesas"
           name="tables"
           type="number"

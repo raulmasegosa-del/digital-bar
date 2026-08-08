@@ -5,6 +5,7 @@ export type Restaurant = {
   name: string;
   slug: string;
   active: boolean;
+  website: string | null;
   created_at: string;
   updated_at: string;
 };

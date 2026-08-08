@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import PageHeader from "@/components/ui/PageHeader";
+import PrimaryButton from "@/components/ui/form/PrimaryButton";
+
 import { getRestaurants } from "@/lib/db/restaurants/getRestaurants";
 
 export const dynamic = "force-dynamic";
@@ -16,11 +18,10 @@ export default async function RestaurantsPage() {
       />
 
       <div className="mb-8 flex justify-end">
-        <Link
-          href="/super/restaurants/new"
-          className="rounded-xl bg-amber-600 px-5 py-3 font-medium text-white transition hover:bg-amber-700"
-        >
-          ➕ Nuevo restaurante
+        <Link href="/super/restaurants/new">
+          <PrimaryButton>
+            ➕ Nuevo restaurante
+          </PrimaryButton>
         </Link>
       </div>
 
@@ -37,10 +38,9 @@ export default async function RestaurantsPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {restaurants.map((restaurant) => (
-            <Link
+            <div
               key={restaurant.id}
-              href={`/super/restaurants/${restaurant.slug}`}
-              className="rounded-2xl border bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-amber-400 hover:shadow-lg"
+              className="rounded-2xl border bg-white p-6 shadow-sm"
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -66,12 +66,43 @@ export default async function RestaurantsPage() {
                 </span>
               </div>
 
-              <div className="mt-6 border-t pt-4">
-                <span className="font-medium text-amber-600">
-                  Abrir restaurante →
-                </span>
+              <div className="mt-6 grid gap-3 border-t pt-4">
+                <Link href={`/admin/${restaurant.slug}`}>
+                  <PrimaryButton className="w-full">
+                    🛠 Administrar
+                  </PrimaryButton>
+                </Link>
+
+                <button
+                  type="button"
+                  disabled
+                  className="w-full cursor-not-allowed rounded-xl border bg-gray-50 px-4 py-2 text-gray-400"
+                  title="Disponible cuando la carta pública esté implementada"
+                >
+                  👁 Ver carta
+                </button>
+
+                {restaurant.website ? (
+                  <a
+                    href={restaurant.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-xl border px-4 py-2 text-center transition hover:bg-gray-50"
+                  >
+                    🌐 Abrir web
+                  </a>
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full cursor-not-allowed rounded-xl border bg-gray-50 px-4 py-2 text-gray-400"
+                    title="Este restaurante todavía no tiene una web configurada"
+                  >
+                    🌐 Abrir web
+                  </button>
+                )}
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}
