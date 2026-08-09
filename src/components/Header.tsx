@@ -1,9 +1,11 @@
 "use client";
 
-import { barConfig } from "@/config";
-
 import { useOrder } from "@/context/OrderContext";
 import { useTable } from "@/context/TableContext";
+
+type Props = {
+  restaurantName: string;
+};
 
 const status = {
   pending: {
@@ -27,10 +29,10 @@ const status = {
     icon: "✅",
   },
   bill: {
-  text: "Pendiente de cobro",
-  color: "bg-orange-100 text-orange-700",
-  icon: "💰",
-},
+    text: "Pendiente de cobro",
+    color: "bg-orange-100 text-orange-700",
+    icon: "💰",
+  },
   completed: {
     text: "Finalizado",
     color: "bg-gray-100 text-gray-700",
@@ -43,7 +45,9 @@ const status = {
   },
 } as const;
 
-export default function Header() {
+export default function Header({
+  restaurantName,
+}: Props) {
   const { table } = useTable();
   const { order } = useOrder();
 
@@ -52,27 +56,14 @@ export default function Header() {
     : status.pending;
 
   return (
-    <header
-      className="
-        mb-8
-        overflow-hidden
-        rounded-3xl
-        bg-gradient-to-br
-        from-amber-700
-        via-amber-600
-        to-orange-500
-        p-8
-        text-white
-        shadow-2xl
-      "
-    >
-      <div className="text-center">
-        <h1 className="text-5xl font-extrabold tracking-tight">
-          🍻 {barConfig.name}
+    <header className="bg-gradient-to-br from-amber-600 via-amber-700 to-orange-700 text-white">
+      <div className="mx-auto max-w-6xl px-6 py-12 text-center">
+        <h1 className="text-5xl font-black tracking-tight">
+          🍻 {restaurantName}
         </h1>
 
         <p className="mt-3 text-lg text-amber-100">
-          {barConfig.slogan}
+          Haz tu pedido desde la mesa
         </p>
 
         <div className="mt-8 flex flex-wrap justify-center gap-3">
@@ -101,8 +92,7 @@ export default function Header() {
                 ${currentStatus.color}
               `}
             >
-              {currentStatus.icon}{" "}
-              {currentStatus.text}
+              {currentStatus.icon} {currentStatus.text}
             </div>
           )}
         </div>

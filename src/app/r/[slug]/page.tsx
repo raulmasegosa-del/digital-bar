@@ -31,10 +31,12 @@ export default async function PublicRestaurantPage({
   );
 
   return (
-    <main className="min-h-screen bg-amber-50">
-      <div className="mx-auto max-w-6xl p-6">
-        <Header />
+    <main className="min-h-screen bg-gray-50">
+      <Header
+        restaurantName={restaurant.name}
+      />
 
+      <div className="mx-auto max-w-7xl px-4 py-8">
         <WaiterActions />
 
         <MenuClient menu={menu} />
