@@ -14,7 +14,7 @@ export default async function RestaurantsPage() {
     <>
       <PageHeader
         title="Restaurantes"
-        description="Gestiona los restaurantes de Digital Bar Platform."
+        description="Gestiona todos los restaurantes registrados."
       />
 
       <div className="mb-8 flex justify-end">
@@ -70,6 +70,14 @@ export default async function RestaurantsPage() {
                 <Link href={`/admin/${restaurant.slug}`}>
                   <PrimaryButton className="w-full">
                     🛠 Administrar
+                  </PrimaryButton>
+                </Link>
+
+                <Link
+                  href={`/super/restaurants/${restaurant.slug}/import`}
+                >
+                  <PrimaryButton className="w-full">
+                    📥 Importar Excel
                   </PrimaryButton>
                 </Link>
 
