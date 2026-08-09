@@ -19,15 +19,10 @@ export type TableStatus =
 export type TableItem = {
   id: string;
   product_id: string;
-
   name: string;
-
   quantity: number;
-
   price: number;
-
   notes?: string | null;
-
   options?: unknown;
 };
 
@@ -37,7 +32,6 @@ export type TableOrder = {
   status: TableStatus;
   total: number;
   created_at: string;
-
   order_items: TableItem[];
 };
 
@@ -46,6 +40,6 @@ export type TableInfo = {
   status: TableStatus;
   total: number;
   items: number;
-  createdAt?: string;
-  orderId?: string;
+  createdAt: string;
+  orderId: string;
 };

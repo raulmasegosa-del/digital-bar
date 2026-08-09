@@ -1,18 +1,22 @@
 "use client";
 
 import { useTransition } from "react";
+
 import { deleteCategory } from "@/app/admin/category-actions";
 
 type Props = {
   id: string;
   name: string;
+  slug: string;
 };
 
 export default function DeleteCategoryButton({
   id,
   name,
+  slug,
 }: Props) {
-  const [pending, startTransition] = useTransition();
+  const [pending, startTransition] =
+    useTransition();
 
   function handleDelete() {
     const ok = confirm(
@@ -22,23 +26,24 @@ export default function DeleteCategoryButton({
     if (!ok) return;
 
     startTransition(async () => {
-  try {
-    await deleteCategory(id);
-  } catch (error) {
-    alert(
-      error instanceof Error
-        ? error.message
-        : "Ha ocurrido un error al eliminar la categoría."
-    );
-  }
-});
+      try {
+        await deleteCategory(id, slug);
+      } catch (error) {
+        alert(
+          error instanceof Error
+            ? error.message
+            : "Ha ocurrido un error al eliminar la categoría."
+        );
+      }
+    });
   }
 
   return (
     <button
+      type="button"
       onClick={handleDelete}
       disabled={pending}
-      className="rounded-lg bg-red-600 px-4 text-white transition hover:bg-red-700 disabled:opacity-50"
+      className="rounded-lg border px-4 py-2 transition hover:bg-red-50 disabled:opacity-50"
     >
       {pending ? "..." : "🗑"}
     </button>

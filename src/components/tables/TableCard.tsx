@@ -9,7 +9,7 @@ type Props = {
   status: TableStatus;
   total: number;
   items: number;
-  createdAt?: string;
+  createdAt: string;
 };
 
 const styles = {
@@ -56,9 +56,7 @@ export default function TableCard({
 }: Props) {
   const style = styles[status];
 
-  const minutes = createdAt
-    ? getElapsedMinutes(createdAt)
-    : null;
+  const minutes = getElapsedMinutes(createdAt);
 
   return (
     <Link
@@ -75,8 +73,8 @@ export default function TableCard({
         hover:shadow-xl
       `}
     >
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">
+      <div className="flex items-start justify-between">
+        <h2 className="text-3xl font-bold">
           Mesa {number}
         </h2>
 
@@ -112,7 +110,7 @@ export default function TableCard({
           </p>
 
           <p className="mt-1 text-xl font-bold">
-            {minutes ?? "-"} min
+            {minutes} min
           </p>
         </div>
       </div>

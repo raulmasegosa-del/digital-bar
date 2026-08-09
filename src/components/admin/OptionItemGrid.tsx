@@ -1,9 +1,16 @@
-import { getOptionItems } from "@/lib/db/admin";
 import OptionItemCard from "./OptionItemCard";
 
-export default async function OptionItemGrid() {
-  const items = await getOptionItems();
+import type { AdminOptionItem } from "@/types/admin";
 
+type Props = {
+  items: AdminOptionItem[];
+  slug: string;
+};
+
+export default function OptionItemGrid({
+  items,
+  slug,
+}: Props) {
   if (items.length === 0) {
     return (
       <div className="rounded-2xl border bg-white p-8 text-center text-gray-500 shadow">
@@ -18,6 +25,7 @@ export default async function OptionItemGrid() {
         <OptionItemCard
           key={item.id}
           item={item}
+          slug={slug}
         />
       ))}
     </div>

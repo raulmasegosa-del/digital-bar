@@ -3,9 +3,11 @@
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
+import type { OrderStatus } from "@/types/tables";
+
 export async function updateTableStatus(
   orderId: string,
-  status: string
+  status: OrderStatus
 ) {
   const { error } = await supabaseAdmin
     .from("orders")
@@ -19,5 +21,4 @@ export async function updateTableStatus(
   }
 
   revalidatePath("/admin/tables");
-  revalidatePath(`/admin/tables`);
 }

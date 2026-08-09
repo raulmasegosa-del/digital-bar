@@ -26,6 +26,11 @@ const status = {
     color: "bg-emerald-100 text-emerald-700",
     icon: "✅",
   },
+  bill: {
+  text: "Pendiente de cobro",
+  color: "bg-orange-100 text-orange-700",
+  icon: "💰",
+},
   completed: {
     text: "Finalizado",
     color: "bg-gray-100 text-gray-700",

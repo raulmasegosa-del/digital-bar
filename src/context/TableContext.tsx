@@ -43,51 +43,25 @@ export function TableProvider({
   const [table, setTableState] =  useState("");
 
   useEffect(() => {
-    const params =
-      new URLSearchParams(
-        window.location.search
-      );
+  const params = new URLSearchParams(
+    window.location.search
+  );
 
-    const mesa =
-      params.get("mesa");
+  const mesa = params.get("mesa");
+  const bar = params.get("bar");
 
-    const bar =
-      params.get("bar");
+  if (mesa) {
+    setTableState(mesa);
+  } else {
+    setTableState("");
+  }
 
-    if (mesa) {
-      setTableState(mesa);
-      localStorage.setItem(
-        TABLE_KEY,
-        mesa
-      );
-    } else {
-      const saved =
-        localStorage.getItem(
-          TABLE_KEY
-        );
-
-      if (saved) {
-        setTableState(saved);
-      }
-    }
-
-    if (bar) {
-      setRestaurantState(bar);
-      localStorage.setItem(
-        RESTAURANT_KEY,
-        bar
-      );
-    } else {
-      const saved =
-        localStorage.getItem(
-          RESTAURANT_KEY
-        );
-
-      if (saved) {
-        setRestaurantState(saved);
-      }
-    }
-  }, []);
+  if (bar) {
+    setRestaurantState(bar);
+  } else {
+    setRestaurantState("");
+  }
+}, []);
 
   function setTable(
     value: string

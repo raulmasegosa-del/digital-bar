@@ -1,14 +1,14 @@
 import Link from "next/link";
 
-import type { AdminOptionItem } from "@/types/admin";
+import type { AdminOptionGroup } from "@/types/admin";
 
 type Props = {
-  item: AdminOptionItem;
+  group: AdminOptionGroup;
   slug: string;
 };
 
-export default function OptionItemCard({
-  item,
+export default function OptionGroupCard({
+  group,
   slug,
 }: Props) {
   return (
@@ -16,36 +16,34 @@ export default function OptionItemCard({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">
-            {item.name}
+            {group.name}
           </h3>
 
           <p className="text-sm text-gray-500">
-            Grupo: {item.option_groups?.name ?? "-"}
+            {group.items?.length ?? 0} opciones
           </p>
         </div>
 
         <span className="text-4xl">⚙️</span>
       </div>
 
-      <p className="mt-4 text-2xl font-bold text-amber-600">
-        +{item.extra_price.toFixed(2)} €
-      </p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {group.required && (
+          <span className="rounded-full bg-red-100 px-3 py-1 text-sm text-red-700">
+            Obligatorio
+          </span>
+        )}
 
-      <span
-        className={`mt-4 inline-block rounded-full px-3 py-1 text-sm ${
-          item.available
-            ? "bg-green-100 text-green-700"
-            : "bg-red-100 text-red-700"
-        }`}
-      >
-        {item.available
-          ? "Disponible"
-          : "No disponible"}
-      </span>
+        {group.multiple && (
+          <span className="rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-700">
+            Múltiple
+          </span>
+        )}
+      </div>
 
       <div className="mt-6 flex gap-2">
         <Link
-          href={`/admin/${slug}/options/${item.id}`}
+          href={`/admin/${slug}/options/${group.id}`}
           className="flex-1 rounded-lg bg-amber-600 py-2 text-center text-white transition hover:bg-amber-700"
         >
           Editar

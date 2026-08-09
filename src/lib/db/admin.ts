@@ -2,14 +2,10 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 
 import type {
   AdminCategory,
-  AdminProduct,
+  AdminOptionGroup,
   AdminOptionItem,
+  AdminProduct,
 } from "@/types/admin";
-
-export type OptionGroup = {
-  id: string;
-  name: string;
-};
 
 /* ==========================================================
    PRODUCTOS
@@ -55,7 +51,8 @@ export async function getProduct(
     query = query.eq("restaurant_id", restaurantId);
   }
 
-  const { data, error } = await query.maybeSingle();
+  const { data, error } =
+    await query.maybeSingle();
 
   if (error) throw error;
 
@@ -98,11 +95,12 @@ export async function getCategory(
     query = query.eq("restaurant_id", restaurantId);
   }
 
-  const { data, error } = await query.single();
+  const { data, error } =
+    await query.maybeSingle();
 
   if (error) throw error;
 
-  return data as AdminCategory;
+  return data as AdminCategory | null;
 }
 
 /* ==========================================================
@@ -111,10 +109,13 @@ export async function getCategory(
 
 export async function getOptionGroups(
   restaurantId?: string
-): Promise<OptionGroup[]> {
+): Promise<AdminOptionGroup[]> {
   let query = supabaseAdmin
     .from("option_groups")
-    .select("id, name")
+    .select(`
+      *,
+      items:option_items(*)
+    `)
     .order("order");
 
   if (restaurantId) {
@@ -125,40 +126,41 @@ export async function getOptionGroups(
 
   if (error) throw error;
 
-  return data ?? [];
+  return (data ?? []) as AdminOptionGroup[];
+}
+
+export async function getOptionGroup(
+  id: string,
+  restaurantId?: string
+): Promise<AdminOptionGroup | null> {
+  let query = supabaseAdmin
+    .from("option_groups")
+    .select(`
+      *,
+      items:option_items(*)
+    `)
+    .eq("id", id);
+
+  if (restaurantId) {
+    query = query.eq("restaurant_id", restaurantId);
+  }
+
+  const { data, error } =
+    await query.maybeSingle();
+
+  if (error) throw error;
+
+  return data as AdminOptionGroup | null;
 }
 
 /* ==========================================================
    OPCIONES
 ========================================================== */
 
-export async function getOptionItem(id: string) {
-  const { data, error } = await supabaseAdmin
-    .from("option_items")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (error) throw error;
-
-  return data;
-}
-
-export async function getProductOptionGroups(
-  productId: string
-): Promise<string[]> {
-  const { data, error } = await supabaseAdmin
-    .from("product_option_groups")
-    .select("group_id")
-    .eq("product_id", productId);
-
-  if (error) throw error;
-
-  return (data ?? []).map((row) => row.group_id);
-}
-
-export async function getOptionItems(): Promise<AdminOptionItem[]> {
-  const { data, error } = await supabaseAdmin
+export async function getOptionItems(
+  restaurantId?: string
+): Promise<AdminOptionItem[]> {
+  let query = supabaseAdmin
     .from("option_items")
     .select(`
       *,
@@ -166,7 +168,63 @@ export async function getOptionItems(): Promise<AdminOptionItem[]> {
     `)
     .order("order");
 
+  if (restaurantId) {
+    query = query.eq(
+      "restaurant_id",
+      restaurantId
+    );
+  }
+
+  const { data, error } = await query;
+
   if (error) throw error;
 
   return (data ?? []) as AdminOptionItem[];
+}
+
+export async function getOptionItem(
+  id: string,
+  restaurantId?: string
+): Promise<AdminOptionItem | null> {
+  let query = supabaseAdmin
+    .from("option_items")
+    .select(`
+      *,
+      option_groups(name)
+    `)
+    .eq("id", id);
+
+  if (restaurantId) {
+    query = query.eq(
+      "restaurant_id",
+      restaurantId
+    );
+  }
+
+  const { data, error } =
+    await query.maybeSingle();
+
+  if (error) throw error;
+
+  return data as AdminOptionItem | null;
+}
+
+/* ==========================================================
+   PRODUCTO ↔ GRUPOS DE OPCIONES
+========================================================== */
+
+export async function getProductOptionGroups(
+  productId: string
+): Promise<string[]> {
+  const { data, error } =
+    await supabaseAdmin
+      .from("product_option_groups")
+      .select("group_id")
+      .eq("product_id", productId);
+
+  if (error) throw error;
+
+  return (data ?? []).map(
+    (row) => row.group_id
+  );
 }

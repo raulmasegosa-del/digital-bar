@@ -1,50 +1,79 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+
 import {
-  createOptionItem,
-  updateOptionItem,
-} from "@/app/admin/actions";
+  createOptionGroup,
+  updateOptionGroup,
+} from "@/app/admin/option-group-actions";
 
-type Group = {
-  id: string;
-  name: string;
-};
+import OptionItemsEditor, {
+  OptionItem,
+} from "./OptionItemsEditor";
 
-type OptionItem = {
+type OptionGroup = {
   id?: string;
-  group_id?: string;
   name?: string;
-  extra_price?: number;
+  description?: string | null;
+  required?: boolean;
+  multiple?: boolean;
+  min_select?: number;
+  max_select?: number;
   order?: number;
-  available?: boolean;
 };
 
 type Props = {
-  item?: OptionItem;
-  groups: Group[];
+  item?: OptionGroup;
+  slug: string;
+  restaurantId: string;
 };
 
-export default function OptionItemForm({
+export default function OptionForm({
   item,
-  groups,
+  slug,
+  restaurantId,
 }: Props) {
-  const option = item ?? {
-    group_id: groups[0]?.id ?? "",
+  const group = item ?? {
     name: "",
-    extra_price: 0,
+    description: "",
+    required: false,
+    multiple: false,
+    min_select: 0,
+    max_select: 1,
     order: 0,
-    available: true,
   };
 
+  const [items, setItems] = useState<OptionItem[]>([]);
+
   return (
-    <div className="rounded-2xl border bg-white p-8 shadow">
-      <h2 className="mb-8 text-3xl font-bold">
-        {item ? "Editar opción" : "Nueva opción"}
-      </h2>
+    <div className="rounded-2xl border bg-white p-8 shadow-sm">
+      <h1 className="mb-8 text-2xl font-bold">
+        {item
+          ? "Editar grupo de opciones"
+          : "Nuevo grupo de opciones"}
+      </h1>
 
       <form
-        action={item ? updateOptionItem : createOptionItem}
+        action={
+          item
+            ? updateOptionGroup
+            : createOptionGroup
+        }
         className="space-y-6"
       >
+        <input
+          type="hidden"
+          name="slug"
+          value={slug}
+        />
+
+        <input
+          type="hidden"
+          name="restaurant_id"
+          value={restaurantId}
+        />
+
         {item?.id && (
           <input
             type="hidden"
@@ -54,82 +83,108 @@ export default function OptionItemForm({
         )}
 
         <div>
-          <label className="mb-2 block text-sm font-medium">
-            Grupo
-          </label>
-
-          <select
-            name="group_id"
-            defaultValue={option.group_id}
-            className="w-full rounded-lg border p-3"
-            required
-          >
-            {groups.map((group) => (
-              <option
-                key={group.id}
-                value={group.id}
-              >
-                {group.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium">
-            Nombre
+          <label className="mb-2 block font-semibold">
+            Nombre del grupo
           </label>
 
           <input
-            type="text"
             name="name"
-            defaultValue={option.name}
+            defaultValue={group.name}
             required
-            className="w-full rounded-lg border p-3"
+            className="w-full rounded-xl border px-4 py-3 outline-none transition focus:border-amber-500"
           />
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium">
-            Precio extra (€)
+          <label className="mb-2 block font-semibold">
+            Descripción
           </label>
 
-          <input
-            type="number"
-            name="extra_price"
-            step="0.01"
-            min="0"
-            defaultValue={option.extra_price}
-            required
-            className="w-full rounded-lg border p-3"
+          <textarea
+            name="description"
+            defaultValue={
+              group.description ?? ""
+            }
+            rows={3}
+            className="w-full rounded-xl border px-4 py-3 outline-none transition focus:border-amber-500"
           />
         </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium">
-            Orden
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              name="required"
+              defaultChecked={
+                group.required
+              }
+            />
+
+            Obligatorio
           </label>
 
-          <input
-            type="number"
-            name="order"
-            defaultValue={option.order}
-            className="w-full rounded-lg border p-3"
-          />
+          <label className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              name="multiple"
+              defaultChecked={
+                group.multiple
+              }
+            />
+
+            Permitir varias selecciones
+          </label>
         </div>
 
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            name="available"
-            defaultChecked={option.available}
-          />
-          Disponible
-        </label>
+        <div className="grid gap-4 md:grid-cols-3">
+          <div>
+            <label className="mb-2 block text-sm font-medium">
+              Mínimo
+            </label>
+
+            <input
+              type="number"
+              name="min_select"
+              defaultValue={group.min_select}
+              className="w-full rounded-lg border p-3"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium">
+              Máximo
+            </label>
+
+            <input
+              type="number"
+              name="max_select"
+              defaultValue={group.max_select}
+              className="w-full rounded-lg border p-3"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium">
+              Orden
+            </label>
+
+            <input
+              type="number"
+              name="order"
+              defaultValue={group.order}
+              className="w-full rounded-lg border p-3"
+            />
+          </div>
+        </div>
+
+        <OptionItemsEditor
+          items={items}
+          onChange={setItems}
+        />
 
         <div className="flex justify-end gap-3 border-t pt-6">
           <Link
-            href="/admin/options"
+            href={`/admin/${slug}/options`}
             className="rounded-lg border px-5 py-2 transition hover:bg-gray-100"
           >
             Cancelar
@@ -139,7 +194,9 @@ export default function OptionItemForm({
             type="submit"
             className="rounded-lg bg-amber-600 px-6 py-2 font-medium text-white transition hover:bg-amber-700"
           >
-            {item ? "Guardar cambios" : "Crear opción"}
+            {item
+              ? "Guardar cambios"
+              : "Crear grupo"}
           </button>
         </div>
       </form>
