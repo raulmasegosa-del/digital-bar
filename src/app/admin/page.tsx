@@ -4,7 +4,6 @@ import StatsGrid from "@/components/admin/dashboard/StatsGrid";
 import RecentOrders from "@/components/admin/dashboard/RecentOrders";
 import TopProducts from "@/components/admin/dashboard/TopProducts";
 import KitchenMetrics from "@/components/admin/dashboard/KitchenMetrics";
-import AdminNavigation from "@/components/admin/AdminNavigation";
 
 import { getDashboardData } from "@/lib/dashboard/DashboardService";
 
@@ -17,8 +16,6 @@ export default async function AdminPage() {
       <div className="mx-auto max-w-7xl space-y-8">
 
         <DashboardHeader />
-
-        <AdminNavigation />
 
         <DashboardRealtime />
 

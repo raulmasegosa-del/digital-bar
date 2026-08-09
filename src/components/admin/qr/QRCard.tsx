@@ -2,18 +2,20 @@
 
 import { QRCodeSVG } from "qrcode.react";
 
-import { getTableUrl } from "@/lib/qr/getTableUrl";
-
 type Props = {
   slug: string;
   table: number;
 };
 
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ??
+  "https://digital-bar-orpin.vercel.app";
+
 export default function QRCard({
   slug,
   table,
 }: Props) {
-  const url = getTableUrl(slug, table);
+  const url = `${APP_URL}/r/${slug}?mesa=${table}`;
 
   return (
     <article className="rounded-2xl border bg-white p-6 shadow">
@@ -40,8 +42,8 @@ export default function QRCard({
           Mesa {table}
         </p>
 
-        <p className="mt-2 text-sm text-gray-500">
-          Escanea este código para acceder a la carta.
+        <p className="mt-2 break-all text-sm text-gray-500">
+          {url}
         </p>
       </div>
     </article>
