@@ -5,25 +5,33 @@ import { useState } from "react";
 import QRCard from "./QRCard";
 import QRPrintButton from "./QRPrintButton";
 
-export default function QRGrid() {
+type Props = {
+  slug: string;
+};
+
+export default function QRGrid({
+  slug,
+}: Props) {
   const [tables, setTables] = useState(10);
 
   return (
     <section className="space-y-8">
-      <div className="flex flex-wrap items-center gap-4">
-        <label className="font-semibold">
-          Número de mesas
-        </label>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <label className="font-medium">
+            Número de mesas
+          </label>
 
-        <input
-          type="number"
-          min={1}
-          value={tables}
-          onChange={(e) =>
-            setTables(Number(e.target.value))
-          }
-          className="w-24 rounded-lg border p-2"
-        />
+          <input
+            type="number"
+            min={1}
+            value={tables}
+            onChange={(e) =>
+              setTables(Number(e.target.value))
+            }
+            className="w-24 rounded-lg border p-2"
+          />
+        </div>
 
         <QRPrintButton />
       </div>
@@ -32,6 +40,7 @@ export default function QRGrid() {
         {Array.from({ length: tables }).map((_, index) => (
           <QRCard
             key={index}
+            slug={slug}
             table={index + 1}
           />
         ))}

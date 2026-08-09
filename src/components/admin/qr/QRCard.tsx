@@ -5,30 +5,22 @@ import { QRCodeSVG } from "qrcode.react";
 import { getTableUrl } from "@/lib/qr/getTableUrl";
 
 type Props = {
+  slug: string;
   table: number;
 };
 
 export default function QRCard({
+  slug,
   table,
 }: Props) {
-  const url = getTableUrl(table);
+  const url = getTableUrl(slug, table);
 
   return (
-    <article
-      className="
-        rounded-2xl
-        border-2
-        border-gray-800
-        bg-white
-        p-6
-        shadow
-        print:shadow-none
-      "
-    >
+    <article className="rounded-2xl border bg-white p-6 shadow">
       <div className="text-center">
-        <h2 className="text-2xl font-bold">
+        <h3 className="text-xl font-bold">
           🍻 Digital Bar
-        </h2>
+        </h3>
 
         <p className="mt-1 text-sm text-gray-500">
           Escanea para pedir
@@ -49,8 +41,7 @@ export default function QRCard({
         </p>
 
         <p className="mt-2 text-sm text-gray-500">
-          Escanea este código para
-          acceder a la carta.
+          Escanea este código para acceder a la carta.
         </p>
       </div>
     </article>
