@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { supabase } from "@/lib/supabase/client";
-import { getOrders } from "@/app/admin/getOrders";
+import { getOrders } from "@/lib/orders/getOrders";
 
 import KitchenCard from "@/components/kitchen/KitchenCard";
 

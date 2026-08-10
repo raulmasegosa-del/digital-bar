@@ -27,7 +27,7 @@ export default function DeleteCategoryButton({
 
     startTransition(async () => {
       try {
-        await deleteCategory(id, slug);
+        await deleteCategory(id);
       } catch (error) {
         alert(
           error instanceof Error

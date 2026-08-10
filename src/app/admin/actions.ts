@@ -32,8 +32,6 @@ export async function deleteProduct(id: string) {
 }
 
 export async function createProduct(formData: FormData) {
-  const restaurant_id = formData.get("restaurant_id") as string;
-const slug = formData.get("slug") as string;
   const name = (formData.get("name") as string)?.trim();
   const subtitle = (formData.get("subtitle") as string)?.trim();
   const description = (formData.get("description") as string)?.trim();
@@ -69,7 +67,6 @@ const slug = formData.get("slug") as string;
       image,
       available,
       featured,
-      restaurant_id,
     });
 
   if (itemError) throw itemError;
@@ -100,8 +97,9 @@ const slug = formData.get("slug") as string;
   }
 
   revalidatePath("/");
-revalidatePath(`/admin/${slug}/products`);
-redirect(`/admin/${slug}/products`);
+  revalidatePath("/admin");
+
+  redirect("/admin");
 }
 export async function updateProduct(formData: FormData) {
   const id = formData.get("id") as string;
@@ -187,7 +185,8 @@ export async function updateProduct(formData: FormData) {
   redirect("/admin");
 }
 export async function createOptionItem(formData: FormData) {
-  
+  console.log("========== CREATE OPTION ==========");
+console.log(Object.fromEntries(formData.entries()));
   const group_id = formData.get("group_id") as string;
   const name = (formData.get("name") as string)?.trim();
 
@@ -202,7 +201,13 @@ export async function createOptionItem(formData: FormData) {
   if (!name) {
     throw new Error("El nombre es obligatorio.");
   }
-
+console.log({
+  group_id,
+  name,
+  extra_price,
+  order,
+  available,
+});
   const { error } = await supabaseAdmin
     .from("option_items")
     .insert({
@@ -263,6 +268,10 @@ export async function toggleProductAvailable(
   id: string,
   available: boolean
 ) {
+  if (!id) {
+    throw new Error("Producto no encontrado.");
+  }
+
   const { error } = await supabaseAdmin
     .from("menu_items")
     .update({
@@ -274,22 +283,6 @@ export async function toggleProductAvailable(
     throw error;
   }
 
-  revalidatePath("/admin/products");
-}
-export async function toggleProductFeatured(
-  id: string,
-  featured: boolean
-) {
-  const { error } = await supabaseAdmin
-    .from("menu_items")
-    .update({
-      featured,
-    })
-    .eq("id", id);
-
-  if (error) {
-    throw error;
-  }
-
-  revalidatePath("/admin/products");
+  revalidatePath("/");
+  revalidatePath("/admin");
 }

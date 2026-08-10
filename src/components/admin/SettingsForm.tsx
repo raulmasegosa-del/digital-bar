@@ -1,6 +1,6 @@
 "use client";
 
-import { saveRestaurantSettings } from "@/app/admin/settings/actions";
+import { saveRestaurantSettings } from "@/lib/actions/settings";
 import PrimaryButton from "@/components/ui/form/PrimaryButton";
 import type { RestaurantSettings } from "@/types/settings";
 

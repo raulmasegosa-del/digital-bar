@@ -4,8 +4,7 @@ import ElapsedTime from "@/components/business/ElapsedTime";
 
 import StatusBadge from "@/components/kitchen/StatusBadge";
 
-import { getOrderPriority } from "@/lib/orders/getOrderPriority";
-
+import { getOrderPriority } from "@/lib/time/getOrderPriority";
 import type { Order } from "@/types/orders";
 
 type Props = {

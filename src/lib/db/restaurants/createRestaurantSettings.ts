@@ -4,13 +4,17 @@ export async function createRestaurantSettings(
   restaurantId: string,
   name: string
 ) {
+  if (!restaurantId) {
+    throw new Error(
+      "El restaurante es obligatorio."
+    );
+  }
+
   const { data, error } = await supabaseAdmin
     .from("restaurant_settings")
     .insert({
       restaurant_id: restaurantId,
       name,
-      accept_orders: true,
-      primary_color: "#d97706",
     })
     .select()
     .single();
