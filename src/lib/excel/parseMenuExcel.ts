@@ -12,11 +12,26 @@ export type MenuExcelRow = {
   tiempo_preparacion: number | null;
 };
 
-function normalizeText(value: unknown): string {
+function normalizeHeader(
+  value: unknown
+): string {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function normalizeText(
+  value: unknown
+): string {
   return String(value ?? "").trim();
 }
 
-function normalizeNumber(value: unknown): number {
+function normalizeNumber(
+  value: unknown
+): number {
   if (typeof value === "number") {
     return value;
   }
@@ -50,18 +65,30 @@ function normalizeBoolean(
 
   const text = String(value)
     .trim()
-    .toLowerCase();
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 
   if (
-    ["sí", "si", "s", "yes", "y", "true", "1"].includes(
-      text
-    )
+    [
+      "si",
+      "s",
+      "yes",
+      "y",
+      "true",
+      "1",
+    ].includes(text)
   ) {
     return true;
   }
 
   if (
-    ["no", "n", "false", "0"].includes(text)
+    [
+      "no",
+      "n",
+      "false",
+      "0",
+    ].includes(text)
   ) {
     return false;
   }
@@ -69,16 +96,42 @@ function normalizeBoolean(
   return defaultValue;
 }
 
+type NormalizedRow =
+  Record<string, unknown>;
+
+function getColumn(
+  row: NormalizedRow,
+  aliases: string[]
+): unknown {
+  for (const alias of aliases) {
+    const normalizedAlias =
+      normalizeHeader(alias);
+
+    if (
+      Object.prototype.hasOwnProperty.call(
+        row,
+        normalizedAlias
+      )
+    ) {
+      return row[normalizedAlias];
+    }
+  }
+
+  return undefined;
+}
+
 export async function parseMenuExcel(
   file: File
 ): Promise<MenuExcelRow[]> {
-  const buffer = await file.arrayBuffer();
+  const buffer =
+    await file.arrayBuffer();
 
   const workbook = XLSX.read(buffer, {
     type: "array",
   });
 
-  const sheetName = workbook.SheetNames[0];
+  const sheetName =
+    workbook.SheetNames[0];
 
   if (!sheetName) {
     throw new Error(
@@ -86,55 +139,195 @@ export async function parseMenuExcel(
     );
   }
 
-  const worksheet = workbook.Sheets[sheetName];
+  const worksheet =
+    workbook.Sheets[sheetName];
 
-  const rows = XLSX.utils.sheet_to_json<
-    Record<string, unknown>
-  >(worksheet, {
-    defval: "",
-  });
+  /*
+   * Primero obtenemos las filas sin convertir
+   * las cabeceras automáticamente.
+   */
+  const rawRows =
+    XLSX.utils.sheet_to_json<
+      Record<string, unknown>
+    >(worksheet, {
+      defval: "",
+    });
 
-  return rows.map((row, index) => ({
-    // +2 porque la fila 1 contiene las cabeceras
-    rowNumber: index + 2,
+  /*
+   * Normalizamos las cabeceras.
+   *
+   * Ejemplos:
+   *
+   * "Categoría" -> "categoria"
+   * " CATEGORÍA " -> "categoria"
+   * "Pvp"       -> "pvp"
+   * "PVP"       -> "pvp"
+   */
+  const rows =
+    rawRows.map((rawRow) => {
+      const normalizedRow: NormalizedRow = {};
 
-    categoria: normalizeText(
-      row["categoria"]
-    ),
+      for (const [
+        key,
+        value,
+      ] of Object.entries(rawRow)) {
+        normalizedRow[
+          normalizeHeader(key)
+        ] = value;
+      }
 
-    nombre: normalizeText(
-      row["nombre"]
-    ),
+      return normalizedRow;
+    });
 
-    precio: normalizeNumber(
-      row["precio"]
-    ),
+  /*
+   * Comprobamos las columnas mínimas.
+   *
+   * Nuestro formato interno es:
+   *
+   * categoria
+   * nombre
+   * precio
+   *
+   * Pero aceptamos nombres habituales:
+   *
+   * categoria -> categoría
+   * nombre    -> producto
+   * precio    -> pvp
+   */
+  const firstRow = rows[0] ?? {};
 
-    subtitulo: normalizeText(
-      row["subtitulo"]
-    ),
+  const categoryValue =
+    getColumn(firstRow, [
+      "categoria",
+      "categoría",
+      "category",
+    ]);
 
-    descripcion: normalizeText(
-      row["descripcion"]
-    ),
+  const nameValue =
+    getColumn(firstRow, [
+      "nombre",
+      "producto",
+      "name",
+    ]);
 
-    disponible: normalizeBoolean(
-      row["disponible"],
-      true
-    ),
+  const priceValue =
+    getColumn(firstRow, [
+      "precio",
+      "pvp",
+      "price",
+    ]);
 
-    destacado: normalizeBoolean(
-      row["destacado"],
-      false
-    ),
+  /*
+   * Si no encontramos ninguna de las columnas
+   * obligatorias, mostramos un error claro.
+   */
+  if (
+    categoryValue === undefined &&
+    nameValue === undefined &&
+    priceValue === undefined
+  ) {
+    throw new Error(
+      "No se han encontrado las columnas obligatorias. Se esperan columnas como: Categoría, Producto y Pvp."
+    );
+  }
 
-    tiempo_preparacion:
-      row["tiempo_preparacion"] === "" ||
-      row["tiempo_preparacion"] === undefined ||
-      row["tiempo_preparacion"] === null
-        ? null
-        : normalizeNumber(
-            row["tiempo_preparacion"]
-          ),
-  }));
+  return rows.map(
+    (row, index) => ({
+      /*
+       * +2 porque la fila 1 contiene
+       * las cabeceras.
+       */
+      rowNumber: index + 2,
+
+      categoria: normalizeText(
+        getColumn(row, [
+          "categoria",
+          "categoría",
+          "category",
+        ])
+      ),
+
+      nombre: normalizeText(
+        getColumn(row, [
+          "nombre",
+          "producto",
+          "name",
+        ])
+      ),
+
+      precio: normalizeNumber(
+        getColumn(row, [
+          "precio",
+          "pvp",
+          "price",
+        ])
+      ),
+
+      subtitulo: normalizeText(
+        getColumn(row, [
+          "subtitulo",
+          "subtítulo",
+          "subtitle",
+        ])
+      ),
+
+      descripcion: normalizeText(
+        getColumn(row, [
+          "descripcion",
+          "descripción",
+          "description",
+        ])
+      ),
+
+      disponible: normalizeBoolean(
+        getColumn(row, [
+          "disponible",
+          "availability",
+          "available",
+        ]),
+        true
+      ),
+
+      destacado: normalizeBoolean(
+        getColumn(row, [
+          "destacado",
+          "featured",
+        ]),
+        false
+      ),
+
+      tiempo_preparacion:
+        getColumn(row, [
+          "tiempo_preparacion",
+          "tiempo preparacion",
+          "tiempo de preparacion",
+          "tiempo de preparación",
+          "preparation time",
+        ]) === "" ||
+        getColumn(row, [
+          "tiempo_preparacion",
+          "tiempo preparacion",
+          "tiempo de preparacion",
+          "tiempo de preparación",
+          "preparation time",
+        ]) === undefined ||
+        getColumn(row, [
+          "tiempo_preparacion",
+          "tiempo preparacion",
+          "tiempo de preparacion",
+          "tiempo de preparación",
+          "preparation time",
+        ]) === null
+          ? null
+          : normalizeNumber(
+              getColumn(row, [
+                "tiempo_preparacion",
+                "tiempo preparacion",
+                "tiempo de preparacion",
+                "tiempo de preparación",
+                "preparation time",
+              ])
+            ),
+    })
+  );
 }
