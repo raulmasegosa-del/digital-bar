@@ -14,7 +14,7 @@ export default async function RestaurantsPage() {
     <>
       <PageHeader
         title="Restaurantes"
-        description="Gestiona todos los restaurantes registrados."
+        description="Gestiona los restaurantes de Digital Bar Platform."
       />
 
       <div className="mb-8 flex justify-end">
@@ -66,8 +66,18 @@ export default async function RestaurantsPage() {
                 </span>
               </div>
 
-              <div className="mt-6 grid gap-3 border-t pt-4">
-                <Link href={`/admin/${restaurant.slug}`}>
+              <div className="mt-6 flex flex-col gap-3 border-t pt-4">
+                <Link
+                  href={`/r/${restaurant.slug}`}
+                >
+                  <PrimaryButton className="w-full">
+                    🍻 Abrir Restaurante
+                  </PrimaryButton>
+                </Link>
+
+                <Link
+                  href={`/admin/${restaurant.slug}`}
+                >
                   <PrimaryButton className="w-full">
                     🛠 Administrar
                   </PrimaryButton>
@@ -80,35 +90,6 @@ export default async function RestaurantsPage() {
                     📥 Importar Excel
                   </PrimaryButton>
                 </Link>
-
-                <button
-                  type="button"
-                  disabled
-                  className="w-full cursor-not-allowed rounded-xl border bg-gray-50 px-4 py-2 text-gray-400"
-                  title="Disponible cuando la carta pública esté implementada"
-                >
-                  👁 Ver carta
-                </button>
-
-                {restaurant.website ? (
-                  <a
-                    href={restaurant.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-xl border px-4 py-2 text-center transition hover:bg-gray-50"
-                  >
-                    🌐 Abrir web
-                  </a>
-                ) : (
-                  <button
-                    type="button"
-                    disabled
-                    className="w-full cursor-not-allowed rounded-xl border bg-gray-50 px-4 py-2 text-gray-400"
-                    title="Este restaurante todavía no tiene una web configurada"
-                  >
-                    🌐 Abrir web
-                  </button>
-                )}
               </div>
             </div>
           ))}
