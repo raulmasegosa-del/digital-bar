@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client";
+import { supabaseClient } from "@/lib/supabase/client";
 
 import { getActiveOrder } from "./getActiveOrder";
 import { addItemsToOrder } from "./addItemsToOrder";
@@ -33,7 +33,7 @@ export async function createOrder({
   }
 
   const { data: order, error } =
-    await supabase
+    await supabaseClient
       .from("orders")
       .insert({
         table_number: table,
@@ -58,7 +58,7 @@ export async function createOrder({
   }));
 
   const { error: itemError } =
-    await supabase
+    await supabaseClient
       .from("order_items")
       .insert(rows);
 

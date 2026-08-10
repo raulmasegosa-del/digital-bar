@@ -10,6 +10,7 @@
     "import:niko": "tsx scripts/import-niko.ts"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.4",
     "@supabase/supabase-js": "^2.110.9",
     "dotenv": "^17.4.2",
     "lucide-react": "^1.27.0",
