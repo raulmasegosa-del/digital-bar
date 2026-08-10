@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import PageHeader from "@/components/ui/PageHeader";
 import PrimaryButton from "@/components/ui/form/PrimaryButton";
 
 import { getRestaurants } from "@/lib/db/restaurants/getRestaurants";
@@ -12,11 +11,6 @@ export default async function RestaurantsPage() {
 
   return (
     <>
-      <PageHeader
-        title="Restaurantes"
-        description="Gestiona los restaurantes de Digital Bar Platform."
-      />
-
       <div className="mb-8 flex justify-end">
         <Link href="/super/restaurants/new">
           <PrimaryButton>
@@ -67,28 +61,56 @@ export default async function RestaurantsPage() {
               </div>
 
               <div className="mt-6 flex flex-col gap-3 border-t pt-4">
-                <Link
-                  href={`/r/${restaurant.slug}`}
-                >
+                {/* Acción principal */}
+                <Link href={`/r/${restaurant.slug}`}>
                   <PrimaryButton className="w-full">
                     🍻 Abrir Restaurante
                   </PrimaryButton>
                 </Link>
 
-                <Link
-                  href={`/admin/${restaurant.slug}`}
-                >
-                  <PrimaryButton className="w-full">
+                {/* Acciones secundarias */}
+                <Link href={`/admin/${restaurant.slug}`}>
+                  <span
+                    className="
+                      flex w-full items-center justify-center
+                      rounded-xl
+                      border border-gray-300
+                      bg-white
+                      px-5 py-2.5
+                      text-sm font-semibold text-gray-800
+                      transition-all duration-200
+                      hover:-translate-y-0.5
+                      hover:border-amber-500
+                      hover:bg-amber-50
+                      hover:text-amber-700
+                      hover:shadow-sm
+                    "
+                  >
                     🛠 Administrar
-                  </PrimaryButton>
+                  </span>
                 </Link>
 
                 <Link
                   href={`/super/restaurants/${restaurant.slug}/import`}
                 >
-                  <PrimaryButton className="w-full">
+                  <span
+                    className="
+                      flex w-full items-center justify-center
+                      rounded-xl
+                      border border-gray-300
+                      bg-white
+                      px-5 py-2.5
+                      text-sm font-semibold text-gray-800
+                      transition-all duration-200
+                      hover:-translate-y-0.5
+                      hover:border-amber-500
+                      hover:bg-amber-50
+                      hover:text-amber-700
+                      hover:shadow-sm
+                    "
+                  >
                     📥 Importar Excel
-                  </PrimaryButton>
+                  </span>
                 </Link>
               </div>
             </div>
