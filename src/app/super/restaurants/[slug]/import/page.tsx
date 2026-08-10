@@ -1,5 +1,9 @@
+import { notFound } from "next/navigation";
+
 import PageHeader from "@/components/ui/PageHeader";
 import MenuExcelUploader from "@/components/super/MenuExcelUploader";
+
+import { getRestaurant } from "@/lib/db/restaurants/getRestaurant";
 
 type Props = {
   params: Promise<{
@@ -55,11 +59,17 @@ export default async function ImportMenuPage({
 }: Props) {
   const { slug } = await params;
 
+  const restaurant = await getRestaurant(slug);
+
+  if (!restaurant) {
+    notFound();
+  }
+
   return (
     <main>
       <PageHeader
         title="Importar carta"
-        description={`Importación de Excel · ${slug}`}
+        description={`Importación de Excel · ${restaurant.name}`}
         backHref={`/super/restaurants/${slug}`}
         backLabel="Restaurante"
       />
@@ -153,7 +163,10 @@ export default async function ImportMenuPage({
             una vista previa antes de importarlo.
           </p>
 
-          <MenuExcelUploader slug={slug} />
+          <MenuExcelUploader
+            slug={slug}
+            restaurantId={restaurant.id}
+          />
         </section>
       </div>
     </main>

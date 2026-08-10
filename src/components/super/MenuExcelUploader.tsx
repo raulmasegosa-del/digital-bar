@@ -1,24 +1,37 @@
 "use client";
 
-import { useRef, useState } from "react";
-
 import {
-  parseMenuExcel,
-  type MenuExcelRow,
-} from "@/lib/excel/parseMenuExcel";
+  useRef,
+  useState,
+  type ChangeEvent,
+} from "react";
+
+import { analyzeMenuImport } from "@/app/super/actions";
+
+import { parseMenuExcel } from "@/lib/excel/parseMenuExcel";
 import { validateMenuExcel } from "@/lib/excel/validateMenuExcel";
+import type { MenuExcelRow } from "@/lib/excel/parseMenuExcel";
+
+import { getDefaultImportOptions } from "@/lib/excel/getDefaultImportOptions";
+import type { ImportOptions } from "@/lib/excel/importTypes";
 
 type Props = {
   slug: string;
+  restaurantId: string;
 };
 
 export default function MenuExcelUploader({
   slug,
+  restaurantId,
 }: Props) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef =
+    useRef<HTMLInputElement>(null);
 
-  const [fileName, setFileName] = useState("");
-  const [error, setError] = useState("");
+  const [fileName, setFileName] =
+    useState("");
+
+  const [error, setError] =
+    useState("");
 
   const [validationErrors, setValidationErrors] =
     useState<
@@ -29,31 +42,65 @@ export default function MenuExcelUploader({
       }[]
     >([]);
 
-  const [rows, setRows] = useState<MenuExcelRow[]>([]);
+  const [rowCount, setRowCount] =
+    useState(0);
 
-  const [rowCount, setRowCount] = useState(0);
-  const [valid, setValid] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [rows, setRows] =
+    useState<MenuExcelRow[]>([]);
+
+  const [valid, setValid] =
+    useState(false);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [analyzing, setAnalyzing] =
+    useState(false);
+
+  const [importAnalysis, setImportAnalysis] =
+    useState<
+      Awaited<
+        ReturnType<typeof analyzeMenuImport>
+      > | null
+    >(null);
+
+  const [importOptions, setImportOptions] =
+    useState<ImportOptions>(
+      getDefaultImportOptions()
+    );
+
+  function resetAnalysis() {
+    setImportAnalysis(null);
+    setImportOptions(
+      getDefaultImportOptions()
+    );
+  }
 
   async function handleFileChange(
-    event: React.ChangeEvent<HTMLInputElement>
+    event: ChangeEvent<HTMLInputElement>
   ) {
-    const file = event.target.files?.[0];
+    const file =
+      event.target.files?.[0];
 
     setError("");
     setFileName("");
     setValidationErrors([]);
-    setRows([]);
     setRowCount(0);
+    setRows([]);
     setValid(false);
+    resetAnalysis();
 
     if (!file) {
       return;
     }
 
     const isExcel =
-      file.name.toLowerCase().endsWith(".xlsx") ||
-      file.name.toLowerCase().endsWith(".xls");
+      file.name
+        .toLowerCase()
+        .endsWith(".xlsx") ||
+      file.name
+        .toLowerCase()
+        .endsWith(".xls");
 
     if (!isExcel) {
       setError(
@@ -68,13 +115,17 @@ export default function MenuExcelUploader({
     setFileName(file.name);
 
     try {
-      const parsedRows = await parseMenuExcel(file);
+      const parsedRows =
+        await parseMenuExcel(file);
 
-      const result = validateMenuExcel(parsedRows);
+      const result =
+        validateMenuExcel(parsedRows);
 
       setRows(parsedRows);
       setRowCount(parsedRows.length);
-      setValidationErrors(result.errors);
+      setValidationErrors(
+        result.errors
+      );
       setValid(result.valid);
     } catch (err) {
       console.error(err);
@@ -86,6 +137,7 @@ export default function MenuExcelUploader({
       );
 
       setFileName("");
+      setRows([]);
     } finally {
       setLoading(false);
     }
@@ -93,6 +145,54 @@ export default function MenuExcelUploader({
 
   function handleSelectClick() {
     inputRef.current?.click();
+  }
+
+  async function handleAnalyzeImport() {
+    if (!valid || rows.length === 0) {
+      return;
+    }
+
+    setAnalyzing(true);
+    setError("");
+
+    try {
+      const result =
+        await analyzeMenuImport(
+          restaurantId,
+          rows
+        );
+
+      setImportAnalysis(result);
+    } catch (err) {
+      console.error(err);
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : "No se ha podido analizar la importación."
+      );
+    } finally {
+      setAnalyzing(false);
+    }
+  }
+
+  function updateImportOption(
+    field: keyof ImportOptions,
+    value: string
+  ) {
+    setImportOptions((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
+
+  function handlePrepareImport() {
+    console.log(
+      "Opciones de importación:",
+      importOptions
+    );
+
+    setError("");
   }
 
   return (
@@ -108,7 +208,9 @@ export default function MenuExcelUploader({
       <button
         type="button"
         onClick={handleSelectClick}
-        disabled={loading}
+        disabled={
+          loading || analyzing
+        }
         className="w-full rounded-xl border-2 border-dashed px-6 py-10 text-center transition hover:bg-gray-50 disabled:cursor-wait disabled:opacity-60"
       >
         <div className="text-4xl">
@@ -152,13 +254,16 @@ export default function MenuExcelUploader({
             }`}
           >
             {rowCount}{" "}
-            {rowCount === 1 ? "fila" : "filas"} detectadas
+            {rowCount === 1
+              ? "fila"
+              : "filas"}{" "}
+            detectadas
           </p>
 
           {valid && (
             <p className="mt-2 text-sm font-medium text-green-800">
-              ✓ El Excel es válido y está preparado para
-              continuar.
+              ✓ El Excel es válido y está preparado
+              para continuar.
             </p>
           )}
         </div>
@@ -209,119 +314,252 @@ export default function MenuExcelUploader({
         </div>
       )}
 
-      {valid && rows.length > 0 && (
-        <div className="mt-6 rounded-xl border bg-white">
-          <div className="border-b p-4">
-            <h3 className="font-semibold">
-              Vista previa
-            </h3>
-
-            <p className="mt-1 text-sm text-gray-500">
-              Mostrando las primeras{" "}
-              {Math.min(rows.length, 10)} filas del Excel.
-            </p>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-left">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-xs font-semibold uppercase text-gray-500">
-                    Fila
-                  </th>
-
-                  <th className="px-4 py-3 text-xs font-semibold uppercase text-gray-500">
-                    Categoría
-                  </th>
-
-                  <th className="px-4 py-3 text-xs font-semibold uppercase text-gray-500">
-                    Producto
-                  </th>
-
-                  <th className="px-4 py-3 text-xs font-semibold uppercase text-gray-500">
-                    Precio
-                  </th>
-
-                  <th className="px-4 py-3 text-xs font-semibold uppercase text-gray-500">
-                    Subtítulo
-                  </th>
-
-                  <th className="px-4 py-3 text-xs font-semibold uppercase text-gray-500">
-                    Disponible
-                  </th>
-
-                  <th className="px-4 py-3 text-xs font-semibold uppercase text-gray-500">
-                    Destacado
-                  </th>
-
-                  <th className="px-4 py-3 text-xs font-semibold uppercase text-gray-500">
-                    Preparación
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody className="divide-y">
-                {rows.slice(0, 10).map((row) => (
-                  <tr key={row.rowNumber}>
-                    <td className="px-4 py-3 text-sm text-gray-500">
-                      {row.rowNumber}
-                    </td>
-
-                    <td className="px-4 py-3 text-sm">
-                      {row.categoria}
-                    </td>
-
-                    <td className="px-4 py-3 text-sm font-medium">
-                      {row.nombre}
-                    </td>
-
-                    <td className="px-4 py-3 text-sm">
-                      {row.precio.toFixed(2)} €
-                    </td>
-
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {row.subtitulo || "—"}
-                    </td>
-
-                    <td className="px-4 py-3 text-sm">
-                      {row.disponible ? "Sí" : "No"}
-                    </td>
-
-                    <td className="px-4 py-3 text-sm">
-                      {row.destacado ? "Sí" : "No"}
-                    </td>
-
-                    <td className="px-4 py-3 text-sm">
-                      {row.tiempo_preparacion !== null
-                        ? `${row.tiempo_preparacion} min`
-                        : "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {rows.length > 10 && (
-            <div className="border-t p-4 text-center text-sm text-gray-500">
-              Hay {rows.length - 10} filas más que se
-              procesarán al continuar.
-            </div>
-          )}
-        </div>
-      )}
-
-      {valid && (
+      {valid && !importAnalysis && (
         <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
           <p className="text-sm font-medium text-amber-900">
             El archivo ha pasado la validación.
           </p>
 
           <p className="mt-1 text-sm text-amber-800">
-            El siguiente paso será comprobar las
-            categorías y productos que ya existen antes
-            de realizar la importación.
+            Continúa para comprobar las categorías y
+            productos que ya existen en el restaurante.
           </p>
+
+          <div className="mt-4 flex justify-end">
+            <button
+              type="button"
+              onClick={handleAnalyzeImport}
+              disabled={analyzing}
+              className="rounded-xl bg-amber-600 px-6 py-3 font-semibold text-white transition hover:bg-amber-700 disabled:cursor-wait disabled:opacity-60"
+            >
+              {analyzing
+                ? "Comprobando..."
+                : "Continuar"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {importAnalysis && (
+        <div className="mt-6 space-y-6">
+          <div className="rounded-2xl border bg-white p-6 shadow-sm">
+            <h3 className="text-lg font-bold">
+              Resumen de la importación
+            </h3>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Hemos comprobado el Excel contra la carta
+              actual de este restaurante.
+            </p>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-xl bg-gray-50 p-4">
+                <p className="text-sm text-gray-500">
+                  Filas
+                </p>
+
+                <p className="mt-1 text-2xl font-bold">
+                  {
+                    importAnalysis.summary
+                      .totalRows
+                  }
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-gray-50 p-4">
+                <p className="text-sm text-gray-500">
+                  Categorías nuevas
+                </p>
+
+                <p className="mt-1 text-2xl font-bold">
+                  {
+                    importAnalysis.summary
+                      .newCategories
+                  }
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-gray-50 p-4">
+                <p className="text-sm text-gray-500">
+                  Categorías existentes
+                </p>
+
+                <p className="mt-1 text-2xl font-bold">
+                  {
+                    importAnalysis.summary
+                      .existingCategories
+                  }
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-gray-50 p-4">
+                <p className="text-sm text-gray-500">
+                  Productos nuevos
+                </p>
+
+                <p className="mt-1 text-2xl font-bold">
+                  {
+                    importAnalysis.summary
+                      .newProducts
+                  }
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-gray-50 p-4">
+                <p className="text-sm text-gray-500">
+                  Productos existentes
+                </p>
+
+                <p className="mt-1 text-2xl font-bold">
+                  {
+                    importAnalysis.summary
+                      .existingProducts
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border bg-white p-6 shadow-sm">
+            <h3 className="text-lg font-bold">
+              Opciones de importación
+            </h3>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Decide qué debe hacer Super cuando
+              encuentre información que ya existe.
+            </p>
+
+            <div className="mt-6 space-y-6">
+              <div>
+                <label
+                  htmlFor="existing-category"
+                  className="block font-semibold"
+                >
+                  Categoría existente
+                </label>
+
+                <p className="mt-1 text-sm text-gray-500">
+                  ¿Qué hacemos si la categoría ya existe?
+                </p>
+
+                <select
+                  id="existing-category"
+                  value={
+                    importOptions.existingCategory
+                  }
+                  onChange={(event) =>
+                    updateImportOption(
+                      "existingCategory",
+                      event.target.value
+                    )
+                  }
+                  className="mt-3 w-full rounded-xl border p-3"
+                >
+                  <option value="ignore">
+                    Ignorar categoría existente
+                  </option>
+
+                  <option value="overwrite">
+                    Sobrescribir categoría existente
+                  </option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="existing-product"
+                  className="block font-semibold"
+                >
+                  Producto existente
+                </label>
+
+                <p className="mt-1 text-sm text-gray-500">
+                  ¿Qué hacemos si el producto ya existe?
+                </p>
+
+                <select
+                  id="existing-product"
+                  value={
+                    importOptions.existingProduct
+                  }
+                  onChange={(event) =>
+                    updateImportOption(
+                      "existingProduct",
+                      event.target.value
+                    )
+                  }
+                  className="mt-3 w-full rounded-xl border p-3"
+                >
+                  <option value="ignore">
+                    Ignorar producto existente
+                  </option>
+
+                  <option value="overwrite">
+                    Sobrescribir producto existente
+                  </option>
+                </select>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="empty-fields"
+                  className="block font-semibold"
+                >
+                  Campos vacíos
+                </label>
+
+                <p className="mt-1 text-sm text-gray-500">
+                  ¿Qué hacemos cuando una celda del Excel
+                  está vacía?
+                </p>
+
+                <select
+                  id="empty-fields"
+                  value={
+                    importOptions.emptyFields
+                  }
+                  onChange={(event) =>
+                    updateImportOption(
+                      "emptyFields",
+                      event.target.value
+                    )
+                  }
+                  className="mt-3 w-full rounded-xl border p-3"
+                >
+                  <option value="keep">
+                    Mantener el valor actual
+                  </option>
+
+                  <option value="clear">
+                    Sobrescribir con vacío
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
+              <p className="font-semibold text-amber-900">
+                Todavía no se ha importado nada.
+              </p>
+
+              <p className="mt-1 text-sm text-amber-800">
+                Estas opciones se utilizarán en el
+                siguiente paso para realizar la
+                importación.
+              </p>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={handlePrepareImport}
+                className="rounded-xl bg-amber-600 px-6 py-3 font-semibold text-white transition hover:bg-amber-700"
+              >
+                Preparar importación
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
