@@ -36,7 +36,7 @@ export default function Cart({ open, onClose, restaurantId }: Props) {
         price: item.price,
         options: item.options ?? [],
       }));
-      const existingItems = currentOrder?.id === order.id ? currentOrder.items : [];
+      const existingItems = currentOrder && currentOrder.id === order.id ? currentOrder.items : [];
 
       setOrder({
         id: order.id,
