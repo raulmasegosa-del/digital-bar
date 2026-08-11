@@ -8,11 +8,13 @@ type Category = {
 type Props = {
   categories: Category[];
   slug: string;
+  restaurantId: string;
 };
 
 export default function CategoryGrid({
   categories,
   slug,
+  restaurantId,
 }: Props) {
   if (categories.length === 0) {
     return (
@@ -35,6 +37,7 @@ export default function CategoryGrid({
           key={category.id}
           category={category}
           slug={slug}
+          restaurantId={restaurantId}
         />
       ))}
     </div>
