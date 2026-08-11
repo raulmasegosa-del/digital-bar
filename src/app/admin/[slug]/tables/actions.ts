@@ -1,0 +1,113 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+
+import { supabaseAdmin } from "@/lib/supabase/server";
+
+export async function updateTable(
+  restaurantId: string,
+  tableId: string,
+  formData: FormData
+) {
+  const number = Number(formData.get("number"));
+  const name = String(formData.get("name") ?? "").trim() || null;
+  const zone = String(formData.get("zone") ?? "").trim() || null;
+  const active = formData.get("active") === "on";
+
+  if (!restaurantId || !tableId || !Number.isInteger(number) || number < 1) {
+    throw new Error("Datos de mesa no válidos.");
+  }
+
+  const { error } = await supabaseAdmin
+    .from("tables")
+    .update({ number, name, zone, active })
+    .eq("id", tableId)
+    .eq("restaurant_id", restaurantId);
+
+  if (error) throw error;
+
+  const { data: restaurant } = await supabaseAdmin
+    .from("restaurants")
+    .select("slug")
+    .eq("id", restaurantId)
+    .single();
+
+  if (restaurant?.slug) {
+    revalidatePath(`/admin/${restaurant.slug}/tables`);
+    revalidatePath(`/admin/${restaurant.slug}/qr`);
+  }
+}
+
+export async function createTable(
+  restaurantId: string,
+  slug: string,
+  formData: FormData
+) {
+  const number = Number(formData.get("number"));
+  const name = String(formData.get("name") ?? "").trim() || null;
+  const zone = String(formData.get("zone") ?? "").trim() || null;
+
+  if (!restaurantId || !Number.isInteger(number) || number < 1) {
+    throw new Error("Número de mesa no válido.");
+  }
+
+  const { data: existing } = await supabaseAdmin
+    .from("tables")
+    .select("id")
+    .eq("restaurant_id", restaurantId)
+    .eq("number", number)
+    .maybeSingle();
+
+  if (existing) {
+    throw new Error(`La mesa ${number} ya existe.`);
+  }
+
+  const { error } = await supabaseAdmin.from("tables").insert({
+    restaurant_id: restaurantId,
+    number,
+    name,
+    zone,
+    active: true,
+    qr_token: crypto.randomUUID(),
+  });
+
+  if (error) throw error;
+
+  revalidatePath(`/admin/${slug}/tables`);
+  revalidatePath(`/admin/${slug}/qr`);
+}
+
+export async function toggleTable(
+  restaurantId: string,
+  slug: string,
+  tableId: string,
+  active: boolean
+) {
+  const { error } = await supabaseAdmin
+    .from("tables")
+    .update({ active })
+    .eq("id", tableId)
+    .eq("restaurant_id", restaurantId);
+
+  if (error) throw error;
+
+  revalidatePath(`/admin/${slug}/tables`);
+  revalidatePath(`/admin/${slug}/qr`);
+}
+
+export async function regenerateTableQr(
+  restaurantId: string,
+  slug: string,
+  tableId: string
+) {
+  const { error } = await supabaseAdmin
+    .from("tables")
+    .update({ qr_token: crypto.randomUUID() })
+    .eq("id", tableId)
+    .eq("restaurant_id", restaurantId);
+
+  if (error) throw error;
+
+  revalidatePath(`/admin/${slug}/tables`);
+  revalidatePath(`/admin/${slug}/qr`);
+}
