@@ -20,7 +20,7 @@ export default function SelectField({
 }: Props) {
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-semibold text-gray-700">
+      <label className="block text-sm font-medium text-zinc-300">
         {label}
       </label>
 
@@ -28,25 +28,31 @@ export default function SelectField({
         name={name}
         defaultValue={defaultValue}
         className="
+          min-h-12
           w-full
+          cursor-pointer
           rounded-xl
           border
-          border-gray-200
-          bg-white
+          border-zinc-800
+          bg-[#151413]
           px-4
           py-3
-          text-gray-900
+          text-sm
+          text-white
           outline-none
           transition
-          focus:border-amber-500
+          hover:border-zinc-700
+          focus:border-amber-500/50
+          focus:bg-[#181716]
           focus:ring-2
-          focus:ring-amber-100
+          focus:ring-amber-500/10
         "
       >
         {options.map((option) => (
           <option
             key={option.value}
             value={option.value}
+            className="bg-[#181716] text-white"
           >
             {option.label}
           </option>
@@ -54,7 +60,7 @@ export default function SelectField({
       </select>
 
       {helperText && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-zinc-500">
           {helperText}
         </p>
       )}

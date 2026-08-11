@@ -31,18 +31,17 @@ export default async function EditProductPage({
     notFound();
   }
 
-  const [
-    product,
-    categories,
-    optionGroups,
-    productGroups,
-  ] = await Promise.all([
-    getProduct(restaurant.id, id),
-    getCategories(restaurant.id),
-    getOptionGroups(restaurant.id),
-    getProductOptionGroups(id),
-  ]);
-
+const [
+  product,
+  categories,
+  optionGroups,
+  productGroups,
+] = await Promise.all([
+  getProduct(id, restaurant.id),
+  getCategories(restaurant.id),
+  getOptionGroups(restaurant.id),
+  getProductOptionGroups(id),
+]);
   if (!product) {
     notFound();
   }

@@ -1,7 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import {
+  Search,
+  SlidersHorizontal,
+} from "lucide-react";
 
 import type { AdminProduct } from "@/types/admin";
 
@@ -19,24 +22,96 @@ export default function ProductTable({
   slug,
 }: Props) {
   const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
 
+  // Obtener categorías únicas de los productos
+  const categories = useMemo(() => {
+    const uniqueCategories = new Set<string>();
+
+    items.forEach((item) => {
+      const categoryName = item.categories?.name;
+
+      if (categoryName) {
+        uniqueCategories.add(categoryName);
+      }
+    });
+
+    return Array.from(uniqueCategories).sort((a, b) =>
+      a.localeCompare(b)
+    );
+  }, [items]);
+
+  // Aplicar búsqueda + categoría
   const filteredItems = useMemo(() => {
     const term = search.trim().toLowerCase();
 
-    return items.filter(
-      (item) =>
+    return items.filter((item) => {
+      const matchesSearch =
+        !term ||
         item.name.toLowerCase().includes(term) ||
         item.categories?.name
           ?.toLowerCase()
-          .includes(term)
-    );
-  }, [items, search]);
+          .includes(term);
+
+      const matchesCategory =
+        category === "all" ||
+        item.categories?.name === category;
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [items, search, category]);
 
   return (
     <section>
-      {/* Barra superior */}
+      {/* Filtros de categoría */}
+      <div className="mb-5">
+        <div className="mb-3 flex items-center gap-2">
+          <SlidersHorizontal
+            size={13}
+            strokeWidth={1.7}
+            className="text-zinc-600"
+          />
+
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">
+            Categoría
+          </span>
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          <button
+            type="button"
+            onClick={() => setCategory("all")}
+            className={`min-h-11 shrink-0 rounded-xl border px-4 text-xs font-medium transition-colors ${
+              category === "all"
+                ? "border-amber-500/40 bg-amber-500/10 text-amber-400"
+                : "border-zinc-800 bg-[#181716] text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
+            }`}
+          >
+            Todas
+          </button>
+
+          {categories.map((categoryName) => (
+            <button
+              key={categoryName}
+              type="button"
+              onClick={() =>
+                setCategory(categoryName)
+              }
+              className={`min-h-11 shrink-0 rounded-xl border px-4 text-xs font-medium transition-colors ${
+                category === categoryName
+                  ? "border-amber-500/40 bg-amber-500/10 text-amber-400"
+                  : "border-zinc-800 bg-[#181716] text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
+              }`}
+            >
+              {categoryName}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Buscador + contador */}
       <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="relative w-full lg:max-w-xl">
+        <div className="relative w-full lg:max-w-4xl">
           <Search
             size={17}
             strokeWidth={1.7}
@@ -54,12 +129,12 @@ export default function ProductTable({
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-zinc-500">
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="text-sm font-medium text-zinc-400">
             {filteredItems.length}
           </span>
 
-          <span className="text-xs uppercase tracking-[0.16em] text-zinc-600">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-zinc-600">
             {filteredItems.length === 1
               ? "producto"
               : "productos"}
@@ -67,6 +142,7 @@ export default function ProductTable({
         </div>
       </div>
 
+      {/* Resultados */}
       {filteredItems.length === 0 ? (
         <div className="rounded-2xl border border-zinc-800 bg-[#181716] p-8">
           <EmptyState
@@ -74,32 +150,32 @@ export default function ProductTable({
           />
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-[#181716]">
+        <div className="w-full overflow-hidden rounded-2xl border border-zinc-800 bg-[#181716]">
           <div className="overflow-x-auto">
-            <table className="min-w-full">
+            <table className="w-full min-w-[900px]">
               <thead className="border-b border-zinc-800 bg-[#151413]">
                 <tr>
-                  <th className="px-6 py-4 text-left text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
+                  <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
                     Producto
                   </th>
 
-                  <th className="px-6 py-4 text-left text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
+                  <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
                     Categoría
                   </th>
 
-                  <th className="px-6 py-4 text-left text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
+                  <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
                     Precio
                   </th>
 
-                  <th className="px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
+                  <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
                     Disponible
                   </th>
 
-                  <th className="px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
+                  <th className="px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
                     Destacado
                   </th>
 
-                  <th className="px-6 py-4 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
+                  <th className="w-[130px] px-4 py-3 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-600">
                     Acciones
                   </th>
                 </tr>

@@ -12,30 +12,80 @@ export default function Switch({
   description,
 }: Props) {
   return (
-    <label className="flex items-start justify-between gap-6 rounded-2xl border border-gray-200 p-5 transition hover:border-amber-300">
+    <label
+      className="
+        flex
+        min-h-[76px]
+        cursor-pointer
+        items-center
+        justify-between
+        gap-6
+        rounded-2xl
+        border
+        border-zinc-800
+        bg-[#151413]
+        px-5
+        py-4
+        transition
+        hover:border-zinc-700
+        hover:bg-[#181716]
+      "
+    >
       <div>
-        <p className="font-semibold text-gray-900">
+        <p className="font-medium text-zinc-200">
           {label}
         </p>
 
         {description && (
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-zinc-500">
             {description}
           </p>
         )}
       </div>
 
-      <input
-        type="checkbox"
-        name={name}
-        defaultChecked={defaultChecked}
-        className="
-          mt-1
-          h-5
-          w-5
-          accent-amber-600
-        "
-      />
+      <div className="relative shrink-0">
+        <input
+          type="checkbox"
+          name={name}
+          defaultChecked={defaultChecked}
+          className="
+            peer
+            sr-only
+          "
+        />
+
+        <div
+          className="
+            h-8
+            w-14
+            rounded-full
+            border
+            border-zinc-700
+            bg-zinc-800
+            transition
+            peer-checked:border-emerald-500
+            peer-checked:bg-emerald-500
+            peer-focus-visible:ring-2
+            peer-focus-visible:ring-amber-500/40
+          "
+        />
+
+        <div
+          className="
+            pointer-events-none
+            absolute
+            left-1
+            top-1
+            h-6
+            w-6
+            rounded-full
+            bg-white
+            shadow-sm
+            transition-transform
+            peer-checked:translate-x-6
+          "
+        />
+      </div>
     </label>
   );
 }

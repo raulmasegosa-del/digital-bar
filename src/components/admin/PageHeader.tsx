@@ -1,31 +1,52 @@
-import { ReactNode } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 type Props = {
   title: string;
   description?: string;
-  action?: ReactNode;
+  backHref?: string;
+  backLabel?: string;
 };
 
 export default function PageHeader({
   title,
   description,
-  action,
+  backHref = "/admin",
+  backLabel = "Panel de control",
 }: Props) {
   return (
-    <div className="mb-8 flex items-center justify-between">
-      <div>
-        <h1 className="text-4xl font-bold">
-          {title}
-        </h1>
+    <header className="mb-8">
+      <Link
+        href={backHref}
+        className="
+          mb-4
+          inline-flex
+          items-center
+          gap-2
+          text-sm
+          font-medium
+          text-zinc-500
+          transition-colors
+          hover:text-amber-500
+        "
+      >
+        <ArrowLeft className="h-4 w-4" />
+        {backLabel}
+      </Link>
 
-        {description && (
-          <p className="mt-2 text-gray-600">
-            {description}
-          </p>
-        )}
-      </div>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-amber-500">
+        Carta
+      </p>
 
-      {action}
-    </div>
+      <h1 className="mt-3 text-4xl font-semibold tracking-tight text-white">
+        {title}
+      </h1>
+
+      {description && (
+        <p className="mt-2 max-w-2xl text-sm text-zinc-400">
+          {description}
+        </p>
+      )}
+    </header>
   );
 }

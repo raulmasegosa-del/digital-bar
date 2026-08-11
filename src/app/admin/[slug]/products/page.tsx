@@ -35,9 +35,9 @@ export default async function ProductsPage({
 
   return (
     <main className="min-h-screen bg-[#11100f] text-white">
-      <div className="mx-auto max-w-[1400px] px-8 py-10 lg:px-12">
+      <div className="w-full px-6 py-8">
         {/* Cabecera */}
-        <div className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-8 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-400">
@@ -64,9 +64,12 @@ export default async function ProductsPage({
 
           <Link
             href={`/admin/${slug}/products/new`}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500 px-5 py-3 text-sm font-semibold text-[#11100f] transition-all duration-200 hover:bg-amber-400"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-amber-500/40 bg-amber-500 px-5 py-3 text-sm font-semibold text-[#11100f] transition-all duration-200 hover:bg-amber-400 active:scale-[0.98]"
           >
-            <Plus size={17} strokeWidth={2} />
+            <Plus
+              size={17}
+              strokeWidth={2}
+            />
             Nuevo producto
           </Link>
         </div>
@@ -74,7 +77,7 @@ export default async function ProductsPage({
         {/* Separador */}
         <div className="mb-8 h-px bg-gradient-to-r from-amber-500/40 via-zinc-800 to-transparent" />
 
-        {/* Tabla */}
+        {/* Productos */}
         <ProductTable
           items={products}
           slug={slug}

@@ -1,6 +1,9 @@
-import type { ButtonHTMLAttributes } from "react";
+import type {
+  ButtonHTMLAttributes,
+} from "react";
 
-type Props = ButtonHTMLAttributes<HTMLButtonElement>;
+type Props =
+  ButtonHTMLAttributes<HTMLButtonElement>;
 
 export default function PrimaryButton({
   children,
@@ -12,27 +15,33 @@ export default function PrimaryButton({
       {...props}
       className={`
         inline-flex
+        min-h-12
         items-center
         justify-center
+        gap-2
         rounded-xl
-        bg-amber-600
-        px-5
-        py-2.5
+        border
+        border-amber-500/40
+        bg-amber-500
+        px-6
+        py-3
         text-sm
         font-semibold
-        text-white
+        text-[#11100f]
         shadow-sm
         transition-all
         duration-200
         hover:-translate-y-0.5
-        hover:bg-amber-700
+        hover:bg-amber-400
         hover:shadow-md
         active:translate-y-0
+        active:scale-[0.98]
         active:shadow-sm
         focus:outline-none
         focus:ring-2
-        focus:ring-amber-500
+        focus:ring-amber-500/40
         focus:ring-offset-2
+        focus:ring-offset-[#11100f]
         disabled:cursor-not-allowed
         disabled:opacity-50
         disabled:hover:translate-y-0

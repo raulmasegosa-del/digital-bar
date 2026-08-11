@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 type Props = {
   children: ReactNode;
@@ -10,16 +10,16 @@ export default function Card({
   className = "",
 }: Props) {
   return (
-    <section
+    <div
       className={`
         rounded-2xl
-        bg-white
-        p-6
-        shadow
+        border
+        border-zinc-800
+        bg-[#181716]
         ${className}
       `}
     >
       {children}
-    </section>
+    </div>
   );
 }
