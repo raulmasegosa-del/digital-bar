@@ -8,15 +8,16 @@ type Props = {
   id: string;
   name: string;
   slug: string;
+  restaurantId: string;
 };
 
 export default function DeleteCategoryButton({
   id,
   name,
   slug,
+  restaurantId,
 }: Props) {
-  const [pending, startTransition] =
-    useTransition();
+  const [pending, startTransition] = useTransition();
 
   function handleDelete() {
     const ok = confirm(
@@ -27,7 +28,7 @@ export default function DeleteCategoryButton({
 
     startTransition(async () => {
       try {
-        await deleteCategory(id);
+        await deleteCategory(id, slug, restaurantId);
       } catch (error) {
         alert(
           error instanceof Error
