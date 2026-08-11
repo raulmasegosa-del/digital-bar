@@ -3,6 +3,7 @@ import CategoryCard from "@/components/admin/CategoryCard";
 type Category = {
   id: string;
   name: string;
+  productCount?: number;
 };
 
 type Props = {
@@ -18,7 +19,7 @@ export default function CategoryGrid({
 }: Props) {
   if (categories.length === 0) {
     return (
-      <div className="rounded-2xl border bg-white p-10 text-center">
+      <div className="rounded-2xl border bg-white p-10 text-center text-gray-900">
         <h2 className="text-xl font-semibold">
           Todavía no hay categorías.
         </h2>
@@ -38,6 +39,7 @@ export default function CategoryGrid({
           category={category}
           slug={slug}
           restaurantId={restaurantId}
+          productCount={category.productCount ?? 0}
         />
       ))}
     </div>
