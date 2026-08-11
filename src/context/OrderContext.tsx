@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { OrderStatus } from "@/types/orders";
 import { getOrder } from "@/lib/orders/getOrder";
-import { getActiveOrder } from "@/lib/orders/getActiveOrder";
+import { getCustomerActiveOrder } from "@/app/actions/getCustomerActiveOrder";
 
 export type ActiveOrderItem = {
   id: string;
@@ -67,18 +67,22 @@ export function OrderProvider({ restaurantId, children }: Props) {
 
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
-          const localOrder = JSON.parse(saved) as ActiveOrder;
-          const dbOrder = await getOrder(localOrder.id);
-          if (dbOrder.status === "served" || dbOrder.status === "cancelled") {
+          try {
+            const localOrder = JSON.parse(saved) as ActiveOrder;
+            const dbOrder = await getOrder(localOrder.id);
+            if (dbOrder.status === "served" || dbOrder.status === "cancelled") {
+              localStorage.removeItem(STORAGE_KEY);
+            } else {
+              setOrderState(toActiveOrder(dbOrder));
+              return;
+            }
+          } catch {
             localStorage.removeItem(STORAGE_KEY);
-          } else {
-            setOrderState(toActiveOrder(dbOrder));
-            return;
           }
         }
 
         if (!restaurantId || !table) return;
-        const activeOrder = await getActiveOrder(restaurantId, table);
+        const activeOrder = await getCustomerActiveOrder(restaurantId, table);
         if (!activeOrder) return;
         if (activeOrder.status === "served" || activeOrder.status === "cancelled") return;
         setOrderState(toActiveOrder(activeOrder));
