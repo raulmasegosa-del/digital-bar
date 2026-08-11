@@ -1,7 +1,5 @@
 import Link from "next/link";
 
-import PrimaryButton from "@/components/ui/form/PrimaryButton";
-
 import { getRestaurants } from "@/lib/db/restaurants/getRestaurants";
 
 export const dynamic = "force-dynamic";
@@ -12,10 +10,11 @@ export default async function RestaurantsPage() {
   return (
     <>
       <div className="mb-8 flex justify-end">
-        <Link href="/super/restaurants/new">
-          <PrimaryButton>
-            ➕ Nuevo restaurante
-          </PrimaryButton>
+        <Link
+          href="/super/restaurants/new"
+          className="inline-flex items-center justify-center rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-amber-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+        >
+          ➕ Nuevo restaurante
         </Link>
       </div>
 
@@ -54,63 +53,30 @@ export default async function RestaurantsPage() {
                       : "bg-gray-100 text-gray-600"
                   }`}
                 >
-                  {restaurant.active
-                    ? "Activo"
-                    : "Inactivo"}
+                  {restaurant.active ? "Activo" : "Inactivo"}
                 </span>
               </div>
 
               <div className="mt-6 flex flex-col gap-3 border-t pt-4">
-                {/* Acción principal */}
-                <Link href={`/r/${restaurant.slug}`}>
-                  <PrimaryButton className="w-full">
-                    🍻 Abrir Restaurante
-                  </PrimaryButton>
+                <Link
+                  href={`/r/${restaurant.slug}`}
+                  className="inline-flex w-full items-center justify-center rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-amber-700 hover:shadow-md"
+                >
+                  🍻 Abrir Restaurante
                 </Link>
 
-                {/* Acciones secundarias */}
-                <Link href={`/admin/${restaurant.slug}`}>
-                  <span
-                    className="
-                      flex w-full items-center justify-center
-                      rounded-xl
-                      border border-gray-300
-                      bg-white
-                      px-5 py-2.5
-                      text-sm font-semibold text-gray-800
-                      transition-all duration-200
-                      hover:-translate-y-0.5
-                      hover:border-amber-500
-                      hover:bg-amber-50
-                      hover:text-amber-700
-                      hover:shadow-sm
-                    "
-                  >
-                    🛠 Administrar
-                  </span>
+                <Link
+                  href={`/admin/${restaurant.slug}`}
+                  className="flex w-full items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500 hover:bg-amber-50 hover:text-amber-700 hover:shadow-sm"
+                >
+                  🛠 Administrar
                 </Link>
 
                 <Link
                   href={`/super/restaurants/${restaurant.slug}/import`}
+                  className="flex w-full items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-800 transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500 hover:bg-amber-50 hover:text-amber-700 hover:shadow-sm"
                 >
-                  <span
-                    className="
-                      flex w-full items-center justify-center
-                      rounded-xl
-                      border border-gray-300
-                      bg-white
-                      px-5 py-2.5
-                      text-sm font-semibold text-gray-800
-                      transition-all duration-200
-                      hover:-translate-y-0.5
-                      hover:border-amber-500
-                      hover:bg-amber-50
-                      hover:text-amber-700
-                      hover:shadow-sm
-                    "
-                  >
-                    📥 Importar Excel
-                  </span>
+                  📥 Importar Excel
                 </Link>
               </div>
             </div>
