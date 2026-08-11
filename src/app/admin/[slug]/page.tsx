@@ -6,6 +6,7 @@ import {
   Table2,
 } from "lucide-react";
 
+import { isSuperAdmin } from "@/lib/auth/isSuperAdmin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getRestaurant } from "@/lib/db/restaurants/getRestaurant";
 
@@ -22,42 +23,29 @@ export default async function AdminDashboardPage({
 
   const supabase = await createSupabaseServerClient();
 
-  // Comprobar sesión
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    notFound();
-  }
+  if (!user) notFound();
 
-  // Comprobar que el usuario tiene acceso a este restaurante
-  const { data: membership, error: membershipError } =
-    await supabase
+  const restaurant = await getRestaurant(slug);
+
+  if (!restaurant) notFound();
+
+  const superAdmin = await isSuperAdmin(user.id);
+
+  if (!superAdmin) {
+    const { data: membership, error: membershipError } = await supabase
       .from("restaurant_users")
       .select("restaurant_id, role")
       .eq("user_id", user.id)
-      .eq("role", "owner")
+      .eq("restaurant_id", restaurant.id)
+      .in("role", ["owner", "staff"])
       .maybeSingle();
 
-  if (membershipError) {
-    throw membershipError;
-  }
-
-  if (!membership) {
-    notFound();
-  }
-
-  // Obtener el restaurante solicitado
-  const restaurant = await getRestaurant(slug);
-
-  if (!restaurant) {
-    notFound();
-  }
-
-  // El usuario solo puede acceder a su restaurante
-  if (restaurant.id !== membership.restaurant_id) {
-    notFound();
+    if (membershipError) throw membershipError;
+    if (!membership) notFound();
   }
 
   return (
