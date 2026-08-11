@@ -6,6 +6,7 @@ import { addItemsToOrder } from "./addItemsToOrder";
 import type { CartItem } from "@/context/CartContext";
 
 type CreateOrderParams = {
+  restaurantId: string;
   table: string;
   items: CartItem[];
   notes: string;
@@ -13,13 +14,16 @@ type CreateOrderParams = {
 };
 
 export async function createOrder({
+  restaurantId,
   table,
   items,
   notes,
   total,
 }: CreateOrderParams) {
-  const activeOrder =
-    await getActiveOrder(table);
+  const activeOrder = await getActiveOrder(
+    restaurantId,
+    table
+  );
 
   if (activeOrder) {
     await addItemsToOrder(
@@ -36,6 +40,7 @@ export async function createOrder({
     await supabaseClient
       .from("orders")
       .insert({
+        restaurant_id: restaurantId,
         table_number: table,
         notes,
         total,
