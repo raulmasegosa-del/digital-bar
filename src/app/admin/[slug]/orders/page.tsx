@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { ClipboardList } from "lucide-react";
 
 import RestaurantOrderActions from "@/components/admin/RestaurantOrderActions";
+import { isSuperAdmin } from "@/lib/auth/isSuperAdmin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getRestaurant } from "@/lib/db/restaurants/getRestaurant";
 import { getRestaurantOrders } from "@/lib/db/restaurants/orders/getRestaurantOrders";
@@ -43,20 +44,23 @@ export default async function OrdersPage({ params }: Props) {
 
   if (!user) notFound();
 
-  const { data: membership, error: membershipError } = await supabase
-    .from("restaurant_users")
-    .select("restaurant_id, role")
-    .eq("user_id", user.id)
-    .eq("role", "owner")
-    .maybeSingle();
-
-  if (membershipError) throw membershipError;
-  if (!membership) notFound();
-
   const restaurant = await getRestaurant(slug);
 
-  if (!restaurant || restaurant.id !== membership.restaurant_id) {
-    notFound();
+  if (!restaurant) notFound();
+
+  const superAdmin = await isSuperAdmin(user.id);
+
+  if (!superAdmin) {
+    const { data: membership, error: membershipError } = await supabase
+      .from("restaurant_users")
+      .select("restaurant_id, role")
+      .eq("user_id", user.id)
+      .eq("restaurant_id", restaurant.id)
+      .in("role", ["owner", "staff"])
+      .maybeSingle();
+
+    if (membershipError) throw membershipError;
+    if (!membership) notFound();
   }
 
   const orders = await getRestaurantOrders(restaurant.id);
