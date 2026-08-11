@@ -3,11 +3,13 @@ import { supabase } from "@/lib/supabase/client";
 import type { Order } from "@/types/orders";
 
 export async function getActiveOrder(
+  restaurantId: string,
   table: string
 ): Promise<Order | null> {
   const { data, error } = await supabase
     .from("orders")
     .select("*")
+    .eq("restaurant_id", restaurantId)
     .eq("table_number", table)
     .not("status", "in", "(completed,cancelled)")
     .order("created_at", {
