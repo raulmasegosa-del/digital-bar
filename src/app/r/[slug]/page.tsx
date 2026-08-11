@@ -10,29 +10,22 @@ import { getRestaurant } from "@/lib/db/restaurants/getRestaurant";
 import { getRestaurantMenu } from "@/lib/db/restaurants/menu/getRestaurantMenu";
 
 type Props = {
-  params: Promise<{
-    slug: string;
-  }>;
+  params: Promise<{ slug: string }>;
 };
 
-export default async function PublicRestaurantPage({
-  params,
-}: Props) {
+export default async function PublicRestaurantPage({ params }: Props) {
   const { slug } = await params;
-
   const restaurant = await getRestaurant(slug);
 
-  if (!restaurant) {
-    notFound();
-  }
+  if (!restaurant) notFound();
 
   const menu = await getRestaurantMenu(restaurant.id);
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-[#11100f] text-white">
       <Header restaurantName={restaurant.name} />
 
-      <div className="mx-auto max-w-7xl px-4 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
         <WaiterActions />
 
         <MenuClient menu={menu} />
