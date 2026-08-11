@@ -7,12 +7,14 @@ import CartButton from "./CartButton";
 
 import { useOrder } from "@/context/OrderContext";
 
-export default function CartUI() {
-  const [open, setOpen] =
-    useState(false);
+type Props = {
+  restaurantId: string;
+};
 
-  const { order } =
-    useOrder();
+export default function CartUI({ restaurantId }: Props) {
+  const [open, setOpen] = useState(false);
+
+  const { order } = useOrder();
 
   function handleOpen() {
     if (order) return;
@@ -29,9 +31,8 @@ export default function CartUI() {
 
       <Cart
         open={open}
-        onClose={() =>
-          setOpen(false)
-        }
+        onClose={() => setOpen(false)}
+        restaurantId={restaurantId}
       />
     </>
   );
