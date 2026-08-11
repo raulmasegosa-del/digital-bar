@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import PageHeader from "@/components/ui/PageHeader";
@@ -44,18 +45,19 @@ export default async function TablesPage({ params }: Props) {
         ) : (
           <div className="divide-y divide-zinc-800">
             {tables.map((table) => (
-              <div key={table.id} className="flex flex-col gap-4 px-6 py-5 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex items-center gap-4">
+              <div key={table.id} className="flex flex-col gap-4 px-6 py-5 transition hover:bg-zinc-900/50 lg:flex-row lg:items-center lg:justify-between">
+                <Link href={`/admin/${slug}/tables/${table.id}`} className="flex min-w-0 items-center gap-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 text-lg font-semibold text-white">
                     {table.number}
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="font-medium text-white">{table.name || `Mesa ${table.number}`}</p>
                     <p className="text-sm text-zinc-500">
                       {table.zone || "Sin zona"} · {table.active ? "Activa" : "Inactiva"}
                     </p>
+                    <p className="mt-1 text-xs font-medium text-amber-500">Ver consumiciones →</p>
                   </div>
-                </div>
+                </Link>
 
                 <TableRowActions
                   restaurantId={restaurant.id}
