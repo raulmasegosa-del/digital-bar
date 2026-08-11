@@ -64,32 +64,51 @@ export default function CartButton({
   const { items } = useCart();
   const { order } = useOrder();
 
-  const count = items.reduce(
+  const cartCount = items.reduce(
     (sum, item) => sum + item.quantity,
     0
   );
+
+  const orderCount = order?.items.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  ) ?? 0;
+
+  const count = Math.max(cartCount, orderCount);
 
   if (order) {
     const status = statusConfig[order.status];
 
     return (
-      <div
-        className={`fixed bottom-5 right-5 z-40 flex items-center gap-3 rounded-full px-6 py-4 text-white shadow-2xl ${status.color}`}
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        aria-label="Ver carrito y pedido activo"
+        className={`fixed bottom-5 right-5 z-40 flex items-center gap-3 rounded-full px-6 py-4 text-white shadow-2xl transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 ${status.color}`}
       >
-        <span className="text-2xl">
-          {status.icon}
-        </span>
+        <div className="relative">
+          <span className="text-2xl">
+            {status.icon}
+          </span>
 
-        <div>
+          {count > 0 && (
+            <span className="absolute -right-3 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white">
+              {count}
+            </span>
+          )}
+        </div>
+
+        <div className="text-left">
           <p className="text-xs opacity-80">
-            Pedido
+            {status.text}
           </p>
 
           <p className="font-semibold">
-            {status.text}
+            Ver carrito
           </p>
         </div>
-      </div>
+      </button>
     );
   }
 
@@ -103,9 +122,9 @@ export default function CartButton({
       <div className="relative">
         <ShoppingCart size={26} />
 
-        {count > 0 && (
+        {cartCount > 0 && (
           <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
-            {count}
+            {cartCount}
           </span>
         )}
       </div>
