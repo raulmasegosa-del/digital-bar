@@ -6,7 +6,7 @@ import PrimaryButton from "@/components/ui/form/PrimaryButton";
 import CategoryGrid from "@/components/admin/CategoryGrid";
 
 import { getRestaurant } from "@/lib/db/restaurants/getRestaurant";
-import { getCategories } from "@/lib/db/admin";
+import { getAdminProducts, getCategories } from "@/lib/db/admin";
 
 type Props = {
   params: Promise<{
@@ -25,9 +25,24 @@ export default async function CategoriesPage({
     notFound();
   }
 
-  const categories = await getCategories(
-    restaurant.id
-  );
+  const [categories, products] = await Promise.all([
+    getCategories(restaurant.id),
+    getAdminProducts(restaurant.id),
+  ]);
+
+  const productCounts = new Map<string, number>();
+
+  for (const product of products) {
+    productCounts.set(
+      product.category_id,
+      (productCounts.get(product.category_id) ?? 0) + 1
+    );
+  }
+
+  const categoriesWithCounts = categories.map((category) => ({
+    ...category,
+    productCount: productCounts.get(category.id) ?? 0,
+  }));
 
   return (
     <main className="space-y-8">
@@ -45,7 +60,7 @@ export default async function CategoriesPage({
       </div>
 
       <CategoryGrid
-        categories={categories}
+        categories={categoriesWithCounts}
         slug={slug}
         restaurantId={restaurant.id}
       />
