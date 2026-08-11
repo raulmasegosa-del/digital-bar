@@ -5,6 +5,9 @@ import { QRCodeSVG } from "qrcode.react";
 type Props = {
   slug: string;
   table: number;
+  name?: string | null;
+  zone?: string | null;
+  qrToken?: string | null;
 };
 
 const APP_URL =
@@ -14,36 +17,34 @@ const APP_URL =
 export default function QRCard({
   slug,
   table,
+  name,
+  zone,
+  qrToken,
 }: Props) {
-  const url = `${APP_URL}/r/${slug}?mesa=${table}`;
+  const url = qrToken
+    ? `${APP_URL}/r/${slug}?mesa=${table}&token=${encodeURIComponent(qrToken)}`
+    : `${APP_URL}/r/${slug}?mesa=${table}`;
 
   return (
-    <article className="rounded-2xl border bg-white p-6 shadow">
+    <article className="rounded-2xl border border-zinc-800 bg-[#181716] p-6 text-white shadow-sm print:border-zinc-300 print:bg-white print:text-black">
       <div className="text-center">
-        <h3 className="text-xl font-bold">
-          🍻 Digital Bar
-        </h3>
+        <h3 className="text-xl font-semibold">🍻 Digital Bar</h3>
+        <p className="mt-1 text-sm text-zinc-500 print:text-gray-500">
+          {name || `Mesa ${table}`}
+        </p>
+        {zone && (
+          <p className="mt-1 text-xs text-zinc-600 print:text-gray-500">{zone}</p>
+        )}
+      </div>
 
-        <p className="mt-1 text-sm text-gray-500">
+      <div className="my-6 flex justify-center rounded-xl bg-white p-4">
+        <QRCodeSVG value={url} size={180} includeMargin />
+      </div>
+
+      <div className="text-center">
+        <p className="text-3xl font-semibold">Mesa {table}</p>
+        <p className="mt-2 break-all text-xs text-zinc-500 print:text-gray-500">
           Escanea para pedir
-        </p>
-      </div>
-
-      <div className="my-6 flex justify-center">
-        <QRCodeSVG
-          value={url}
-          size={180}
-          includeMargin
-        />
-      </div>
-
-      <div className="text-center">
-        <p className="text-3xl font-bold">
-          Mesa {table}
-        </p>
-
-        <p className="mt-2 break-all text-sm text-gray-500">
-          {url}
         </p>
       </div>
     </article>
