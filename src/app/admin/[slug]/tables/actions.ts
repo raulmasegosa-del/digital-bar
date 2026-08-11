@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { createRestaurantTables } from "@/lib/db/restaurants/tables/createRestaurantTables";
 
 export async function updateTable(
   restaurantId: string,
@@ -58,9 +59,7 @@ export async function createTable(
     .eq("number", number)
     .maybeSingle();
 
-  if (existing) {
-    throw new Error(`La mesa ${number} ya existe.`);
-  }
+  if (existing) throw new Error(`La mesa ${number} ya existe.`);
 
   const { error } = await supabaseAdmin.from("tables").insert({
     restaurant_id: restaurantId,
@@ -72,6 +71,26 @@ export async function createTable(
   });
 
   if (error) throw error;
+
+  revalidatePath(`/admin/${slug}/tables`);
+  revalidatePath(`/admin/${slug}/qr`);
+}
+
+export async function addRestaurantTables(
+  restaurantId: string,
+  slug: string,
+  formData: FormData
+) {
+  const count = Number(formData.get("count") ?? 0);
+  const generateQr = formData.get("generateQr") === "on";
+
+  if (!restaurantId) throw new Error("Restaurante no válido.");
+
+  await createRestaurantTables({
+    restaurantId,
+    count,
+    generateQr,
+  });
 
   revalidatePath(`/admin/${slug}/tables`);
   revalidatePath(`/admin/${slug}/qr`);
