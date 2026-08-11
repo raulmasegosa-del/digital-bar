@@ -1,51 +1,65 @@
 import { redirect } from "next/navigation";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/server";
 
 export default async function AdminEntryPage() {
   const supabase = await createSupabaseServerClient();
 
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser();
 
-  // No hay sesión
+  if (userError) {
+    throw userError;
+  }
+  
+
   if (!user) {
     redirect("/login");
   }
-
-  // Buscar el restaurante asociado al usuario
-  const { data: membership, error } = await supabase
+console.log("AUTH USER:", {
+  id: user.id,
+  email: user.email,
+});
+  const {
+    data: membership,
+    error: membershipError,
+  } = await supabase
     .from("restaurant_users")
-    .select(
-      `
-        restaurant_id,
-        role,
-        restaurants (
-          slug
-        )
-      `
-    )
+    .select("restaurant_id, role")
     .eq("user_id", user.id)
+    .eq("role", "owner")
     .maybeSingle();
 
-  if (error) {
-    throw error;
+  if (membershipError) {
+    throw membershipError;
   }
 
-  // Usuario autenticado pero sin restaurante asignado
-  if (!membership?.restaurants) {
-    redirect("/login");
+  if (!membership) {
+    throw new Error(
+      "El usuario está autenticado pero no tiene ningún restaurante asignado."
+    );
   }
 
-  const restaurant = Array.isArray(
-    membership.restaurants
-  )
-    ? membership.restaurants[0]
-    : membership.restaurants;
+  const {
+    data: restaurant,
+    error: restaurantError,
+  } = await supabaseAdmin
+    .from("restaurants")
+    .select("id, slug")
+    .eq("id", membership.restaurant_id)
+    .maybeSingle();
 
-  if (!restaurant?.slug) {
-    redirect("/login");
+  if (restaurantError) {
+    throw restaurantError;
+  }
+
+  if (!restaurant) {
+    throw new Error(
+      "El restaurante asociado al usuario no existe."
+    );
   }
 
   redirect(`/admin/${restaurant.slug}`);

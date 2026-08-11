@@ -2,6 +2,19 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import {
+  BarChart3,
+  ClipboardList,
+  Folder,
+  Menu,
+  QrCode,
+  Settings,
+  ShoppingBag,
+  SlidersHorizontal,
+  Table2,
+  Utensils,
+} from "lucide-react";
+
 import { getRestaurant } from "@/lib/db/restaurants/getRestaurant";
 
 type Props = {
@@ -26,98 +39,157 @@ export default async function AdminLayout({
   const navigation = [
     {
       href: `/admin/${slug}`,
-      label: "📊 Dashboard",
+      label: "Dashboard",
+      icon: BarChart3,
     },
     {
       href: `/admin/${slug}/products`,
-      label: "🍔 Productos",
+      label: "Productos",
+      icon: ShoppingBag,
     },
     {
       href: `/admin/${slug}/categories`,
-      label: "📂 Categorías",
+      label: "Categorías",
+      icon: Folder,
     },
     {
       href: `/admin/${slug}/options`,
-      label: "⚙️ Opciones",
+      label: "Opciones",
+      icon: SlidersHorizontal,
     },
     {
       href: `/admin/${slug}/orders`,
-      label: "📋 Pedidos",
+      label: "Pedidos",
+      icon: ClipboardList,
     },
     {
       href: `/admin/${slug}/tables`,
-      label: "🪑 Mesas",
+      label: "Mesas",
+      icon: Table2,
     },
     {
       href: `/admin/${slug}/qr`,
-      label: "📱 QR",
+      label: "QR",
+      icon: QrCode,
     },
     {
       href: `/admin/${slug}/settings`,
-      label: "⚙️ Ajustes",
+      label: "Ajustes",
+      icon: Settings,
     },
   ];
 
   return (
-    <main className="min-h-screen bg-gray-100">
+    <main className="min-h-screen bg-[#11100f] text-white">
       <div className="flex min-h-screen">
-        <aside className="hidden w-72 shrink-0 border-r bg-white lg:block">
-          <div className="border-b p-6">
-            <h1 className="text-2xl font-bold text-amber-700">
-              🍻 {restaurant.name}
-            </h1>
+        {/* SIDEBAR */}
+<aside className="flex w-64 shrink-0 flex-col border-r border-zinc-800 bg-[#141311]">
+          {/* Marca */}
+          <div className="border-b border-zinc-800 px-6 py-7">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400">
+                <Utensils size={20} strokeWidth={1.8} />
+              </div>
 
-            <p className="mt-1 text-sm text-gray-500">
+              <div>
+                <div className="text-sm font-semibold uppercase tracking-[0.22em] text-amber-500">
+                  Digital Bar
+                </div>
+
+                <div className="mt-1 text-sm font-medium text-white">
+                  {restaurant.name}
+                </div>
+              </div>
+            </div>
+
+            <p className="mt-4 text-xs text-zinc-500">
               Panel de administración
             </p>
           </div>
 
-          <nav className="space-y-2 p-4">
-            {navigation.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="
-                  block
-                  rounded-xl
-                  px-4
-                  py-3
-                  transition
-                  hover:bg-amber-50
-                  hover:text-amber-700
-                "
-              >
-                {item.label}
-              </Link>
-            ))}
+          {/* Navegación */}
+          <nav className="flex-1 px-3 py-6">
+            <p className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.25em] text-zinc-600">
+              Administración
+            </p>
+
+            <div className="space-y-1">
+              {navigation.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="group flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-zinc-400 transition-all duration-200 hover:bg-amber-500/10 hover:text-amber-400"
+                  >
+                    <Icon
+                      size={18}
+                      strokeWidth={1.8}
+                      className="text-zinc-500 transition group-hover:text-amber-400"
+                    />
+
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </nav>
-        </aside>
 
-        <div className="flex flex-1 flex-col">
-          <header className="border-b bg-white">
-            <div className="flex items-center justify-between px-8 py-5">
+          {/* Pie sidebar */}
+          <div className="border-t border-zinc-800 p-5">
+            <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold">
-                  {restaurant.name}
-                </h2>
+                <p className="text-xs text-zinc-500">
+                  Restaurante
+                </p>
 
-                <p className="text-sm text-gray-500">
+                <p className="mt-1 text-sm font-medium text-zinc-300">
                   {restaurant.slug}
                 </p>
               </div>
 
-              <div className="flex gap-3">
-                <Link
-                  href="/super/restaurants"
-                  className="rounded-xl border px-5 py-2 transition hover:bg-gray-50"
-                >
-                  ← Super Admin
-                </Link>
+              <div className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.45)]" />
+            </div>
+          </div>
+        </aside>
+
+        {/* CONTENIDO */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          {/* HEADER */}
+      <header className="border-b border-zinc-800 bg-[#11100f]">
+  <div className="flex min-h-24 items-center justify-between px-8 lg:px-10">
+              <div>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-xl font-semibold tracking-tight text-white">
+                    {restaurant.name}
+                  </h2>
+
+                  <span className="hidden rounded-full border border-emerald-900/60 bg-emerald-950/40 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-emerald-400 sm:inline-flex">
+                    Activo
+                  </span>
+                </div>
+
+                <p className="mt-1 text-xs text-zinc-500">
+                  {restaurant.slug}
+                </p>
               </div>
+
+              <Link
+                href="/super/restaurants"
+                className="inline-flex items-center gap-2 rounded-xl border border-zinc-700 px-4 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-amber-500/40 hover:bg-amber-500/5 hover:text-amber-400"
+              >
+                <Menu size={16} />
+
+                <span className="hidden sm:inline">
+                  Super Admin
+                </span>
+              </Link>
             </div>
           </header>
 
-          <div className="flex-1 p-8">
+          {/* PÁGINA */}
+          <div className="flex-1">
             {children}
           </div>
         </div>

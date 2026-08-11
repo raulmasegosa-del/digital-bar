@@ -69,14 +69,17 @@ export default function LoginPage() {
         }
       );
 
-    if (error) {
-      setError(
-        "No se ha podido enviar el correo de recuperación."
-      );
+  if (error) {
+  console.error(
+    "Error al recuperar contraseña:",
+    error
+  );
 
-      setResetting(false);
-      return;
-    }
+  setError(error.message);
+
+  setResetting(false);
+  return;
+}
 
     setMessage(
       "Te hemos enviado un correo para restablecer tu contraseña."
