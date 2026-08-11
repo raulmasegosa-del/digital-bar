@@ -11,22 +11,7 @@ type Props = {
   status: OrderStatus;
 };
 
-const actions: Array<{
-  status: OrderStatus;
-  label: string;
-}> = [
-  { status: "pending", label: "Recibido" },
-  { status: "preparing", label: "Preparando" },
-  { status: "ready", label: "Listo" },
-  { status: "served", label: "Servido" },
-  { status: "completed", label: "Finalizar" },
-];
-
-export default function RestaurantOrderActions({
-  slug,
-  orderId,
-  status,
-}: Props) {
+export default function RestaurantOrderActions({ slug, orderId, status }: Props) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -45,29 +30,24 @@ export default function RestaurantOrderActions({
     });
   }
 
+  const isClosed = status === "completed" || status === "cancelled";
+
   return (
-    <div className="flex flex-wrap gap-2">
-      {actions.map((action) => (
-        <button
-          key={action.status}
-          type="button"
-          disabled={isPending || status === action.status}
-          onClick={() => changeStatus(action.status)}
-          className={`rounded-lg border px-3 py-2 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-40 ${
-            status === action.status
-              ? "border-amber-500/50 bg-amber-500/10 text-amber-400"
-              : "border-zinc-700 text-zinc-300 hover:border-amber-500/40 hover:bg-amber-500/5 hover:text-amber-400"
-          }`}
-        >
-          {action.label}
-        </button>
-      ))}
+    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+      <button
+        type="button"
+        disabled={isPending || isClosed}
+        onClick={() => changeStatus("completed")}
+        className="min-h-10 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-5 py-2.5 text-xs font-semibold text-emerald-300 transition hover:border-emerald-400/50 hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        Finalizar
+      </button>
 
       <button
         type="button"
-        disabled={isPending || status === "cancelled"}
+        disabled={isPending || isClosed}
         onClick={() => changeStatus("cancelled")}
-        className="rounded-lg border border-red-900/60 px-3 py-2 text-xs font-medium text-red-400 transition hover:bg-red-950/30 disabled:cursor-not-allowed disabled:opacity-40"
+        className="min-h-10 rounded-lg border border-red-500/25 bg-red-500/5 px-5 py-2.5 text-xs font-semibold text-red-300 transition hover:border-red-400/40 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-40"
       >
         Cancelar
       </button>
