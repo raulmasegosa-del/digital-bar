@@ -26,22 +26,18 @@ export default async function PublicRestaurantPage({
     notFound();
   }
 
-  const menu = await getRestaurantMenu(
-    restaurant.id
-  );
+  const menu = await getRestaurantMenu(restaurant.id);
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <Header
-        restaurantName={restaurant.name}
-      />
+      <Header restaurantName={restaurant.name} />
 
       <div className="mx-auto max-w-7xl px-4 py-8">
         <WaiterActions />
 
         <MenuClient menu={menu} />
 
-        <CartUI />
+        <CartUI restaurantId={restaurant.id} />
 
         <OrderRealtime />
       </div>
