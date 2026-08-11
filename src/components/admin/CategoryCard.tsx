@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { FolderOpen, Pencil } from "lucide-react";
+
 import DeleteCategoryButton from "./DeleteCategoryButton";
 
 type Category = {
@@ -21,28 +23,32 @@ export default function CategoryCard({
   productCount = 0,
 }: Props) {
   return (
-    <div className="rounded-2xl border bg-white p-6 text-gray-900 shadow-sm">
-      <div className="flex items-center justify-between gap-4">
+    <div className="group rounded-2xl border border-zinc-800 bg-[#181716] p-5 text-white shadow-sm transition-colors duration-150 hover:border-zinc-700 hover:bg-[#1c1a18]">
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h3 className="truncate text-lg font-semibold text-gray-900">
+          <Link
+            href={`/admin/${slug}/categories/${category.id}`}
+            className="block truncate text-base font-medium text-white transition-colors hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50"
+          >
             {category.name || "Sin nombre"}
-          </h3>
+          </Link>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-zinc-500">
             {productCount === 1 ? "1 producto" : `${productCount} productos`}
           </p>
         </div>
 
-        <span className="shrink-0 text-4xl" aria-hidden="true">
-          📂
-        </span>
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900/60 text-amber-400">
+          <FolderOpen size={20} strokeWidth={1.7} />
+        </div>
       </div>
 
-      <div className="mt-6 flex gap-2">
+      <div className="mt-5 flex items-center gap-2">
         <Link
           href={`/admin/${slug}/categories/${category.id}`}
-          className="flex-1 rounded-lg bg-amber-600 py-2 text-center text-white transition hover:bg-amber-700"
+          className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 text-sm font-medium text-white transition-colors hover:bg-amber-500 active:scale-[0.99]"
         >
+          <Pencil size={16} strokeWidth={1.8} />
           Editar
         </Link>
 
