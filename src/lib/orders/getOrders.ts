@@ -6,7 +6,6 @@ export async function getOrders(restaurantId: string): Promise<Order[]> {
     .from("orders")
     .select(`
       id,
-      restaurant_id,
       table_number,
       notes,
       total,
@@ -36,7 +35,21 @@ export async function getOrders(restaurantId: string): Promise<Order[]> {
   }
 
   return (data ?? []).map((order) => ({
-    ...order,
-    table: order.table_number,
-  })) as Order[];
+    id: order.id,
+    table: order.table_number ?? "",
+    table_number: order.table_number ?? "",
+    status: order.status,
+    notes: order.notes ?? "",
+    total: order.total ?? 0,
+    created_at: order.created_at,
+    order_items: (order.order_items ?? []).map((item) => ({
+      id: item.id,
+      order_id: order.id,
+      product_id: item.product_id,
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+      options: item.options ?? [],
+    })),
+  }));
 }
