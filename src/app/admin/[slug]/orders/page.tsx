@@ -175,7 +175,7 @@ export default async function OrdersPage({ params }: Props) {
                     No hay pedidos en este estado
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-5">
                     {section.orders.map((order) => (
                       <OrderCard key={order.id} order={order} slug={slug} restaurantName={restaurant.name} />
                     ))}
@@ -223,71 +223,76 @@ function OrderCard({
   const itemCount = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <article className="rounded-xl border border-zinc-800 bg-[#181716] p-4 shadow-sm sm:p-5">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <h3 className="text-lg font-semibold text-white">Mesa {order.table_number}</h3>
-            <span className={`rounded-full border px-2.5 py-1 text-[11px] font-medium ${statusClasses[order.status]}`}>
-              {statusLabels[order.status]}
-            </span>
-            <span className="text-[11px] text-zinc-600">#{order.id.slice(0, 8)}</span>
+    <article className="overflow-hidden rounded-2xl border border-zinc-700/80 bg-[#181716] shadow-[0_10px_30px_rgba(0,0,0,0.18)] ring-1 ring-black/20">
+      <div className="border-b border-zinc-800 bg-[#1d1b19] px-4 py-3.5 sm:px-5">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-12 min-w-[88px] items-center justify-center gap-1.5 rounded-xl border-2 border-amber-500/40 bg-amber-500/[0.08] px-3 shadow-inner shadow-amber-500/5">
+              <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-amber-500">Mesa</span>
+              <span className="text-2xl font-black leading-none tracking-tight text-white">{order.table_number}</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-600">Pedido</p>
+              <p className="mt-0.5 truncate text-xs text-zinc-500">#{order.id.slice(0, 8)} · {new Date(order.created_at).toLocaleString("es-ES")}</p>
+            </div>
           </div>
-          <p className="mt-1.5 text-xs text-zinc-500">
-            {new Date(order.created_at).toLocaleString("es-ES")}
-          </p>
-        </div>
 
-        <div className="flex items-center justify-between gap-5 sm:justify-start">
-          <div>
-            <p className="text-[10px] uppercase tracking-wider text-zinc-600">Artículos</p>
-            <p className="mt-0.5 text-sm font-medium text-zinc-300">{itemCount}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-xl font-semibold text-white">{order.total.toFixed(2)} €</p>
-          </div>
+          <span className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-medium ${statusClasses[order.status]}`}>
+            {statusLabels[order.status]}
+          </span>
         </div>
       </div>
 
-      {!compact && (
-        <>
-          <div className="my-4 h-px bg-zinc-800" />
-          <div className="grid gap-2.5 sm:grid-cols-2">
-            {order.order_items.map((item) => (
-              <div key={item.id} className="rounded-lg border border-zinc-800/80 bg-[#141311] px-3.5 py-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-zinc-200">
-                      {item.quantity} × {item.name}
-                    </p>
-                    {item.options.length > 0 && (
-                      <p className="mt-1 text-xs leading-5 text-zinc-500">
-                        {item.options.map((option) => option.optionName).join(" · ")}
-                      </p>
-                    )}
-                  </div>
-                  <span className="shrink-0 text-xs text-zinc-400">
-                    {(item.price * item.quantity).toFixed(2)} €
-                  </span>
-                </div>
-              </div>
-            ))}
+      <div className="p-4 sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-600">Artículos</p>
+            <p className="mt-1 text-sm font-medium text-zinc-300">{itemCount}</p>
           </div>
+          <div className="text-left sm:text-right">
+            <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-600">Total</p>
+            <p className="mt-0.5 text-2xl font-bold tracking-tight text-white">{order.total.toFixed(2)} €</p>
+          </div>
+        </div>
 
-          {order.notes && (
-            <div className="mt-3 rounded-lg border border-amber-500/10 bg-amber-500/5 px-3.5 py-2.5">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-amber-500">Nota</p>
-              <p className="mt-1 text-sm text-zinc-300">{order.notes}</p>
+        {!compact && (
+          <>
+            <div className="my-4 h-px bg-zinc-800" />
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              {order.order_items.map((item) => (
+                <div key={item.id} className="rounded-lg border border-zinc-800/80 bg-[#141311] px-3.5 py-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-zinc-200">
+                        {item.quantity} × {item.name}
+                      </p>
+                      {item.options.length > 0 && (
+                        <p className="mt-1 text-xs leading-5 text-zinc-500">
+                          {item.options.map((option) => option.optionName).join(" · ")}
+                        </p>
+                      )}
+                    </div>
+                    <span className="shrink-0 text-xs text-zinc-400">
+                      {(item.price * item.quantity).toFixed(2)} €
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
-        </>
-      )}
 
-      <div className="mt-4 flex flex-col gap-3 border-t border-zinc-800 pt-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-[10px] text-zinc-600">
-          Pedido de {restaurantName}
-        </p>
-        <RestaurantOrderActions slug={slug} orderId={order.id} status={order.status} />
+            {order.notes && (
+              <div className="mt-3 rounded-lg border border-amber-500/10 bg-amber-500/5 px-3.5 py-2.5">
+                <p className="text-[10px] font-medium uppercase tracking-wider text-amber-500">Nota</p>
+                <p className="mt-1 text-sm text-zinc-300">{order.notes}</p>
+              </div>
+            )}
+          </>
+        )}
+
+        <div className="mt-4 flex flex-col gap-3 border-t border-zinc-800 pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[10px] text-zinc-600">Pedido de {restaurantName}</p>
+          <RestaurantOrderActions slug={slug} orderId={order.id} status={order.status} />
+        </div>
       </div>
     </article>
   );
