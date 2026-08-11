@@ -1,24 +1,55 @@
 "use client";
 
 import { useRef } from "react";
-import { createTable } from "@/app/admin/[slug]/tables/actions";
+import { addRestaurantTables, createTable } from "@/app/admin/[slug]/tables/actions";
 
 export default function TableCreateForm({ restaurantId, slug }: { restaurantId: string; slug: string }) {
-  const ref = useRef<HTMLFormElement>(null);
+  const singleRef = useRef<HTMLFormElement>(null);
+  const bulkRef = useRef<HTMLFormElement>(null);
 
   return (
-    <form
-      ref={ref}
-      action={async (formData) => {
-        await createTable(restaurantId, slug, formData);
-        ref.current?.reset();
-      }}
-      className="grid gap-4 rounded-2xl border border-zinc-800 bg-[#181716] p-6 md:grid-cols-4"
-    >
-      <input name="number" type="number" min="1" required placeholder="Número" className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white" />
-      <input name="name" placeholder="Nombre (opcional)" className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white" />
-      <input name="zone" placeholder="Zona (opcional)" className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white" />
-      <button type="submit" className="rounded-lg bg-amber-600 px-4 py-2 font-medium text-white hover:bg-amber-700">+ Añadir mesa</button>
-    </form>
+    <div className="grid gap-6 lg:grid-cols-2">
+      <form
+        ref={singleRef}
+        action={async (formData) => {
+          await createTable(restaurantId, slug, formData);
+          singleRef.current?.reset();
+        }}
+        className="space-y-4 rounded-2xl border border-zinc-800 bg-[#181716] p-6"
+      >
+        <div>
+          <h2 className="font-semibold text-white">Añadir una mesa</h2>
+          <p className="mt-1 text-sm text-zinc-500">Para añadir o completar mesas individualmente.</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <input name="number" type="number" min="1" required placeholder="Número" className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white" />
+          <input name="name" placeholder="Nombre" className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white" />
+          <input name="zone" placeholder="Zona" className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white" />
+        </div>
+        <button type="submit" className="rounded-lg bg-amber-600 px-4 py-2 font-medium text-white hover:bg-amber-700">+ Añadir mesa</button>
+      </form>
+
+      <form
+        ref={bulkRef}
+        action={async (formData) => {
+          await addRestaurantTables(restaurantId, slug, formData);
+          bulkRef.current?.reset();
+        }}
+        className="space-y-4 rounded-2xl border border-zinc-800 bg-[#181716] p-6"
+      >
+        <div>
+          <h2 className="font-semibold text-white">Crear varias mesas</h2>
+          <p className="mt-1 text-sm text-zinc-500">Crea automáticamente los números que todavía no existan.</p>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <input name="count" type="number" min="1" max="500" required defaultValue="10" placeholder="Cantidad" className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-white sm:max-w-40" />
+          <label className="flex items-center gap-2 text-sm text-zinc-300">
+            <input name="generateQr" type="checkbox" defaultChecked className="h-4 w-4" />
+            Generar QR
+          </label>
+        </div>
+        <button type="submit" className="rounded-lg bg-amber-600 px-4 py-2 font-medium text-white hover:bg-amber-700">+ Crear mesas</button>
+      </form>
+    </div>
   );
 }
