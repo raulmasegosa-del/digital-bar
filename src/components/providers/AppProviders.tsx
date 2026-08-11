@@ -14,18 +14,13 @@ type Props = {
   children: ReactNode;
 };
 
-export default function AppProviders({
-  settings,
-  children,
-}: Props) {
+export default function AppProviders({ settings, children }: Props) {
   return (
     <ToastProvider>
       <SettingsProvider settings={settings}>
-        <OrderProvider>
+        <OrderProvider restaurantId={settings.id}>
           <CartProvider>
-            <TableProvider>
-              {children}
-            </TableProvider>
+            <TableProvider>{children}</TableProvider>
           </CartProvider>
         </OrderProvider>
       </SettingsProvider>
