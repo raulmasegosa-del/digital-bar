@@ -47,6 +47,7 @@ export default async function CategoriesPage({
       <CategoryGrid
         categories={categories}
         slug={slug}
+        restaurantId={restaurant.id}
       />
     </main>
   );
