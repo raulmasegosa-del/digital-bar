@@ -10,18 +10,20 @@ type Category = {
 type Props = {
   category: Category;
   slug: string;
+  restaurantId: string;
 };
 
 export default function CategoryCard({
   category,
   slug,
+  restaurantId,
 }: Props) {
   return (
     <div className="rounded-2xl border bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold">
-            {category.name}
+            {category.name || "Sin nombre"}
           </h3>
 
           <p className="text-sm text-gray-500">
@@ -43,7 +45,8 @@ export default function CategoryCard({
         <DeleteCategoryButton
           id={category.id}
           slug={slug}
-          name={category.name}
+          restaurantId={restaurantId}
+          name={category.name || "Sin nombre"}
         />
       </div>
     </div>
