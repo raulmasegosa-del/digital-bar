@@ -19,10 +19,10 @@ export default function CategoryCard({
   restaurantId,
 }: Props) {
   return (
-    <div className="rounded-2xl border bg-white p-6 shadow-sm">
+    <div className="rounded-2xl border bg-white p-6 text-gray-900 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">
+          <h3 className="text-lg font-semibold text-gray-900">
             {category.name || "Sin nombre"}
           </h3>
 
