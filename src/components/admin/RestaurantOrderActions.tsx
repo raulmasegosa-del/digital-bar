@@ -1,12 +1,10 @@
 "use client";
 
 import { useTransition } from "react";
-import { useRouter } from "next/navigation";
 import type { OrderStatus } from "@/types/orders";
 import { updateRestaurantOrderStatus } from "@/app/admin/[slug]/orders/actions";
 
 type Props = { slug: string; orderId: string; status: OrderStatus };
-
 type Action = { label: string; status: OrderStatus; tone: string };
 
 const actionsByStatus: Partial<Record<OrderStatus, Action[]>> = {
@@ -33,13 +31,14 @@ const actionsByStatus: Partial<Record<OrderStatus, Action[]>> = {
 
 export default function RestaurantOrderActions({ slug, orderId, status }: Props) {
   const [isPending, startTransition] = useTransition();
-  const router = useRouter();
 
   function changeStatus(nextStatus: OrderStatus) {
     startTransition(async () => {
       try {
         await updateRestaurantOrderStatus(slug, orderId, nextStatus);
-        router.refresh();
+        // Force a fresh server render. router.refresh() could preserve the
+        // current RSC payload and leave the card visually in its old column.
+        window.location.reload();
       } catch (error) {
         window.alert(error instanceof Error ? error.message : "No se pudo actualizar el pedido");
       }
@@ -52,36 +51,20 @@ export default function RestaurantOrderActions({ slug, orderId, status }: Props)
   return (
     <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
       {!isClosed && actions.map((action) => (
-        <button
-          key={action.status}
-          type="button"
-          disabled={isPending}
-          onClick={() => changeStatus(action.status)}
-          className={`min-h-10 rounded-lg border px-4 py-2.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${action.tone}`}
-        >
-          {action.label}
+        <button key={action.status} type="button" disabled={isPending} onClick={() => changeStatus(action.status)} className={`min-h-10 rounded-lg border px-4 py-2.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${action.tone}`}>
+          {isPending ? "Actualizando…" : action.label}
         </button>
       ))}
 
       {!isClosed && (
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={() => changeStatus("completed")}
-          className="min-h-10 rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-5 py-2.5 text-xs font-bold text-emerald-200 transition hover:border-emerald-400/60 hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Pagado
+        <button type="button" disabled={isPending} onClick={() => changeStatus("completed")} className="min-h-10 rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-5 py-2.5 text-xs font-bold text-emerald-200 transition hover:border-emerald-400/60 hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-40">
+          {isPending ? "Actualizando…" : "Pagado"}
         </button>
       )}
 
       {!isClosed && (
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={() => changeStatus("cancelled")}
-          className="min-h-10 rounded-lg border border-red-500/25 bg-red-500/5 px-4 py-2.5 text-xs font-semibold text-red-300 transition hover:border-red-400/40 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Cancelar
+        <button type="button" disabled={isPending} onClick={() => changeStatus("cancelled")} className="min-h-10 rounded-lg border border-red-500/25 bg-red-500/5 px-4 py-2.5 text-xs font-semibold text-red-300 transition hover:border-red-400/40 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-40">
+          {isPending ? "Actualizando…" : "Cancelar"}
         </button>
       )}
     </div>
