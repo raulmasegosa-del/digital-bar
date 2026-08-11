@@ -12,6 +12,18 @@ export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string; id: string }> };
 
+type TableMenuItem = {
+  id: string;
+  name: string;
+  prices: Array<{ price: number | string; active?: boolean }>;
+};
+
+type TableMenuCategory = {
+  id: string;
+  name: string;
+  items: TableMenuItem[];
+};
+
 const statusLabels: Record<string, string> = {
   pending: "Nuevo", preparing: "Preparando", ready: "Listo", served: "Servido", bill: "Cuenta solicitada",
 };
@@ -30,6 +42,7 @@ export default async function TableDetailPage({ params }: Props) {
     getRestaurantMenu(restaurant.id),
   ]);
   const total = orders.reduce((sum, order) => sum + Number(order.total ?? 0), 0);
+  const tableMenu = menu as unknown as TableMenuCategory[];
 
   return (
     <main className="space-y-8">
@@ -56,7 +69,7 @@ export default async function TableDetailPage({ params }: Props) {
         )}
       </section>
 
-      <AddTableItems slug={slug} restaurantId={restaurant.id} tableId={table.id} categories={menu.map((category) => ({ id: category.id, name: category.name, items: category.items.map((item) => ({ id: item.id, name: item.name, prices: item.prices })) }))} />
+      <AddTableItems slug={slug} restaurantId={restaurant.id} tableId={table.id} categories={tableMenu} />
     </main>
   );
 }
