@@ -5,7 +5,11 @@ import Menu from "./Menu";
 import Cart from "./cart/Cart";
 import CartButton from "./CartButton";
 
-export default function ClientMenu() {
+type Props = {
+  restaurantId?: string;
+};
+
+export default function ClientMenu({ restaurantId }: Props) {
   const [cartOpen, setCartOpen] = useState(false);
 
   return (
@@ -16,10 +20,13 @@ export default function ClientMenu() {
         onClick={() => setCartOpen(true)}
       />
 
-      <Cart
-        open={cartOpen}
-        onClose={() => setCartOpen(false)}
-      />
+      {restaurantId ? (
+        <Cart
+          open={cartOpen}
+          onClose={() => setCartOpen(false)}
+          restaurantId={restaurantId}
+        />
+      ) : null}
     </>
   );
 }
