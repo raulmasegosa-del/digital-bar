@@ -8,19 +8,24 @@ export async function getActiveOrder(
 ): Promise<Order | null> {
   const { data, error } = await supabase
     .from("orders")
-    .select("*")
+    .select(`
+      *,
+      order_items (
+        id,
+        product_id,
+        name,
+        quantity,
+        price,
+        options
+      )
+    `)
     .eq("restaurant_id", restaurantId)
     .eq("table_number", table)
     .not("status", "in", "(completed,cancelled)")
-    .order("created_at", {
-      ascending: false,
-    })
+    .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  if (error) {
-    throw error;
-  }
-
+  if (error) throw error;
   return data as Order | null;
 }
