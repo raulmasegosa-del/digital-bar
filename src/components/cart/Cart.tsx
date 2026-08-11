@@ -1,42 +1,19 @@
 "use client";
+
 import { useToast } from "@/context/ToastContext";
-
 import { useSettings } from "@/context/SettingsContext";
-import { Trash2, Minus, Plus } from "lucide-react";
+import { Trash2, Minus, Plus, X, ShoppingBag } from "lucide-react";
 import { useState } from "react";
-
 import { useCart } from "@/context/CartContext";
 import { useTable } from "@/context/TableContext";
 import { useOrder } from "@/context/OrderContext";
 import { createOrder } from "@/lib/orders/createOrder";
+import { buildWhatsAppMessage } from "@/lib/whatsapp";
 
-import {
-  buildWhatsAppMessage,
-  openWhatsApp,
-} from "@/lib/whatsapp";
+type Props = { open: boolean; onClose: () => void; restaurantId: string };
 
-type Props = {
-  open: boolean;
-  onClose: () => void;
-  restaurantId: string;
-};
-
-export default function Cart({
-  open,
-  onClose,
-  restaurantId,
-}: Props) {
-  const {
-    items,
-    total,
-    clearCart,
-    removeItem,
-    increaseQuantity,
-    decreaseQuantity,
-    notes,
-    setNotes,
-  } = useCart();
-
+export default function Cart({ open, onClose, restaurantId }: Props) {
+  const { items, total, clearCart, removeItem, increaseQuantity, decreaseQuantity, notes, setNotes } = useCart();
   const { table, setTable } = useTable();
   const { setOrder } = useOrder();
   const { settings } = useSettings();
@@ -46,43 +23,14 @@ export default function Cart({
   if (!open) return null;
 
   async function sendOrder() {
-    if (items.length === 0) return;
-
+    if (!items.length) return;
     try {
       setSending(true);
-
-      const order = await createOrder({
-        restaurantId,
-        table,
-        items,
-        notes,
-        total,
-      });
-
-      setOrder({
-        id: order.id,
-        table,
-        status: order.status,
-      });
-
-      console.log("SET ORDER", {
-        id: order.id,
-        table,
-        status: order.status,
-      });
-
-      const message = buildWhatsAppMessage({
-        items,
-        tableNumber: table,
-        notes,
-        total,
-      });
-
-      // openWhatsApp(settings.whatsapp, message);
+      const order = await createOrder({ restaurantId, table, items, notes, total });
+      setOrder({ id: order.id, table, status: order.status });
       void settings;
       void showToast;
-      void message;
-
+      void buildWhatsAppMessage({ items, tableNumber: table, notes, total });
       clearCart();
       onClose();
     } catch (error) {
@@ -94,156 +42,75 @@ export default function Cart({
 
   return (
     <>
-      <div
-        onClick={onClose}
-        className="fixed inset-0 z-40 bg-black/40"
-      />
-
-      <aside className="fixed right-0 top-0 z-50 flex h-screen w-full max-w-md flex-col bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b p-5">
-          <h2 className="text-2xl font-bold">🛒 Tu pedido</h2>
-
-          <button onClick={onClose} className="text-2xl">
-            ✕
-          </button>
-        </div>
+      <button aria-label="Cerrar carrito" onClick={onClose} className="fixed inset-0 z-40 cursor-default bg-black/70 backdrop-blur-sm" />
+      <aside className="fixed right-0 top-0 z-50 flex h-screen w-full max-w-md flex-col border-l border-zinc-800 bg-[#121110] text-white shadow-2xl">
+        <header className="flex items-center justify-between border-b border-zinc-800 px-5 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-black"><ShoppingBag size={19} /></div>
+            <div>
+              <h2 className="text-lg font-bold">Tu pedido</h2>
+              <p className="text-xs text-zinc-500">Mesa {table || "—"}</p>
+            </div>
+          </div>
+          <button onClick={onClose} aria-label="Cerrar" className="rounded-xl p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white"><X size={20} /></button>
+        </header>
 
         <div className="flex-1 overflow-y-auto p-5">
-          {items.length === 0 ? (
-            <p className="text-center text-gray-500">
-              El carrito está vacío.
-            </p>
+          {!items.length ? (
+            <div className="flex h-full flex-col items-center justify-center text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-zinc-800 bg-[#181716] text-zinc-600"><ShoppingBag size={28} /></div>
+              <p className="mt-4 font-semibold text-white">El carrito está vacío</p>
+              <p className="mt-1 text-sm text-zinc-500">Añade productos de la carta para empezar.</p>
+            </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {items.map((item, index) => {
-                const extras = item.options.reduce(
-                  (sum, option) => sum + option.extraPrice,
-                  0
-                );
-                const subtotal =
-                  (item.price + extras) * item.quantity;
-
+                const extras = item.options.reduce((sum, option) => sum + option.extraPrice, 0);
+                const subtotal = (item.price + extras) * item.quantity;
+                const name = item.name?.trim() || "Producto";
                 return (
-                  <div
-                    key={index}
-                    className="rounded-xl border p-4 shadow-sm"
-                  >
-                    <div className="flex justify-between">
-                      <div>
-                        <h3 className="font-semibold">
-                          {item.name}
-                        </h3>
-
+                  <article key={`${item.productId}-${index}`} className="rounded-2xl border border-zinc-800 bg-[#181716] p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="font-semibold leading-5 text-white">{name}</h3>
+                        <p className="mt-1 text-sm text-amber-500">{Number(item.price + extras).toFixed(2)} € / unidad</p>
                         {item.options.length > 0 && (
-                          <ul className="mt-2 text-sm text-gray-500">
-                            {item.options.map((option, i) => (
-                              <li key={i}>
-                                • {option.optionName}
-                              </li>
-                            ))}
-                          </ul>
+                          <ul className="mt-2 space-y-1 text-xs text-zinc-500">{item.options.map((option, i) => <li key={i}>• {option.optionName}</li>)}</ul>
                         )}
                       </div>
-
-                      <button
-                        onClick={() => removeItem(index)}
-                        className="text-red-600"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      <button onClick={() => removeItem(index)} aria-label={`Eliminar ${name}`} className="rounded-lg p-2 text-zinc-500 hover:bg-red-500/10 hover:text-red-400"><Trash2 size={17} /></button>
                     </div>
-
-                    <div className="mt-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => decreaseQuantity(index)}
-                          className="rounded-lg border p-2"
-                        >
-                          <Minus size={16} />
-                        </button>
-
-                        <span>{item.quantity}</span>
-
-                        <button
-                          onClick={() => increaseQuantity(index)}
-                          className="rounded-lg border p-2"
-                        >
-                          <Plus size={16} />
-                        </button>
+                    <div className="mt-4 flex items-center justify-between border-t border-zinc-800 pt-3">
+                      <div className="flex items-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900 p-1">
+                        <button onClick={() => decreaseQuantity(index)} className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-300 hover:bg-zinc-800"><Minus size={15} /></button>
+                        <span className="w-6 text-center text-sm font-semibold">{item.quantity}</span>
+                        <button onClick={() => increaseQuantity(index)} className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-black hover:bg-amber-400"><Plus size={15} /></button>
                       </div>
-
-                      <span className="font-bold text-amber-600">
-                        {subtotal.toFixed(2)} €
-                      </span>
+                      <span className="font-bold text-white">{subtotal.toFixed(2)} €</span>
                     </div>
-                  </div>
+                  </article>
                 );
               })}
 
-              <div>
-                <label className="mb-2 block font-semibold">
-                  Mesa
-                </label>
-                <input
-                  value={table}
-                  onChange={(e) => setTable(e.target.value)}
-                  placeholder="Ej. 12"
-                  className="w-full rounded-xl border p-3"
-                />
+              <div className="space-y-2 pt-3">
+                <label className="text-sm font-semibold text-white">Mesa</label>
+                <input value={table} onChange={(e) => setTable(e.target.value)} placeholder="Ej. 1" className="w-full rounded-xl border border-zinc-700 bg-[#181716] px-4 py-3 text-white outline-none placeholder:text-zinc-600 focus:border-amber-500" />
               </div>
-
-              <div>
-                <label className="mb-2 block font-semibold">
-                  Observaciones
-                </label>
-                <textarea
-                  rows={4}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Sin cebolla..."
-                  className="w-full rounded-xl border p-3"
-                />
+              <div className="space-y-2 pt-2">
+                <label className="text-sm font-semibold text-white">Observaciones</label>
+                <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Sin cebolla..." className="w-full resize-none rounded-xl border border-zinc-700 bg-[#181716] px-4 py-3 text-white outline-none placeholder:text-zinc-600 focus:border-amber-500" />
               </div>
             </div>
           )}
         </div>
 
-        <div className="border-t p-5">
-          <div className="mb-5 flex justify-between">
-            <span className="text-xl font-bold">Total</span>
-            <span className="text-3xl font-bold text-amber-600">
-              {total.toFixed(2)} €
-            </span>
+        <footer className="border-t border-zinc-800 bg-[#121110] p-5">
+          <div className="mb-4 flex items-end justify-between"><span className="text-sm text-zinc-500">Total</span><span className="text-2xl font-extrabold text-amber-500">{total.toFixed(2)} €</span></div>
+          <div className="flex gap-2">
+            <button type="button" onClick={() => { if (confirm("¿Cancelar el pedido y vaciar el carrito?")) { clearCart(); onClose(); } }} disabled={sending || !items.length} className="flex-1 rounded-xl border border-zinc-700 py-3 text-sm font-semibold text-zinc-300 hover:bg-zinc-800 disabled:opacity-40">Cancelar</button>
+            <button onClick={sendOrder} disabled={sending || !items.length} className="flex-1 rounded-xl bg-amber-500 py-3 text-sm font-bold text-black hover:bg-amber-400 disabled:opacity-40">{sending ? "Enviando..." : "Enviar pedido"}</button>
           </div>
-
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                if (
-                  confirm(
-                    "¿Cancelar el pedido y vaciar el carrito?"
-                  )
-                ) {
-                  clearCart();
-                  onClose();
-                }
-              }}
-              disabled={sending || items.length === 0}
-              className="flex-1 rounded-xl border border-red-300 bg-white py-3 font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-50"
-            >
-              🗑️ Cancelar pedido
-            </button>
-
-            <button
-              onClick={sendOrder}
-              disabled={sending || items.length === 0}
-              className="flex-1 rounded-xl bg-green-600 py-3 font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
-            >
-              {sending ? "Enviando..." : "Enviar pedido"}
-            </button>
-          </div>
-        </div>
+        </footer>
       </aside>
     </>
   );
