@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getRestaurant } from "@/lib/db/restaurants/getRestaurant";
+import { isSuperAdmin } from "@/lib/auth/isSuperAdmin";
 import type { OrderStatus } from "@/types/orders";
 
 const allowedStatuses: OrderStatus[] = [
@@ -32,20 +33,22 @@ export async function updateRestaurantOrderStatus(
 
   if (!user) throw new Error("No autorizado");
 
-  const { data: membership, error: membershipError } = await supabase
-    .from("restaurant_users")
-    .select("restaurant_id, role")
-    .eq("user_id", user.id)
-    .eq("role", "owner")
-    .maybeSingle();
-
-  if (membershipError) throw membershipError;
-  if (!membership) throw new Error("Sin acceso al restaurante");
-
   const restaurant = await getRestaurant(slug);
+  if (!restaurant) throw new Error("Restaurante no encontrado");
 
-  if (!restaurant || restaurant.id !== membership.restaurant_id) {
-    throw new Error("Restaurante no autorizado");
+  const superAdmin = await isSuperAdmin(user.id);
+
+  if (!superAdmin) {
+    const { data: membership, error: membershipError } = await supabase
+      .from("restaurant_users")
+      .select("restaurant_id, role")
+      .eq("user_id", user.id)
+      .eq("restaurant_id", restaurant.id)
+      .in("role", ["owner", "staff"])
+      .maybeSingle();
+
+    if (membershipError) throw membershipError;
+    if (!membership) throw new Error("Restaurante no autorizado");
   }
 
   const { error } = await supabase
@@ -58,4 +61,5 @@ export async function updateRestaurantOrderStatus(
 
   revalidatePath(`/admin/${slug}/orders`);
   revalidatePath(`/admin/${slug}`);
+  revalidatePath(`/admin/${slug}/tables`);
 }
