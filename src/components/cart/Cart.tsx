@@ -36,13 +36,14 @@ export default function Cart({ open, onClose, restaurantId }: Props) {
         price: item.price,
         options: item.options ?? [],
       }));
+      const existingItems = currentOrder?.id === order.id ? currentOrder.items : [];
 
       setOrder({
         id: order.id,
         table: table.trim(),
         status: order.status,
         total: Number(order.total ?? total),
-        items: currentOrder?.id === order.id ? [...currentOrder.items, ...newItems] : newItems,
+        items: [...existingItems, ...newItems],
       });
       clearCart();
       onClose();
