@@ -43,12 +43,23 @@ export async function createRestaurant(
     (formData.get("website") as string)?.trim() ||
     null;
 
+  const tablesValue =
+    Number(formData.get("tables") ?? 0);
+
+  const generateQr =
+    formData.get("generateQr") === "on" ||
+    formData.get("generateQr") === "true";
+
   if (!name) {
     throw new Error("El nombre es obligatorio.");
   }
 
   if (!slug) {
     throw new Error("El slug es obligatorio.");
+  }
+
+  if (!Number.isInteger(tablesValue) || tablesValue < 1 || tablesValue > 500) {
+    throw new Error("El número de mesas debe estar entre 1 y 500.");
   }
 
   // 1. Crear restaurante
@@ -65,7 +76,31 @@ export async function createRestaurant(
     name
   );
 
+  // 3. Crear las mesas iniciales del restaurante.
+  // Cada mesa recibe un token único cuando se han solicitado QR.
+  const tables = Array.from(
+    { length: tablesValue },
+    (_, index) => ({
+      id: crypto.randomUUID(),
+      restaurant_id: restaurant.id,
+      number: index + 1,
+      name: `Mesa ${index + 1}`,
+      active: true,
+      qr_token: generateQr ? crypto.randomUUID() : null,
+    })
+  );
+
+  const { error: tablesError } = await supabaseAdmin
+    .from("tables")
+    .insert(tables);
+
+  if (tablesError) {
+    throw tablesError;
+  }
+
   revalidatePath("/super/restaurants");
+  revalidatePath(`/admin/${slug}/tables`);
+  revalidatePath(`/admin/${slug}/qr`);
 
   redirect("/super/restaurants");
 }
