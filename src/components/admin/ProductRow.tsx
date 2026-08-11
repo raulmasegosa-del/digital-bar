@@ -48,9 +48,13 @@ export default function ProductRow({
 
           {/* Nombre */}
           <div className="min-w-0">
-            <p className="font-medium text-white transition-colors group-hover:text-amber-400">
+            <Link
+              href={`/admin/${slug}/products/${item.id}`}
+              aria-label={`Editar ${item.name}`}
+              className="font-medium text-white transition-colors hover:text-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#181716]"
+            >
               {item.name}
-            </p>
+            </Link>
 
             {item.subtitle && (
               <p className="mt-0.5 truncate text-sm text-zinc-500">
