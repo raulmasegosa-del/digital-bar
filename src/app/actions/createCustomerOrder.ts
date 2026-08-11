@@ -46,18 +46,18 @@ export async function createCustomerOrder({ restaurantId, table, items, notes, t
     .maybeSingle();
   if (activeOrderError) throw activeOrderError;
 
-  let orderId = activeOrder?.id;
-  let orderTotal = Number(total);
-  let orderNotes = notes ?? "";
+  const orderId = activeOrder?.id ?? null;
+  const orderTotal = Number(activeOrder?.total ?? 0) + Number(total);
+  const orderNotes = notes?.trim()
+    ? activeOrder?.notes
+      ? `${activeOrder.notes}\n${notes.trim()}`
+      : notes.trim()
+    : activeOrder?.notes ?? "";
 
-  if (orderId) {
-    orderTotal = Number(activeOrder.total ?? 0) + Number(total);
-    orderNotes = notes?.trim()
-      ? activeOrder.notes
-        ? `${activeOrder.notes}\n${notes.trim()}`
-        : notes.trim()
-      : activeOrder.notes ?? "";
-  } else {
+  let finalOrderId = orderId;
+  let finalStatus = activeOrder?.status ?? "pending";
+
+  if (!finalOrderId) {
     const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
       .insert({
@@ -70,11 +70,12 @@ export async function createCustomerOrder({ restaurantId, table, items, notes, t
       .select("id, total, notes, status")
       .single();
     if (orderError) throw orderError;
-    orderId = order.id;
+    finalOrderId = order.id;
+    finalStatus = order.status ?? "pending";
   }
 
   const rows = items.map((item) => ({
-    order_id: orderId,
+    order_id: finalOrderId,
     product_id: item.productId,
     name: item.name,
     quantity: item.quantity,
@@ -89,14 +90,14 @@ export async function createCustomerOrder({ restaurantId, table, items, notes, t
     const { error: updateError } = await supabaseAdmin
       .from("orders")
       .update({ total: orderTotal, notes: orderNotes })
-      .eq("id", orderId);
+      .eq("id", finalOrderId);
     if (updateError) throw updateError;
   }
 
   return {
-    id: orderId,
+    id: finalOrderId,
     table: tableNumber,
-    status: activeOrder?.status ?? "pending",
-    total: orderTotal,
+    status: finalStatus,
+    total: activeOrder ? orderTotal : Number(total),
   };
 }
