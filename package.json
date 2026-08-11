@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "import:niko": "tsx scripts/import-niko.ts"
+    "import:niko": "tsx scripts/import-niko.ts",
+    "repair:niko-categories": "tsx scripts/repair-niko-categories.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
