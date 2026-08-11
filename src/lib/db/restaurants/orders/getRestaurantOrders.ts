@@ -19,7 +19,6 @@ type RawOrder = {
   notes: string | null;
   total: number | string | null;
   created_at: string;
-  updated_at: string | null;
   order_items: RawOrderItem[] | null;
 };
 
@@ -51,7 +50,6 @@ export async function getRestaurantOrders(
       notes,
       total,
       created_at,
-      updated_at,
       order_items (
         id,
         order_id,
@@ -75,7 +73,6 @@ export async function getRestaurantOrders(
     notes: order.notes ?? "",
     total: Number(order.total ?? 0),
     created_at: order.created_at,
-    updated_at: order.updated_at ?? undefined,
     order_items: (order.order_items ?? []).map((item) => ({
       id: item.id,
       order_id: item.order_id,
