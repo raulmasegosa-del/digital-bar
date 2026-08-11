@@ -1,11 +1,12 @@
 import { supabase } from "@/lib/supabase/client";
 import type { Order } from "@/types/orders";
 
-export async function getOrders(): Promise<Order[]> {
+export async function getOrders(restaurantId: string): Promise<Order[]> {
   const { data, error } = await supabase
     .from("orders")
     .select(`
       id,
+      restaurant_id,
       table_number,
       notes,
       total,
@@ -20,6 +21,7 @@ export async function getOrders(): Promise<Order[]> {
         options
       )
     `)
+    .eq("restaurant_id", restaurantId)
     .in("status", [
       "pending",
       "preparing",
