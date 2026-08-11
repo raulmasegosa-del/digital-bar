@@ -21,15 +21,13 @@ export default function Cart({ open, onClose, restaurantId }: Props) {
   async function sendOrder() {
     if (!items.length) return;
     if (!table.trim()) {
-      setError("Indica el número de mesa antes de enviar el pedido.");
+      setError("No hemos podido identificar la mesa. Escanea de nuevo el QR de tu mesa.");
       return;
     }
-
     try {
       setSending(true);
       setError("");
       const order = await createOrder({ restaurantId, table: table.trim(), items, notes, total });
-
       setOrder({ id: order.id, table: table.trim(), status: order.status });
       clearCart();
       onClose();
@@ -60,7 +58,11 @@ export default function Cart({ open, onClose, restaurantId }: Props) {
                 <div className="mt-4 flex items-center justify-between"><div className="flex items-center gap-2"><button onClick={() => decreaseQuantity(index)} className="rounded-lg border border-zinc-700 bg-zinc-900 p-2 text-zinc-300 hover:bg-zinc-800"><Minus size={16} /></button><span className="w-7 text-center font-medium">{item.quantity}</span><button onClick={() => increaseQuantity(index)} className="rounded-lg border border-zinc-700 bg-zinc-900 p-2 text-zinc-300 hover:bg-zinc-800"><Plus size={16} /></button></div><span className="font-bold text-amber-500">{subtotal.toFixed(2)} €</span></div>
               </div>;
             })}
-            <div className="rounded-2xl border border-zinc-800 bg-[#181716] p-4"><label className="mb-2 block text-sm font-semibold text-white">Mesa</label><input value={table} onChange={(e) => { setTable(e.target.value); setError(""); }} placeholder="Ej. 1" className="w-full rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-white outline-none placeholder:text-zinc-600 focus:border-amber-500" /></div>
+            {table ? (
+              <div className="rounded-2xl border border-amber-500/20 bg-[#181716] p-4"><p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Mesa</p><p className="mt-1 text-lg font-semibold text-white">Mesa {table}</p><p className="mt-1 text-xs text-zinc-500">Identificada mediante el QR</p></div>
+            ) : (
+              <div className="rounded-2xl border border-zinc-800 bg-[#181716] p-4"><label className="mb-2 block text-sm font-semibold text-white">Mesa</label><input value={table} onChange={(e) => { setTable(e.target.value); setError(""); }} placeholder="Ej. 1" className="w-full rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-white outline-none placeholder:text-zinc-600 focus:border-amber-500" /></div>
+            )}
             <div className="rounded-2xl border border-zinc-800 bg-[#181716] p-4"><label className="mb-2 block text-sm font-semibold text-white">Observaciones</label><textarea rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Sin cebolla..." className="w-full rounded-xl border border-zinc-700 bg-zinc-950 p-3 text-white outline-none placeholder:text-zinc-600 focus:border-amber-500" /></div>
             {error && <div role="alert" className="rounded-xl border border-red-500/30 bg-red-950/40 p-3 text-sm text-red-300">{error}</div>}
           </div>}
