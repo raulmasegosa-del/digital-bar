@@ -37,7 +37,9 @@ export default function ActiveOrder() {
   }
 
   function continueOrdering() {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    // The order panel is a fixed overlay. Returning to the menu should close
+    // it rather than merely scrolling underneath it.
+    window.dispatchEvent(new CustomEvent("digital-bar:continue-ordering"));
   }
 
   return (
@@ -59,7 +61,7 @@ export default function ActiveOrder() {
         <div className="mt-4 flex items-center justify-between border-t border-zinc-800 pt-4"><span className="font-semibold text-white">Total</span><span className="text-xl font-extrabold text-amber-500">{Number(order.total).toFixed(2)} €</span></div>
       </div>
 
-      <button onClick={continueOrdering} className="mt-4 w-full rounded-xl bg-amber-500 py-3 font-semibold text-black transition hover:bg-amber-400">Seguir pidiendo</button>
+      <button onClick={continueOrdering} className="mt-4 w-full rounded-xl bg-amber-500 py-3 font-semibold text-black transition hover:bg-amber-400">Añadir al carrito</button>
 
       {order.status === "pending" && <button onClick={handleCancel} disabled={loading} className="mt-2 w-full rounded-xl border border-red-500/30 bg-transparent py-3 font-semibold text-red-400 transition hover:bg-red-950/30 disabled:opacity-50">{loading ? "Cancelando..." : "Cancelar pedido"}</button>}
     </div>
