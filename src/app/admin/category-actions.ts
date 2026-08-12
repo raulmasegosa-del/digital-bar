@@ -26,24 +26,18 @@ export async function createCategory(formData: FormData) {
   if (!name) throw new Error("El nombre es obligatorio.");
 
   const id = crypto.randomUUID();
+  const { error } = await supabaseAdmin
+    .from("categories")
+    .insert({ id, name, image, restaurant_id: restaurantId });
 
-  const payload: Record<string, unknown> = {
-    id,
-    name,
-    restaurant_id: restaurantId,
-  };
-
-  // La columna image puede no existir todavía en algunas bases de datos.
-  // Intentamos guardarla y, si la API devuelve un error de columna inexistente,
-  // creamos la categoría sin imagen para no bloquear la creación.
-  const withImage = { ...payload, image };
-  let { error } = await supabaseAdmin.from("categories").insert(withImage);
-
-  if (error && /image|column|schema cache/i.test(error.message)) {
-    ({ error } = await supabaseAdmin.from("categories").insert(payload));
+  if (error) {
+    if (/image|column|schema cache/i.test(error.message)) {
+      throw new Error(
+        "La categoría no puede guardar imágenes todavía porque falta la columna categories.image en Supabase."
+      );
+    }
+    throw error;
   }
-
-  if (error) throw error;
 
   revalidatePath(`/admin/${slug}/categories`);
   revalidatePath(`/admin/${slug}/products`);
@@ -64,21 +58,20 @@ export async function updateCategory(formData: FormData) {
   if (!restaurantId) throw new Error("Restaurante no encontrado.");
   if (!name) throw new Error("El nombre es obligatorio.");
 
-  let { error } = await supabaseAdmin
+  const { error } = await supabaseAdmin
     .from("categories")
     .update({ name, image })
     .eq("id", id)
     .eq("restaurant_id", restaurantId);
 
-  if (error && /image|column|schema cache/i.test(error.message)) {
-    ({ error } = await supabaseAdmin
-      .from("categories")
-      .update({ name })
-      .eq("id", id)
-      .eq("restaurant_id", restaurantId));
+  if (error) {
+    if (/image|column|schema cache/i.test(error.message)) {
+      throw new Error(
+        "La categoría no puede guardar imágenes todavía porque falta la columna categories.image en Supabase."
+      );
+    }
+    throw error;
   }
-
-  if (error) throw error;
 
   revalidatePath(`/admin/${slug}/categories`);
   revalidatePath(`/admin/${slug}/categories/${id}`);
