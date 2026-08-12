@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { createCategory, updateCategory } from "@/app/admin/category-actions";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 type Category = {
   id?: string;
@@ -15,7 +16,7 @@ type Props = {
 };
 
 export default function CategoryForm({ item, slug, restaurantId }: Props) {
-  const category = item ?? { name: "", image: "" };
+  const category = item ?? { name: "", image: null };
 
   return (
     <main className="min-h-[calc(100vh-96px)] bg-[#11100f] px-4 py-6 text-white sm:px-6 lg:px-8">
@@ -44,22 +45,15 @@ export default function CategoryForm({ item, slug, restaurantId }: Props) {
               />
             </div>
 
-            <div>
-              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Imagen</label>
-              <input
-                name="image"
-                defaultValue={category.image ?? ""}
-                placeholder="/product-images/bocadillos/BOCADILLO1.jpg"
-                className="h-12 w-full rounded-xl border border-zinc-700 bg-[#11100f] px-4 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-amber-500/50"
-              />
-              <p className="mt-2 text-xs text-zinc-600">Puedes introducir la ruta de una imagen de <code className="text-zinc-400">product-images</code> o dejarla vacía.</p>
-            </div>
-
-            {category.image && (
-              <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-[#11100f]">
-                <img src={category.image} alt={category.name ?? "Categoría"} className="h-52 w-full object-cover" />
+            <section>
+              <div className="mb-3">
+                <label className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Imagen de la categoría</label>
               </div>
-            )}
+              <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-[#11100f] p-4 sm:p-5">
+                <ImageUpload image={category.image} />
+              </div>
+              <p className="mt-2 text-xs text-zinc-600">La misma imagen que uses aquí será la que verá el cliente antes de abrir los productos de esta categoría.</p>
+            </section>
 
             <div className="flex flex-col-reverse gap-3 border-t border-zinc-800 pt-6 sm:flex-row sm:justify-end">
               <Link href={`/admin/${slug}/categories`} className="inline-flex h-11 items-center justify-center rounded-xl border border-zinc-700 px-5 text-sm font-medium text-zinc-300 transition hover:border-zinc-600 hover:bg-zinc-900 hover:text-white">
