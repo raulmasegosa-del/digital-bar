@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, ClipboardList, Folder, Menu, QrCode, Settings, ShoppingBag, SlidersHorizontal, Table2, Utensils } from "lucide-react";
+import { ArrowLeft, BarChart3, ClipboardList, Folder, Menu, QrCode, Settings, ShoppingBag, SlidersHorizontal, Table2, Utensils } from "lucide-react";
 
 type NavigationItem = {
   href: string;
@@ -20,7 +20,20 @@ export default function AdminLayoutShell({ children, restaurant, navigation }: P
   const isOrdersScreen = pathname.endsWith("/orders");
 
   if (isOrdersScreen) {
-    return <div className="min-h-screen bg-[#0d0c0b] text-white">{children}</div>;
+    return (
+      <div className="min-h-screen bg-[#0d0c0b] text-white">
+        <div className="border-b border-zinc-800/80 bg-[#11100f] px-3 py-3 sm:px-5 lg:px-7">
+          <Link
+            href={`/admin/${restaurant.slug}`}
+            className="inline-flex items-center gap-2 rounded-xl border border-zinc-700 bg-[#181716] px-3.5 py-2.5 text-sm font-medium text-zinc-300 transition hover:border-amber-500/40 hover:bg-amber-500/10 hover:text-amber-400"
+          >
+            <ArrowLeft size={16} strokeWidth={1.8} />
+            <span>Volver al Dashboard</span>
+          </Link>
+        </div>
+        {children}
+      </div>
+    );
   }
 
   return (
