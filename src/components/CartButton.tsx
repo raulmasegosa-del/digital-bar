@@ -84,29 +84,20 @@ export default function CartButton({
         type="button"
         onClick={onClick}
         disabled={disabled}
-        aria-label="Ver carrito y pedido activo"
+        aria-label="Ver pedido y seguir pidiendo"
         className={`fixed bottom-5 right-5 z-40 flex items-center gap-3 rounded-full px-6 py-4 text-white shadow-2xl transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 ${status.color}`}
       >
         <div className="relative">
-          <span className="text-2xl">
-            {status.icon}
-          </span>
-
+          <span className="text-2xl">{status.icon}</span>
           {count > 0 && (
             <span className="absolute -right-3 -top-2 flex h-6 min-w-6 items-center justify-center rounded-full bg-red-500 px-1 text-xs font-bold text-white">
               {count}
             </span>
           )}
         </div>
-
         <div className="text-left">
-          <p className="text-xs opacity-80">
-            {status.text}
-          </p>
-
-          <p className="font-semibold">
-            Ver carrito
-          </p>
+          <p className="text-xs opacity-80">{status.text}</p>
+          <p className="font-semibold">Ver pedido · Seguir pidiendo</p>
         </div>
       </button>
     );
@@ -121,22 +112,15 @@ export default function CartButton({
     >
       <div className="relative">
         <ShoppingCart size={26} />
-
         {cartCount > 0 && (
           <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
             {cartCount}
           </span>
         )}
       </div>
-
       <div className="text-left">
-        <p className="text-xs opacity-80">
-          Tu pedido
-        </p>
-
-        <p className="font-semibold">
-          Ver carrito
-        </p>
+        <p className="text-xs opacity-80">Tu pedido</p>
+        <p className="font-semibold">Ver carrito</p>
       </div>
     </button>
   );
