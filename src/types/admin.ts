@@ -1,6 +1,7 @@
 export type AdminCategory = {
   id: string;
   name: string;
+  image?: string | null;
   order?: number;
 };
 
