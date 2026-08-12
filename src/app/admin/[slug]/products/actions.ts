@@ -21,9 +21,14 @@ export async function findMissingProductImages(slug: string) {
   let unmatched = 0;
 
   for (const product of products ?? []) {
-    const categoryName = Array.isArray(product.categories)
-      ? product.categories[0]?.name
-      : product.categories?.name;
+    const categoryData = product.categories as
+      | { name?: string | null }
+      | Array<{ name?: string | null }>
+      | null;
+
+    const categoryName = Array.isArray(categoryData)
+      ? categoryData[0]?.name
+      : categoryData?.name;
 
     if (!categoryName) {
       unmatched += 1;
