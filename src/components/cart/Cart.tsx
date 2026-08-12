@@ -91,7 +91,6 @@ export default function Cart({ open, onClose, restaurantId }: Props) {
               <div className="rounded-2xl border border-dashed border-zinc-800 bg-[#151413] p-5 text-center">
                 <p className="font-medium text-white">Puedes seguir pidiendo</p>
                 <p className="mt-1 text-sm text-zinc-500">Añade más productos desde la carta.</p>
-                <button onClick={onClose} className="mt-4 w-full rounded-xl bg-amber-500 py-3 font-semibold text-black transition hover:bg-amber-400">Volver a la carta</button>
               </div>
             ) : (
               <p className="py-12 text-center text-zinc-500">El carrito está vacío.</p>
@@ -118,7 +117,7 @@ export default function Cart({ open, onClose, restaurantId }: Props) {
               <div className="flex gap-3"><button type="button" onClick={() => { if (confirm("¿Cancelar los nuevos productos y vaciar el carrito?")) { clearCart(); onClose(); } }} disabled={sending} className="flex-1 rounded-xl border border-red-500/30 bg-transparent py-3 font-semibold text-red-400 hover:bg-red-950/30 disabled:opacity-40">Cancelar</button><button onClick={sendOrder} disabled={sending || !items.length} className="flex-1 rounded-xl bg-amber-500 py-3 font-semibold text-black transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-40">{sending ? "Enviando..." : currentOrder ? "Añadir al pedido" : "Enviar pedido"}</button></div>
             </>
           ) : (
-            <button type="button" onClick={onClose} className="w-full rounded-xl bg-amber-500 py-3 font-semibold text-black transition hover:bg-amber-400">Seguir pidiendo</button>
+            <button type="button" onClick={onClose} className="w-full rounded-xl bg-amber-500 py-3 font-semibold text-black transition hover:bg-amber-400">Añadir al carrito</button>
           )}
         </footer>
       </aside>
