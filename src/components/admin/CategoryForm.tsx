@@ -1,13 +1,11 @@
 import Link from "next/link";
 
-import {
-  createCategory,
-  updateCategory,
-} from "@/app/admin/category-actions";
+import { createCategory, updateCategory } from "@/app/admin/category-actions";
 
 type Category = {
   id?: string;
   name?: string;
+  image?: string | null;
 };
 
 type Props = {
@@ -16,82 +14,64 @@ type Props = {
   restaurantId: string;
 };
 
-export default function CategoryForm({
-  item,
-  slug,
-  restaurantId,
-}: Props) {
-  const category = item ?? {
-    name: "",
-  };
+export default function CategoryForm({ item, slug, restaurantId }: Props) {
+  const category = item ?? { name: "", image: "" };
 
   return (
-    <div className="rounded-2xl border bg-white p-8 shadow-sm">
-      <h1 className="mb-8 text-2xl font-bold">
-        {item
-          ? "Editar categoría"
-          : "Nueva categoría"}
-      </h1>
-
-      <form
-        action={
-          item
-            ? updateCategory
-            : createCategory
-        }
-        className="space-y-6"
-      >
-        <input
-          type="hidden"
-          name="slug"
-          value={slug}
-        />
-
-        <input
-          type="hidden"
-          name="restaurant_id"
-          value={restaurantId}
-        />
-
-        {item?.id && (
-          <input
-            type="hidden"
-            name="id"
-            value={item.id}
-          />
-        )}
-
-        <div>
-          <label className="mb-2 block text-sm font-medium">
-            Nombre
-          </label>
-
-          <input
-            name="name"
-            defaultValue={category.name}
-            required
-            className="w-full rounded-lg border p-3"
-          />
+    <main className="min-h-[calc(100vh-96px)] bg-[#11100f] px-4 py-6 text-white sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-6">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-amber-500">Carta</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">
+            {item ? "Editar categoría" : "Nueva categoría"}
+          </h1>
+          <p className="mt-2 text-sm text-zinc-400">Configura el nombre y la imagen que verá el cliente antes de abrir la categoría.</p>
         </div>
 
-        <div className="flex justify-end gap-3 border-t pt-6">
-<Link
-  href={`/admin/${slug}/categories`}
-  className="rounded-lg border px-5 py-2"
->
-  Cancelar
-</Link>
+        <div className="rounded-2xl border border-zinc-800 bg-[#181716] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.2)] sm:p-8">
+          <form action={item ? updateCategory : createCategory} className="space-y-7">
+            <input type="hidden" name="slug" value={slug} />
+            <input type="hidden" name="restaurant_id" value={restaurantId} />
+            {item?.id && <input type="hidden" name="id" value={item.id} />}
 
-          <button
-            type="submit"
-            className="rounded-lg bg-amber-600 px-6 py-2 font-medium text-white hover:bg-amber-700"
-          >
-            {item
-              ? "Guardar cambios"
-              : "Crear categoría"}
-          </button>
+            <div>
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Nombre</label>
+              <input
+                name="name"
+                defaultValue={category.name}
+                required
+                className="h-12 w-full rounded-xl border border-zinc-700 bg-[#11100f] px-4 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-amber-500/50"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Imagen</label>
+              <input
+                name="image"
+                defaultValue={category.image ?? ""}
+                placeholder="/product-images/bocadillos/BOCADILLO1.jpg"
+                className="h-12 w-full rounded-xl border border-zinc-700 bg-[#11100f] px-4 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-amber-500/50"
+              />
+              <p className="mt-2 text-xs text-zinc-600">Puedes introducir la ruta de una imagen de <code className="text-zinc-400">product-images</code> o dejarla vacía.</p>
+            </div>
+
+            {category.image && (
+              <div className="overflow-hidden rounded-2xl border border-zinc-800 bg-[#11100f]">
+                <img src={category.image} alt={category.name ?? "Categoría"} className="h-52 w-full object-cover" />
+              </div>
+            )}
+
+            <div className="flex flex-col-reverse gap-3 border-t border-zinc-800 pt-6 sm:flex-row sm:justify-end">
+              <Link href={`/admin/${slug}/categories`} className="inline-flex h-11 items-center justify-center rounded-xl border border-zinc-700 px-5 text-sm font-medium text-zinc-300 transition hover:border-zinc-600 hover:bg-zinc-900 hover:text-white">
+                Cancelar
+              </Link>
+              <button type="submit" className="inline-flex h-11 items-center justify-center rounded-xl bg-amber-500 px-6 text-sm font-semibold text-[#11100f] transition hover:bg-amber-400">
+                {item ? "Guardar cambios" : "Crear categoría"}
+              </button>
+            </div>
+          </form>
         </div>
-      </form>
-    </div>
+      </div>
+    </main>
   );
 }
