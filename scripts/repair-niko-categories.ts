@@ -4,7 +4,7 @@ import * as XLSX from "xlsx";
 
 import { supabaseAdmin } from "./utils/supabase";
 
-const slug = getArg("--slug") ?? "el-tapeo";
+const slug = getArg("--slug") ?? "demo";
 const fileArg = getArg("--file") ?? path.join("imports", "Niko.xlsx");
 const apply = process.argv.includes("--apply");
 
@@ -92,7 +92,7 @@ async function main() {
       const matches = productByName.get(normalize(product)) ?? [];
 
       if (matches.length === 0) {
-        errors.push(`No encontrado en El Tapeo: '${product}' (${category})`);
+        errors.push(`No encontrado en DEMO: '${product}' (${category})`);
         continue;
       }
 
