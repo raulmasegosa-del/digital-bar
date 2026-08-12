@@ -58,19 +58,33 @@ export async function updateCategory(formData: FormData) {
   if (!restaurantId) throw new Error("Restaurante no encontrado.");
   if (!name) throw new Error("El nombre es obligatorio.");
 
-  const { error } = await supabaseAdmin
+  // Actualiza siempre el nombre para que el formulario no falle aunque
+  // la columna image aún no esté disponible en una base antigua.
+  const { error: nameError } = await supabaseAdmin
     .from("categories")
-    .update({ name, image })
+    .update({ name })
     .eq("id", id)
     .eq("restaurant_id", restaurantId);
 
-  if (error) {
-    if (/image|column|schema cache/i.test(error.message)) {
-      throw new Error(
-        "La categoría no puede guardar imágenes todavía porque falta la columna categories.image en Supabase."
-      );
+  if (nameError) throw nameError;
+
+  // La imagen se guarda en una operación independiente. Esto evita que
+  // un problema de esquema/caché del campo image bloquee el resto del formulario.
+  if (image !== null) {
+    const { error: imageError } = await supabaseAdmin
+      .from("categories")
+      .update({ image })
+      .eq("id", id)
+      .eq("restaurant_id", restaurantId);
+
+    if (imageError) {
+      if (/image|column|schema cache/i.test(imageError.message)) {
+        throw new Error(
+          "La imagen se ha subido, pero falta la columna categories.image en Supabase para poder guardarla."
+        );
+      }
+      throw imageError;
     }
-    throw error;
   }
 
   revalidatePath(`/admin/${slug}/categories`);
