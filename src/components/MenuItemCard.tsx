@@ -17,11 +17,6 @@ export default function MenuItemCard({ item }: Props) {
   const hasOptions = item.option_groups?.length > 0;
 
   function handleAdd() {
-    if (order) {
-      showToast("🍽️ Ya tienes un pedido en curso.");
-      return;
-    }
-
     if (hasOptions) {
       setOpen(true);
       return;
@@ -35,7 +30,7 @@ export default function MenuItemCard({ item }: Props) {
       options: [],
     });
 
-    showToast(`✅ ${item.name} añadido`);
+    showToast(`✅ ${item.name} añadido al carrito`);
   }
 
   return (
@@ -52,40 +47,26 @@ export default function MenuItemCard({ item }: Props) {
         <div className="p-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
-              <h3 className="text-xl font-bold tracking-tight text-white">
-                {item.name}
-              </h3>
-              {item.description && (
-                <p className="mt-2 text-sm leading-6 text-zinc-400">
-                  {item.description}
-                </p>
-              )}
+              <h3 className="text-xl font-bold tracking-tight text-white">{item.name}</h3>
+              {item.description && <p className="mt-2 text-sm leading-6 text-zinc-400">{item.description}</p>}
             </div>
-
             <div className="shrink-0 text-right">
-              <div className="text-xl font-extrabold text-amber-500">
-                {Number(item.prices?.[0]?.price ?? 0).toFixed(2)}€
-              </div>
+              <div className="text-xl font-extrabold text-amber-500">{Number(item.prices?.[0]?.price ?? 0).toFixed(2)}€</div>
             </div>
           </div>
 
           <button
             onClick={handleAdd}
-            disabled={!!order}
-            className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500 px-4 py-3 font-semibold text-black transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-40"
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500 px-4 py-3 font-semibold text-black transition hover:bg-amber-400"
           >
             <Plus size={18} />
-            Añadir al pedido
+            {order ? "Añadir al carrito" : "Añadir al pedido"}
           </button>
         </div>
       </article>
 
       {hasOptions && (
-        <ProductOptionsModal
-          open={open}
-          onClose={() => setOpen(false)}
-          item={item}
-        />
+        <ProductOptionsModal open={open} onClose={() => setOpen(false)} item={item} />
       )}
     </>
   );
