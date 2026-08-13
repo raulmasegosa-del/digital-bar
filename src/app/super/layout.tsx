@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { LayoutDashboard, Store } from "lucide-react";
+
+import { isSuperAdmin } from "@/lib/auth/isSuperAdmin";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type Props = { children: ReactNode };
 
@@ -9,7 +13,22 @@ const navigation = [
   { href: "/super/restaurants", label: "Restaurantes", icon: Store },
 ];
 
-export default function SuperLayout({ children }: Props) {
+export default async function SuperLayout({ children }: Props) {
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login?next=/super");
+  }
+
+  const superAdmin = await isSuperAdmin(user.id);
+
+  if (!superAdmin) {
+    redirect("/admin");
+  }
+
   return (
     <main className="min-h-screen bg-[#11100f] text-white">
       <div className="flex min-h-screen">
@@ -29,11 +48,7 @@ export default function SuperLayout({ children }: Props) {
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-zinc-400 transition hover:bg-zinc-900 hover:text-white"
-                >
+                <Link key={item.href} href={item.href} className="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-zinc-400 transition hover:bg-zinc-900 hover:text-white">
                   <Icon size={17} strokeWidth={1.7} />
                   {item.label}
                 </Link>
