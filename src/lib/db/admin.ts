@@ -112,21 +112,45 @@ export async function getOptionGroups(
 ): Promise<AdminOptionGroup[]> {
   let query = supabaseAdmin
     .from("option_groups")
-    .select(`
-      *,
-      items:option_items(*)
-    `)
+    .select("*")
     .order("order");
 
   if (restaurantId) {
     query = query.eq("restaurant_id", restaurantId);
   }
 
-  const { data, error } = await query;
+  const { data: groups, error: groupsError } = await query;
 
-  if (error) throw error;
+  if (groupsError) throw groupsError;
 
-  return (data ?? []) as AdminOptionGroup[];
+  const groupRows = groups ?? [];
+
+  if (groupRows.length === 0) {
+    return [];
+  }
+
+  const groupIds = groupRows.map((group) => group.id);
+
+  const { data: items, error: itemsError } = await supabaseAdmin
+    .from("option_items")
+    .select("*")
+    .in("group_id", groupIds)
+    .order("order");
+
+  if (itemsError) throw itemsError;
+
+  const itemsByGroup = new Map<string, AdminOptionItem[]>();
+
+  for (const item of items ?? []) {
+    const current = itemsByGroup.get(item.group_id) ?? [];
+    current.push(item as AdminOptionItem);
+    itemsByGroup.set(item.group_id, current);
+  }
+
+  return groupRows.map((group) => ({
+    ...group,
+    items: itemsByGroup.get(group.id) ?? [],
+  })) as AdminOptionGroup[];
 }
 
 export async function getOptionGroup(
@@ -135,10 +159,7 @@ export async function getOptionGroup(
 ): Promise<AdminOptionGroup | null> {
   let query = supabaseAdmin
     .from("option_groups")
-    .select(`
-      *,
-      items:option_items(*)
-    `)
+    .select("*")
     .eq("id", id);
 
   if (restaurantId) {
@@ -150,7 +171,20 @@ export async function getOptionGroup(
 
   if (error) throw error;
 
-  return data as AdminOptionGroup | null;
+  if (!data) return null;
+
+  const { data: items, error: itemsError } = await supabaseAdmin
+    .from("option_items")
+    .select("*")
+    .eq("group_id", id)
+    .order("order");
+
+  if (itemsError) throw itemsError;
+
+  return {
+    ...data,
+    items: items ?? [],
+  } as AdminOptionGroup;
 }
 
 /* ==========================================================
@@ -195,10 +229,7 @@ export async function getOptionItem(
     .eq("id", id);
 
   if (restaurantId) {
-    query = query.eq(
-      "restaurant_id",
-      restaurantId
-    );
+    query = query.eq("restaurant_id", restaurantId);
   }
 
   const { data, error } =
