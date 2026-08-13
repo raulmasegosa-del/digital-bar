@@ -130,7 +130,7 @@ export default async function OrdersPage({ params }: Props) {
                   {section.orders.length === 0 ? (
                     <div className="flex min-h-[180px] items-center justify-center rounded-xl border border-dashed border-zinc-700/70 bg-[#171614]/80 px-5 py-8 text-center text-sm text-zinc-600">No hay pedidos</div>
                   ) : (
-                    <div className="space-y-3">{section.orders.map((order) => <OrderCard key={order.id} order={order} slug={slug} restaurantName={restaurant.name} />)}</div>
+                    <div className="space-y-3">{section.orders.map((order, index) => <OrderCard key={order.id} order={order} slug={slug} restaurantName={restaurant.name} alternate={index % 2 === 1} />)}</div>
                   )}
                 </section>
               ))}
@@ -142,7 +142,7 @@ export default async function OrdersPage({ params }: Props) {
                   <div><h2 className="text-lg font-semibold text-zinc-300">Histórico</h2><p className="mt-1 text-xs text-zinc-600">Pedidos finalizados o cancelados</p></div>
                   <span className="rounded-full border border-zinc-800 bg-[#181716] px-3 py-1 text-xs text-zinc-500">{historical.length}</span>
                 </div>
-                <div className="grid gap-3 lg:grid-cols-2">{sortByCreatedAt(historical).reverse().map((order) => <OrderCard key={order.id} order={order} slug={slug} restaurantName={restaurant.name} compact />)}</div>
+                <div className="grid gap-3 lg:grid-cols-2">{sortByCreatedAt(historical).reverse().map((order, index) => <OrderCard key={order.id} order={order} slug={slug} restaurantName={restaurant.name} compact alternate={index % 2 === 1} />)}</div>
               </section>
             )}
           </>
@@ -152,12 +152,15 @@ export default async function OrdersPage({ params }: Props) {
   );
 }
 
-function OrderCard({ order, slug, restaurantName, compact = false }: { order: Order; slug: string; restaurantName: string; compact?: boolean }) {
+function OrderCard({ order, slug, restaurantName, compact = false, alternate = false }: { order: Order; slug: string; restaurantName: string; compact?: boolean; alternate?: boolean }) {
   const itemCount = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
+  const cardTone = alternate ? "border-orange-400/35 bg-orange-500/[0.10]" : "border-zinc-600/80 bg-[#292724]";
+  const headerTone = alternate ? "border-orange-400/25 bg-orange-500/[0.075]" : "border-zinc-600/80 bg-[#322f2b]";
+  const itemTone = alternate ? "border-orange-400/20 bg-orange-500/[0.055]" : "border-zinc-600/70 bg-[#37332f]";
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-zinc-600/80 bg-[#292724] shadow-[0_12px_30px_rgba(0,0,0,0.28)] ring-1 ring-black/20">
-      <div className="border-b border-zinc-600/80 bg-[#322f2b] px-4 py-3.5 sm:px-5">
+    <article className={`overflow-hidden rounded-2xl border shadow-[0_12px_30px_rgba(0,0,0,0.28)] ring-1 ring-black/20 ${cardTone}`}>
+      <div className={`border-b px-4 py-3.5 sm:px-5 ${headerTone}`}>
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-14 min-w-[92px] items-center justify-center gap-1.5 rounded-xl border-2 border-amber-400/50 bg-amber-400/10 px-3 shadow-inner shadow-amber-500/10"><span className="text-[9px] font-bold uppercase tracking-[0.18em] text-amber-400">Mesa</span><span className="text-3xl font-black leading-none tracking-tight text-white">{order.table_number}</span></div>
@@ -176,7 +179,7 @@ function OrderCard({ order, slug, restaurantName, compact = false }: { order: Or
         {!compact && (
           <>
             <div className="my-4 h-px bg-zinc-600/70" />
-            <div className="grid gap-2.5 sm:grid-cols-2">{order.order_items.map((item) => <div key={item.id} className="rounded-lg border border-zinc-600/70 bg-[#37332f] px-3.5 py-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-semibold text-white">{item.quantity} × {item.name}</p>{item.options.length > 0 && <p className="mt-1 text-xs leading-5 text-zinc-400">{item.options.map((option) => option.optionName).join(" · ")}</p>}</div><span className="shrink-0 text-xs font-medium text-zinc-300">{(item.price * item.quantity).toFixed(2)} €</span></div></div>)}</div>
+            <div className="grid gap-2.5 sm:grid-cols-2">{order.order_items.map((item) => <div key={item.id} className={`rounded-lg border px-3.5 py-3 ${itemTone}`}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-semibold text-white">{item.quantity} × {item.name}</p>{item.options.length > 0 && <p className="mt-1 text-xs leading-5 text-zinc-400">{item.options.map((option) => option.optionName).join(" · ")}</p>}</div><span className="shrink-0 text-xs font-medium text-zinc-300">{(item.price * item.quantity).toFixed(2)} €</span></div></div>)}</div>
             {order.notes && <div className="mt-3 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3.5 py-2.5"><p className="text-[10px] font-bold uppercase tracking-wider text-amber-400">Nota</p><p className="mt-1 text-sm text-zinc-200">{order.notes}</p></div>}
           </>
         )}
