@@ -35,35 +35,41 @@ export async function createCustomerOrder({ restaurantId, table, items, notes, t
   if (!tableRow) throw new Error("La mesa indicada no existe en este restaurante.");
   if (!tableRow.active) throw new Error("Esta mesa no está disponible.");
 
-  const { data: activeOrder, error: activeOrderError } = await supabaseAdmin
+  // Solo se puede seguir acumulando en un pedido que todavía está en
+  // "Recibido". En cuanto el camarero lo pasa a Preparando (o a cualquier
+  // estado posterior), ese pedido queda cerrado para nuevas incorporaciones.
+  const { data: pendingOrder, error: pendingOrderError } = await supabaseAdmin
     .from("orders")
     .select("id, total, notes, status")
     .eq("restaurant_id", restaurantId)
     .eq("table_number", tableNumber)
-    .not("status", "in", "(completed,cancelled)")
+    .eq("status", "pending")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (activeOrderError) throw activeOrderError;
+  if (pendingOrderError) throw pendingOrderError;
 
-  const orderId = activeOrder?.id ?? null;
-  const orderTotal = Number(activeOrder?.total ?? 0) + Number(total);
+  const orderId = pendingOrder?.id ?? null;
+  const orderTotal = Number(pendingOrder?.total ?? 0) + Number(total);
   const orderNotes = notes?.trim()
-    ? activeOrder?.notes
-      ? `${activeOrder.notes}\n${notes.trim()}`
+    ? pendingOrder?.notes
+      ? `${pendingOrder.notes}\n${notes.trim()}`
       : notes.trim()
-    : activeOrder?.notes ?? "";
+    : pendingOrder?.notes ?? "";
 
   let finalOrderId = orderId;
-  let finalStatus = activeOrder?.status ?? "pending";
+  let finalStatus = pendingOrder?.status ?? "pending";
 
+  // Si no existe un pedido en Recibido, crear SIEMPRE uno nuevo.
+  // Esto evita añadir productos a pedidos que ya están en Preparando,
+  // Servido, etc.
   if (!finalOrderId) {
     const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
       .insert({
         restaurant_id: restaurantId,
         table_number: tableNumber,
-        notes: orderNotes,
+        notes: notes?.trim() ?? "",
         total: Number(total),
         status: "pending",
       })
@@ -86,7 +92,7 @@ export async function createCustomerOrder({ restaurantId, table, items, notes, t
   const { error: itemError } = await supabaseAdmin.from("order_items").insert(rows);
   if (itemError) throw itemError;
 
-  if (activeOrder) {
+  if (pendingOrder) {
     const { error: updateError } = await supabaseAdmin
       .from("orders")
       .update({ total: orderTotal, notes: orderNotes })
@@ -98,6 +104,6 @@ export async function createCustomerOrder({ restaurantId, table, items, notes, t
     id: finalOrderId,
     table: tableNumber,
     status: finalStatus,
-    total: activeOrder ? orderTotal : Number(total),
+    total: pendingOrder ? orderTotal : Number(total),
   };
 }
