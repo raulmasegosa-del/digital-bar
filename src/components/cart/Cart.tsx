@@ -71,9 +71,7 @@ export default function Cart({ open, onClose, restaurantId }: Props) {
             <section className="mb-5 rounded-2xl border border-amber-500/20 bg-[#181716] p-4">
               <div className="flex items-center justify-between gap-3">
                 <div><p className="text-xs font-medium uppercase tracking-[0.16em] text-zinc-500">Pedido en curso</p><p className="mt-1 font-semibold text-amber-400">Mesa {currentOrder.table}</p></div>
-                <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-400">
-                  {currentOrder.status === "pending" ? "Recibido" : currentOrder.status === "preparing" ? "Preparando" : currentOrder.status === "ready" ? "Listo" : "En curso"}
-                </span>
+                <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-400">{currentOrder.status === "pending" ? "Recibido" : currentOrder.status === "preparing" ? "Preparando" : currentOrder.status === "ready" ? "Listo" : "En curso"}</span>
               </div>
               <div className="mt-4 space-y-3">
                 {currentOrder.items.map((item) => {
@@ -88,10 +86,10 @@ export default function Cart({ open, onClose, restaurantId }: Props) {
 
           {items.length === 0 ? (
             currentOrder ? (
-              <div className="rounded-2xl border border-dashed border-zinc-800 bg-[#151413] p-5 text-center">
+              <button type="button" onClick={onClose} className="w-full rounded-2xl border border-dashed border-amber-500/20 bg-[#151413] p-5 text-left transition hover:border-amber-500/40 hover:bg-[#191817]">
                 <p className="font-medium text-white">Puedes seguir pidiendo</p>
                 <p className="mt-1 text-sm text-zinc-500">Añade más productos desde la carta.</p>
-              </div>
+              </button>
             ) : (
               <p className="py-12 text-center text-zinc-500">El carrito está vacío.</p>
             )
