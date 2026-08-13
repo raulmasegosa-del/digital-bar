@@ -36,6 +36,8 @@ export async function createProduct(formData: FormData) {
   const subtitle = (formData.get("subtitle") as string)?.trim();
   const description = (formData.get("description") as string)?.trim();
   const image = (formData.get("image") as string) ?? "";
+  const restaurant_id = formData.get("restaurant_id") as string;
+  const slug = (formData.get("slug") as string)?.trim();
 
   const category_id = formData.get("category_id") as string;
 
@@ -44,6 +46,9 @@ export async function createProduct(formData: FormData) {
 
   const price = Number(formData.get("price"));
   const optionGroups = formData.getAll("option_groups") as string[];
+
+  if (!restaurant_id)
+    throw new Error("Restaurante no encontrado.");
 
   if (!name) throw new Error("El nombre es obligatorio.");
 
@@ -60,6 +65,7 @@ export async function createProduct(formData: FormData) {
     .from("menu_items")
     .insert({
       id,
+      restaurant_id,
       category_id,
       name,
       subtitle,
@@ -67,6 +73,7 @@ export async function createProduct(formData: FormData) {
       image,
       available,
       featured,
+      order: 0,
     });
 
   if (itemError) throw itemError;
@@ -97,10 +104,13 @@ export async function createProduct(formData: FormData) {
   }
 
   revalidatePath("/");
-  revalidatePath("/admin");
+  if (slug) {
+    revalidatePath(`/admin/${slug}/products`);
+  }
 
-  redirect("/admin");
+  redirect(slug ? `/admin/${slug}/products` : "/admin");
 }
+
 export async function updateProduct(formData: FormData) {
   const id = formData.get("id") as string;
 
@@ -184,9 +194,10 @@ export async function updateProduct(formData: FormData) {
 
   redirect("/admin");
 }
+
 export async function createOptionItem(formData: FormData) {
   console.log("========== CREATE OPTION ==========");
-console.log(Object.fromEntries(formData.entries()));
+  console.log(Object.fromEntries(formData.entries()));
   const group_id = formData.get("group_id") as string;
   const name = (formData.get("name") as string)?.trim();
 
@@ -201,13 +212,13 @@ console.log(Object.fromEntries(formData.entries()));
   if (!name) {
     throw new Error("El nombre es obligatorio.");
   }
-console.log({
-  group_id,
-  name,
-  extra_price,
-  order,
-  available,
-});
+  console.log({
+    group_id,
+    name,
+    extra_price,
+    order,
+    available,
+  });
   const { error } = await supabaseAdmin
     .from("option_items")
     .insert({
@@ -264,6 +275,7 @@ export async function updateOptionItem(formData: FormData) {
 
   redirect("/admin/options");
 }
+
 export async function toggleProductAvailable(
   id: string,
   available: boolean
