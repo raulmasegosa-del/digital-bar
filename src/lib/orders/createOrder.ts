@@ -4,6 +4,7 @@ import type { CartItem } from "@/context/CartContext";
 type CreateOrderParams = {
   restaurantId: string;
   table: string;
+  sessionToken: string;
   items: CartItem[];
   notes: string;
   total: number;
