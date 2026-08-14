@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { createCustomerSession } from "@/app/actions/createCustomerSession";
+import { validateCustomerSession } from "@/app/actions/validateCustomerSession";
 
 type TableContextType = {
   restaurant: string;
@@ -16,6 +17,7 @@ const TableContext = createContext<TableContextType | null>(null);
 const TABLE_KEY = "digital-bar-table";
 const RESTAURANT_KEY = "digital-bar-restaurant";
 const SESSION_TOKEN_KEY = "digital-bar-session-token";
+const SESSION_CLOSED_MESSAGE = "La sesión de esta mesa ha finalizado. Lee de nuevo el QR de la mesa para continuar.";
 
 export function TableProvider({ children }: { children: ReactNode }) {
   const [restaurant, setRestaurantState] = useState("");
@@ -51,9 +53,6 @@ export function TableProvider({ children }: { children: ReactNode }) {
       if (!nextTable || !nextRestaurant) return;
 
       try {
-        // A URL token can be either the permanent table QR token (legacy
-        // printed QR) or a temporary customer-session token. The server
-        // resolves which one it is and always returns the temporary token.
         if (tokenFromUrl) {
           const session = await createCustomerSession({
             slug: nextRestaurant,
@@ -72,8 +71,6 @@ export function TableProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // Only a QR entry without a session token can create a new session.
-        // Refreshing an old customer URL never reaches this branch.
         if (!hasQrTable) return;
 
         const session = await createCustomerSession({ slug: nextRestaurant, table: nextTable });
@@ -93,6 +90,7 @@ export function TableProvider({ children }: { children: ReactNode }) {
         console.error("No se pudo inicializar la sesión de la mesa", error);
         if (active) {
           setSessionToken("");
+          window.localStorage.removeItem(SESSION_TOKEN_KEY);
           setSessionError(error instanceof Error ? error.message : "No se ha podido abrir la sesión de la mesa.");
         }
       }
@@ -103,6 +101,37 @@ export function TableProvider({ children }: { children: ReactNode }) {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!sessionToken || !restaurant || !table) return;
+
+    let active = true;
+    const checkSession = async () => {
+      try {
+        const result = await validateCustomerSession({
+          slug: restaurant,
+          table,
+          token: sessionToken,
+        });
+
+        if (!active || result.valid) return;
+
+        setSessionToken("");
+        window.localStorage.removeItem(SESSION_TOKEN_KEY);
+        setSessionError(SESSION_CLOSED_MESSAGE);
+      } catch (error) {
+        console.error("No se pudo comprobar el estado de la sesión", error);
+      }
+    };
+
+    void checkSession();
+    const interval = window.setInterval(() => void checkSession(), 3000);
+
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [restaurant, table, sessionToken]);
 
   function setTable(value: string) {
     setTableState(value);
