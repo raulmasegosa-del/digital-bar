@@ -1,5 +1,4 @@
-import { readdir } from "node:fs/promises";
-import path from "node:path";
+import { supabaseAdmin } from "@/lib/supabase/server";
 
 function normalize(value: string) {
   return value
@@ -20,20 +19,15 @@ export async function findProductImage({
   categoryName: string;
   productName: string;
 }) {
-  const categoryFolder = normalize(categoryName);
-  const baseDir = path.join(process.cwd(), "product-images", categoryFolder);
-
-  let entries;
-  try {
-    entries = await readdir(baseDir, { withFileTypes: true });
-  } catch {
-    return null;
-  }
-
   const productKey = normalize(productName);
-  const candidates = entries
-    .filter((entry) => entry.isFile())
-    .filter((entry) => imageExtensions.has(path.extname(entry.name).toLowerCase()))
+  const { data, error } = await supabaseAdmin.storage
+    .from("products")
+    .list("", { limit: 1000, sortBy: { column: "name", order: "asc" } });
+
+  if (error || !data) return null;
+
+  const candidates = data
+    .filter((entry) => entry.id && imageExtensions.has(`.${entry.name.split(".").pop()?.toLowerCase() ?? ""}`))
     .map((entry) => ({
       name: entry.name,
       key: normalize(entry.name),
@@ -41,9 +35,17 @@ export async function findProductImage({
 
   const exact = candidates.find((candidate) => candidate.key === productKey);
   const startsWith = candidates.find(
-    (candidate) => candidate.key.startsWith(`${productKey}-`) || productKey.startsWith(`${candidate.key}-`)
+    (candidate) =>
+      candidate.key.startsWith(`${productKey}-`) ||
+      productKey.startsWith(`${candidate.key}-`)
   );
 
   const match = exact ?? startsWith;
-  return match ? `/product-images/${categoryFolder}/${encodeURIComponent(match.name)}` : null;
+  if (!match) return null;
+
+  const { data: publicUrl } = supabaseAdmin.storage
+    .from("products")
+    .getPublicUrl(match.name);
+
+  return publicUrl.publicUrl;
 }
