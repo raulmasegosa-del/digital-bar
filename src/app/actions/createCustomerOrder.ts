@@ -35,14 +35,41 @@ export async function createCustomerOrder({ restaurantId, table, items, notes, t
   if (!tableRow) throw new Error("La mesa indicada no existe en este restaurante.");
   if (!tableRow.active) throw new Error("Esta mesa no está disponible.");
 
-  // Solo se puede seguir acumulando en un pedido que todavía está en
-  // "Recibido". En cuanto el camarero lo pasa a Preparando (o a cualquier
-  // estado posterior), ese pedido queda cerrado para nuevas incorporaciones.
+  // Cada mesa tiene una única sesión abierta. Todos sus pedidos pertenecen
+  // a esa sesión, pero solo el pedido que está en Recibido puede acumular más
+  // artículos. Preparando/Servido quedan cerrados para nuevas incorporaciones.
+  let { data: session, error: sessionError } = await supabaseAdmin
+    .from("table_sessions")
+    .select("id, status")
+    .eq("restaurant_id", restaurantId)
+    .eq("table_number", tableNumber)
+    .eq("status", "open")
+    .maybeSingle();
+
+  if (sessionError) throw sessionError;
+
+  // Compatibilidad con mesas activas que aún no tengan sesión abierta.
+  if (!session) {
+    const { data: newSession, error: createSessionError } = await supabaseAdmin
+      .from("table_sessions")
+      .insert({
+        restaurant_id: restaurantId,
+        table_number: tableNumber,
+        status: "open",
+      })
+      .select("id, status")
+      .single();
+
+    if (createSessionError) throw createSessionError;
+    session = newSession;
+  }
+
   const { data: pendingOrder, error: pendingOrderError } = await supabaseAdmin
     .from("orders")
     .select("id, total, notes, status")
     .eq("restaurant_id", restaurantId)
     .eq("table_number", tableNumber)
+    .eq("session_id", session.id)
     .eq("status", "pending")
     .order("created_at", { ascending: false })
     .limit(1)
@@ -60,15 +87,13 @@ export async function createCustomerOrder({ restaurantId, table, items, notes, t
   let finalOrderId = orderId;
   let finalStatus = pendingOrder?.status ?? "pending";
 
-  // Si no existe un pedido en Recibido, crear SIEMPRE uno nuevo.
-  // Esto evita añadir productos a pedidos que ya están en Preparando,
-  // Servido, etc.
   if (!finalOrderId) {
     const { data: order, error: orderError } = await supabaseAdmin
       .from("orders")
       .insert({
         restaurant_id: restaurantId,
         table_number: tableNumber,
+        session_id: session.id,
         notes: notes?.trim() ?? "",
         total: Number(total),
         status: "pending",
