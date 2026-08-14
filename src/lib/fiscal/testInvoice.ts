@@ -24,6 +24,10 @@ function formatDateDDMMYYYY(iso: string) {
   return `${dd}-${mm}-${date.getUTCFullYear()}`;
 }
 
+function formatDateISO(iso: string) {
+  return new Date(iso).toISOString().slice(0, 10);
+}
+
 function formatMadridTimestamp(iso: string) {
   const date = new Date(iso);
   const parts = new Intl.DateTimeFormat("sv-SE", {
@@ -38,10 +42,9 @@ function formatMadridTimestamp(iso: string) {
   }).formatToParts(date);
   const get = (type: string) => parts.find((part) => part.type === type)?.value ?? "";
   const local = `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`;
-  const offsetMinutes = -date.getTimezoneOffset();
   const madridFormatter = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Madrid", timeZoneName: "longOffset" });
   const offsetPart = madridFormatter.formatToParts(date).find((part) => part.type === "timeZoneName")?.value ?? "GMT+02:00";
-  const offset = offsetPart.replace("GMT", "") || (offsetMinutes >= 0 ? "+00:00" : "-00:00");
+  const offset = offsetPart.replace("GMT", "") || "+00:00";
   return `${local}${offset}`;
 }
 
@@ -143,7 +146,7 @@ export async function createTestFiscalInvoiceFromOrder(orderId: string) {
     invoice_number: invoiceNumber,
     invoice_type: "F2",
     issued_at: issuedAt,
-    operation_date: formatDateDDMMYYYY(issuedAt),
+    operation_date: formatDateISO(issuedAt),
     operation_description: "Servicios de hostelería y restauración",
     tax_regime: "01",
     reverse_charge: false,
@@ -232,7 +235,7 @@ export async function createTestFiscalInvoiceFromOrder(orderId: string) {
       issuer_nif: settings.fiscal_nif,
       invoice_number: invoiceNumber,
       issued_at: issuedAt,
-      operation_date: formatDateDDMMYYYY(issuedAt),
+      operation_date: formatDateISO(issuedAt),
       operation_description: "Servicios de hostelería y restauración",
       invoice_type: "F2",
       total_tax: totalTax,
