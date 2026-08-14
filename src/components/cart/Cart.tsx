@@ -11,7 +11,7 @@ type Props = { open: boolean; onClose: () => void; restaurantId: string };
 
 export default function Cart({ open, onClose, restaurantId }: Props) {
   const { items, total, clearCart, removeItem, increaseQuantity, decreaseQuantity, notes, setNotes } = useCart();
-  const { table } = useTable();
+  const { table, sessionToken, sessionError } = useTable();
   const { order: currentOrder, setOrder } = useOrder();
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
@@ -20,14 +20,14 @@ export default function Cart({ open, onClose, restaurantId }: Props) {
 
   async function sendOrder() {
     if (!items.length) return;
-    if (!table.trim()) {
-      setError("No hemos podido identificar la mesa. Escanea de nuevo el QR de tu mesa.");
+    if (!table.trim() || !sessionToken) {
+      setError(sessionError || "Esta sesión ya no es válida. Escanea de nuevo el QR de tu mesa.");
       return;
     }
     try {
       setSending(true);
       setError("");
-      const order = await createOrder({ restaurantId, table: table.trim(), items, notes, total });
+      const order = await createOrder({ restaurantId, table: table.trim(), sessionToken, items, notes, total });
       const newItems = items.map((item, index) => ({
         id: `local-${order.id}-${Date.now()}-${index}`,
         product_id: item.productId,
@@ -112,7 +112,7 @@ export default function Cart({ open, onClose, restaurantId }: Props) {
           {items.length > 0 ? (
             <>
               <div className="mb-5 flex items-end justify-between"><div><span className="text-lg font-bold">Nuevos productos</span>{currentOrder && <p className="mt-1 text-xs text-zinc-500">Se sumarán al pedido actual</p>}</div><span className="text-3xl font-extrabold text-amber-500">{total.toFixed(2)} €</span></div>
-              <div className="flex gap-3"><button type="button" onClick={() => { if (confirm("¿Cancelar los nuevos productos y vaciar el carrito?")) { clearCart(); onClose(); } }} disabled={sending} className="flex-1 rounded-xl border border-red-500/30 bg-transparent py-3 font-semibold text-red-400 hover:bg-red-950/30 disabled:opacity-40">Cancelar</button><button onClick={sendOrder} disabled={sending || !items.length} className="flex-1 rounded-xl bg-amber-500 py-3 font-semibold text-black transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-40">{sending ? "Enviando..." : currentOrder ? "Añadir al pedido" : "Enviar pedido"}</button></div>
+              <div className="flex gap-3"><button type="button" onClick={() => { if (confirm("¿Cancelar los nuevos productos y vaciar el carrito?")) { clearCart(); onClose(); } }} disabled={sending} className="flex-1 rounded-xl border border-red-500/30 bg-transparent py-3 font-semibold text-red-400 hover:bg-red-950/30 disabled:opacity-40">Cancelar</button><button onClick={sendOrder} disabled={sending || !items.length || !sessionToken} className="flex-1 rounded-xl bg-amber-500 py-3 font-semibold text-black transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-40">{sending ? "Enviando..." : currentOrder ? "Añadir al pedido" : "Enviar pedido"}</button></div>
             </>
           ) : (
             <button type="button" onClick={onClose} className="w-full rounded-xl bg-amber-500 py-3 font-semibold text-black transition hover:bg-amber-400">Añadir al carrito</button>
