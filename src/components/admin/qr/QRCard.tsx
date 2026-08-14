@@ -19,11 +19,10 @@ export default function QRCard({
   table,
   name,
   zone,
-  qrToken,
 }: Props) {
-  const url = qrToken
-    ? `${APP_URL}/r/${slug}?mesa=${table}&token=${encodeURIComponent(qrToken)}`
-    : `${APP_URL}/r/${slug}?mesa=${table}`;
+  // El QR físico es permanente. La sesión temporal y su token se crean
+  // cuando el cliente escanea este QR, por lo que pagar nunca invalida el QR.
+  const url = `${APP_URL}/r/${slug}?mesa=${table}`;
 
   return (
     <article className="rounded-2xl border border-zinc-800 bg-[#181716] p-6 text-white shadow-sm print:border-zinc-300 print:bg-white print:text-black">
