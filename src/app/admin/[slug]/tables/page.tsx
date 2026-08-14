@@ -87,14 +87,14 @@ export default async function TablesPage({ params }: Props) {
         {tables.length === 0 ? (
           <div className="px-6 py-16 text-center text-sm text-zinc-500">No hay mesas configuradas todavía.</div>
         ) : (
-          <div className="divide-y divide-zinc-800">
+          <div className="grid grid-cols-1 gap-px bg-zinc-800 md:grid-cols-2">
             {tables.map((table) => {
               const tableStatus = statusByTable.get(String(table.number));
               const status = tableStatus?.status ?? "free";
               const info = occupancy[status];
 
               return (
-                <div key={table.id} className="flex flex-col gap-4 px-6 py-5 transition hover:bg-zinc-900/50 lg:flex-row lg:items-center lg:justify-between">
+                <div key={table.id} className="flex flex-col gap-4 bg-[#181716] px-6 py-5 transition hover:bg-zinc-900/50 lg:flex-row lg:items-center lg:justify-between">
                   <Link href={`/admin/${slug}/tables/${table.id}`} className="flex min-w-0 items-center gap-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500">
                     <div className="relative">
                       <TableOccupancy status={status} />
