@@ -2,6 +2,7 @@
 
 import QRCard from "./QRCard";
 import QRPrintButton from "./QRPrintButton";
+import InvalidateQrsButton from "./InvalidateQrsButton";
 
 type Table = {
   number: number;
@@ -11,11 +12,12 @@ type Table = {
 };
 
 type Props = {
+  restaurantId: string;
   slug: string;
   tables: Table[];
 };
 
-export default function QRGrid({ slug, tables }: Props) {
+export default function QRGrid({ restaurantId, slug, tables }: Props) {
   return (
     <section className="space-y-8">
       <div className="flex flex-col gap-4 rounded-2xl border border-zinc-800 bg-[#181716] p-6 sm:flex-row sm:items-center sm:justify-between">
@@ -27,7 +29,10 @@ export default function QRGrid({ slug, tables }: Props) {
             Los QR corresponden a las mesas reales de este restaurante.
           </p>
         </div>
-        <QRPrintButton />
+        <div className="flex flex-col items-stretch gap-2 sm:items-end">
+          <QRPrintButton />
+          <InvalidateQrsButton restaurantId={restaurantId} slug={slug} />
+        </div>
       </div>
 
       {tables.length === 0 ? (
