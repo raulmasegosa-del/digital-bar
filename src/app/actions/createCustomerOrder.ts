@@ -3,6 +3,11 @@
 import { supabaseAdmin } from "@/lib/supabase/server";
 import type { CartItem } from "@/context/CartContext";
 
+function calculateIncludedTax(total: number, taxRate: number) {
+  if (taxRate <= 0) return 0;
+  return Number(((total * taxRate) / (100 + taxRate)).toFixed(2));
+}
+
 type Params = {
   restaurantId: string;
   table: string;
@@ -37,8 +42,6 @@ export async function createCustomerOrder({ restaurantId, table, sessionToken, i
   if (!tableRow) throw new Error("La mesa indicada no existe en este restaurante.");
   if (!tableRow.active) throw new Error("Esta mesa no está disponible.");
 
-  // El token es la identidad temporal del cliente. Un token cerrado nunca
-  // puede crear una sesión nueva; solo un QR permanente puede abrir otra.
   const { data: session, error: sessionError } = await supabaseAdmin
     .from("table_sessions")
     .select("id, status, table_number")
@@ -91,14 +94,35 @@ export async function createCustomerOrder({ restaurantId, table, sessionToken, i
     finalStatus = order.status ?? "pending";
   }
 
-  const rows = items.map((item) => ({
-    order_id: finalOrderId,
-    product_id: item.productId,
-    name: item.name,
-    quantity: item.quantity,
-    price: item.price,
-    options: item.options ?? [],
-  }));
+  const productIds = Array.from(
+    new Set(items.map((item) => item.productId).filter(Boolean))
+  );
+
+  const { data: products, error: productsError } = await supabaseAdmin
+    .from("menu_items")
+    .select("id, tax_rate")
+    .in("id", productIds);
+  if (productsError) throw productsError;
+
+  const taxByProductId = new Map(
+    (products ?? []).map((product) => [product.id, Number(product.tax_rate ?? 10)])
+  );
+
+  const rows = items.map((item) => {
+    const taxRate = taxByProductId.get(item.productId) ?? 10;
+    const lineTotal = Number(item.price) * Number(item.quantity);
+
+    return {
+      order_id: finalOrderId,
+      product_id: item.productId,
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+      options: item.options ?? [],
+      tax_rate: taxRate,
+      tax_amount: calculateIncludedTax(lineTotal, taxRate),
+    };
+  });
 
   const { error: itemError } = await supabaseAdmin.from("order_items").insert(rows);
   if (itemError) throw itemError;
