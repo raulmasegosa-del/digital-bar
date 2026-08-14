@@ -20,23 +20,25 @@ type CallGroup = {
   latest: ServiceCall;
 };
 
-export default function ServiceCallsBoard() {
+export default function ServiceCallsBoard({ restaurantId }: { restaurantId: string }) {
   const [calls, setCalls] = useState<ServiceCall[]>([]);
   const [now, setNow] = useState(Date.now());
   const firstLoad = useRef(true);
 
   async function loadCalls(playSound = false) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("service_calls")
-      .select("*")
+      .select("id, table_number, type, status, created_at")
+      .eq("restaurant_id", restaurantId)
       .eq("status", "pending")
       .order("created_at", { ascending: true });
 
-    if (
-      playSound &&
-      !firstLoad.current &&
-      (data?.length ?? 0) > calls.length
-    ) {
+    if (error) {
+      console.error("No se pudieron cargar los avisos de servicio", error);
+      return;
+    }
+
+    if (playSound && !firstLoad.current && (data?.length ?? 0) > calls.length) {
       new Audio("/sounds/notification.mp3").play().catch(() => {});
     }
 
@@ -53,17 +55,16 @@ export default function ServiceCallsBoard() {
     }, 3000);
 
     const channel = supabase
-      .channel("service-calls")
+      .channel(`service-calls-${restaurantId}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
           table: "service_calls",
+          filter: `restaurant_id=eq.${restaurantId}`,
         },
-        () => {
-          void loadCalls(true);
-        }
+        () => void loadCalls(true)
       )
       .subscribe();
 
@@ -71,7 +72,7 @@ export default function ServiceCallsBoard() {
       clearInterval(timer);
       void supabase.removeChannel(channel);
     };
-  }, []);
+  }, [restaurantId]);
 
   const groups: CallGroup[] = Array.from(
     calls.reduce((map, call) => {
@@ -117,22 +118,15 @@ export default function ServiceCallsBoard() {
             <div
               key={group.key}
               className={`flex items-center justify-between gap-3 rounded-xl border-2 p-4 shadow-lg transition-all ${
-                urgent
-                  ? "animate-pulse border-red-500 bg-red-100 text-red-950"
-                  : "border-red-300/50 bg-white text-zinc-900"
+                urgent ? "animate-pulse border-red-500 bg-red-100 text-red-950" : "border-red-300/50 bg-white text-zinc-900"
               }`}
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="text-xl font-black">Mesa {group.table_number}</p>
-                  {count > 0 && (
-                    <span
-                      title={`${count} avisos pendientes`}
-                      className="flex h-7 min-w-7 items-center justify-center rounded-full bg-red-600 px-2 text-xs font-black text-white"
-                    >
-                      {count}
-                    </span>
-                  )}
+                  <span title={`${count} avisos pendientes`} className="flex h-7 min-w-7 items-center justify-center rounded-full bg-red-600 px-2 text-xs font-black text-white">
+                    {count}
+                  </span>
                 </div>
                 <p className="mt-1 text-sm font-semibold">
                   {group.type === "waiter" ? "🙋 Llamar al camarero" : "💶 Pedir la cuenta"}
