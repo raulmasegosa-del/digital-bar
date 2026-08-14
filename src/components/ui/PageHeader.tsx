@@ -35,12 +35,12 @@ export default function PageHeader({
         {backLabel}
       </Link>
 
-      <h1 className="text-4xl font-bold tracking-tight text-gray-900">
+      <h1 className="text-4xl font-bold tracking-tight text-white">
         {title}
       </h1>
 
       {description && (
-        <p className="mt-2 max-w-2xl text-gray-500">
+        <p className="mt-2 max-w-2xl text-gray-400">
           {description}
         </p>
       )}
