@@ -2,9 +2,10 @@
 
 import { supabaseAdmin } from "@/lib/supabase/server";
 
-export async function createCustomerSession({ slug, table }: { slug: string; table: string }) {
+export async function createCustomerSession({ slug, table, token }: { slug: string; table: string; token?: string }) {
   const tableNumber = table.trim();
   const restaurantSlug = slug.trim();
+  const suppliedToken = token?.trim() ?? "";
 
   if (!restaurantSlug || !tableNumber) {
     throw new Error("No se ha podido identificar el restaurante o la mesa. Escanea de nuevo el QR.");
@@ -20,7 +21,7 @@ export async function createCustomerSession({ slug, table }: { slug: string; tab
 
   const { data: tableRow, error: tableError } = await supabaseAdmin
     .from("tables")
-    .select("id, number, active")
+    .select("id, number, active, qr_token")
     .eq("restaurant_id", restaurant.id)
     .eq("number", Number(tableNumber))
     .maybeSingle();
@@ -28,8 +29,31 @@ export async function createCustomerSession({ slug, table }: { slug: string; tab
   if (!tableRow) throw new Error("La mesa indicada no existe en este restaurante.");
   if (!tableRow.active) throw new Error("Esta mesa no está disponible.");
 
-  // Si ya hay una sesión abierta, pertenece al grupo que está usando la mesa.
-  // Reutilizamos su token para permitir que varios móviles del mismo grupo pidan.
+  // Los QR físicos antiguos llevan qr_token. Es un identificador permanente
+  // de la mesa, no el token temporal de una sesión de cliente.
+  if (suppliedToken && suppliedToken !== tableRow.qr_token) {
+    const { data: session, error: sessionError } = await supabaseAdmin
+      .from("table_sessions")
+      .select("id, access_token, status, table_number")
+      .eq("restaurant_id", restaurant.id)
+      .eq("table_number", tableNumber)
+      .eq("access_token", suppliedToken)
+      .maybeSingle();
+    if (sessionError) throw sessionError;
+    if (!session || session.status !== "open") {
+      throw new Error("Esta sesión ya está cerrada. Escanea de nuevo el QR físico de la mesa.");
+    }
+
+    return {
+      restaurantId: restaurant.id,
+      table: tableNumber,
+      sessionId: session.id,
+      token: session.access_token,
+    };
+  }
+
+  // QR permanente: si ya hay una sesión abierta, pertenece al grupo actual;
+  // si no, creamos una nueva para el siguiente cliente.
   const { data: existingSession, error: existingError } = await supabaseAdmin
     .from("table_sessions")
     .select("id, access_token, status")
