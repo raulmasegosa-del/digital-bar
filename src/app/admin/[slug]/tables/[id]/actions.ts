@@ -28,12 +28,16 @@ export async function addTableItems({
   const table = tables.find((item) => item.id === tableId);
   if (!table) throw new Error("Mesa no encontrada.");
 
+  // Only an order that is still in "pending" (Recibido) can receive more
+  // items. If the table already has an order in Preparando/Servido, the new
+  // items must become a fresh Recibido card so they are not hidden inside an
+  // order that the waiter has already processed.
   const { data: activeOrder, error: orderError } = await supabaseAdmin
     .from("orders")
     .select("id, total, notes")
     .eq("restaurant_id", restaurantId)
     .eq("table_number", String(table.number))
-    .not("status", "in", "(completed,cancelled)")
+    .eq("status", "pending")
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
