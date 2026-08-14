@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "import:niko": "tsx scripts/import-niko.ts",
-    "repair:niko-categories": "tsx scripts/repair-niko-categories.ts"
+    "repair:niko-categories": "tsx scripts/repair-niko-categories.ts",
+    "test:verifactu": "tsx scripts/verify-verifactu-test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
