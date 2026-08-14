@@ -30,45 +30,29 @@ export default function RestaurantForm() {
   }, [name, slugEdited]);
 
   return (
-    <div className="rounded-2xl border bg-white p-8 shadow-sm">
-      <h1 className="mb-8 text-2xl font-bold">
-        Nuevo restaurante
-      </h1>
+    <section className="rounded-2xl border border-zinc-800 bg-[#181716] p-6 shadow-sm sm:p-8">
+      <form action={createRestaurant} className="space-y-6">
+        <TextInput
+          label="Nombre del restaurante"
+          name="name"
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Ej. Niko's Picapollo"
+        />
 
-      <form
-        action={createRestaurant}
-        className="space-y-6"
-      >
-        <div>
-          <label className="mb-2 block text-sm font-semibold">
-            Nombre
-          </label>
-
-          <input
-            name="name"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-xl border px-4 py-3"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-semibold">
-            Slug
-          </label>
-
-          <input
-            name="slug"
-            required
-            value={slug}
-            onChange={(e) => {
-              setSlugEdited(true);
-              setSlug(e.target.value);
-            }}
-            className="w-full rounded-xl border px-4 py-3"
-          />
-        </div>
+        <TextInput
+          label="Slug"
+          name="slug"
+          required
+          value={slug}
+          onChange={(e) => {
+            setSlugEdited(true);
+            setSlug(e.target.value);
+          }}
+          placeholder="niko-s-picapollo"
+          helperText="Se usa para la URL pública del restaurante."
+        />
 
         <TextInput
           label="🌐 Sitio web"
@@ -91,14 +75,12 @@ export default function RestaurantForm() {
           defaultChecked
         />
 
-        <div className="flex justify-end gap-3 border-t pt-6">
-          <Link href="/super/restaurants">
-            <button
-              type="button"
-              className="rounded-xl border px-5 py-2 transition hover:bg-gray-50"
-            >
-              Cancelar
-            </button>
+        <div className="flex flex-col-reverse gap-3 border-t border-zinc-800 pt-6 sm:flex-row sm:justify-end">
+          <Link
+            href="/super/restaurants"
+            className="inline-flex min-h-12 items-center justify-center rounded-xl border border-zinc-700 px-5 py-3 text-sm font-semibold text-zinc-300 transition hover:border-zinc-600 hover:bg-zinc-900 hover:text-white"
+          >
+            Cancelar
           </Link>
 
           <PrimaryButton type="submit">
@@ -106,6 +88,6 @@ export default function RestaurantForm() {
           </PrimaryButton>
         </div>
       </form>
-    </div>
+    </section>
   );
 }
