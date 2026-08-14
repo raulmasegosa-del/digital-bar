@@ -2,7 +2,7 @@ import { createTestFiscalInvoice } from "@/app/actions/createTestFiscalInvoice";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { getRestaurant } from "@/lib/db/restaurants/getRestaurant";
 
-const TEST_ORDER_ID = "4a76c244-a8d5-4c77-a100-22c047a3fc02";
+const TEST_SERIES = "T";
 
 export default async function VeriFactuTestPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -15,17 +15,27 @@ export default async function VeriFactuTestPage({ params }: { params: Promise<{ 
     .eq("restaurant_id", restaurant.id)
     .eq("status", "completed")
     .order("created_at", { ascending: false })
-    .limit(10);
+    .limit(20);
 
-  const { data: testOrder } = await supabaseAdmin
-    .from("orders")
-    .select("id, table_number, total, status, created_at")
-    .eq("id", TEST_ORDER_ID)
+  const { data: invoices } = await supabaseAdmin
+    .from("fiscal_invoices")
+    .select("order_id")
+    .eq("restaurant_id", restaurant.id);
+
+  const invoicedOrderIds = new Set((invoices ?? []).map((invoice) => invoice.order_id).filter(Boolean));
+  const candidates = (orders ?? []).filter((order) => !invoicedOrderIds.has(order.id));
+
+  const { data: series } = await supabaseAdmin
+    .from("fiscal_series")
+    .select("next_number")
+    .eq("restaurant_id", restaurant.id)
+    .eq("series", TEST_SERIES)
+    .eq("environment", "test")
     .maybeSingle();
 
-  const candidates = testOrder && !orders?.some((order) => order.id === testOrder.id)
-    ? [testOrder, ...(orders ?? [])]
-    : (orders ?? []);
+  const nextInvoiceNumber = series?.next_number
+    ? `${TEST_SERIES}-${String(Number(series.next_number)).padStart(6, "0")}`
+    : "T-000001";
 
   const { data: records } = await supabaseAdmin
     .from("fiscal_records")
@@ -42,7 +52,7 @@ export default async function VeriFactuTestPage({ params }: { params: Promise<{ 
       </div>
       <section className="rounded-xl border p-5 space-y-4">
         <h2 className="text-lg font-semibold">Generar factura de prueba</h2>
-        <p className="text-sm text-gray-600">El pedido de la mesa 6 de 14,00 € está preparado como primera prueba.</p>
+        <p className="text-sm text-gray-600">Los pedidos ya facturados quedan fuera de la lista. La siguiente factura será <strong>{nextInvoiceNumber}</strong>.</p>
         <div className="space-y-3">
           {candidates.map((order) => (
             <form key={order.id} action={createTestFiscalInvoice} className="flex items-center justify-between gap-4 rounded-lg border p-4">
@@ -51,10 +61,10 @@ export default async function VeriFactuTestPage({ params }: { params: Promise<{ 
                 <div className="text-xs text-gray-500">{order.id} · {new Date(order.created_at).toLocaleString("es-ES")}</div>
               </div>
               <input type="hidden" name="orderId" value={order.id} />
-              <button type="submit" className="cursor-pointer rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90">🧾 Generar T-000001</button>
+              <button type="submit" className="cursor-pointer rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90">🧾 Generar {nextInvoiceNumber}</button>
             </form>
           ))}
-          {!candidates.length && <p className="text-sm text-gray-500">No hay pedidos disponibles.</p>}
+          {!candidates.length && <p className="text-sm text-gray-500">No hay pedidos cobrados pendientes de facturar.</p>}
         </div>
       </section>
       <section className="rounded-xl border p-5 space-y-4">
