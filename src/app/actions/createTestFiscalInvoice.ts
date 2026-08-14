@@ -11,7 +11,7 @@ export async function createTestFiscalInvoice(formData: FormData): Promise<void>
     const result = await createTestFiscalInvoiceFromOrder(orderId);
     revalidatePath("/admin/[slug]/verifactu", "page");
 
-    const invoiceNumber = "record" in result ? result.record.invoice_number : result.invoice.invoice_number;
+    const invoiceNumber = "record" in result ? result.record.invoice_number : result.invoice_number;
     console.log(`Factura ${invoiceNumber} generada correctamente.`);
   } catch (error) {
     console.error("VERI*FACTU test invoice error", error);
