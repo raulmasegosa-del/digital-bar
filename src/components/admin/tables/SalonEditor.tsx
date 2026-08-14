@@ -13,6 +13,15 @@ const labels={free:"Libre",pending:"Recibido",preparing:"Preparando",ready:"List
 const BAR_KEY_PREFIX="digital-bar-salon-bar";
 type Position={x:number;y:number};
 
+function Diners(){
+ return <div className="pointer-events-none absolute -top-2 left-1/2 z-10 flex -translate-x-1/2 items-end gap-1.5" aria-label="Mesa ocupada">
+   {["-rotate-6","rotate-0","rotate-6"].map((rotation,i)=><div key={i} className={`flex flex-col items-center ${rotation}`}>
+     <span className="h-2.5 w-2.5 rounded-full border border-zinc-950 bg-zinc-300 shadow-sm" />
+     <span className="-mt-0.5 h-3.5 w-4 rounded-t-[7px] bg-zinc-300 shadow-sm" />
+   </div>)}
+ </div>;
+}
+
 export default function SalonEditor({slug,restaurantId,tables}:Props){
  const [editing,setEditing]=useState(false); const [dragging,setDragging]=useState<string|null>(null); const [draggingBar,setDraggingBar]=useState(false); const [saving,startSaving]=useTransition();
  const [positions,setPositions]=useState(()=>Object.fromEntries(tables.map((t,i)=>[t.id,{x:t.position_x??8+(i%5)*18,y:t.position_y??12+Math.floor(i/5)*24}])));
@@ -34,7 +43,7 @@ export default function SalonEditor({slug,restaurantId,tables}:Props){
        {editing&&<button type="button" aria-label="Girar barra 90 grados" onPointerDown={rotateBar} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg border border-amber-300/30 bg-black/20 p-2 text-amber-200 hover:bg-black/30"><RotateCw size={17}/></button>}
      </div>
    </div>
-   {tables.map(t=>{const p=positions[t.id];return <div key={t.id} className="absolute -translate-x-1/2 -translate-y-1/2" style={{left:`${p.x}%`,top:`${p.y}%`}} onPointerDown={e=>startTableDrag(e,t.id)}>{editing?<div className={`relative flex h-32 w-36 cursor-grab select-none flex-col items-center justify-center rounded-2xl border-2 shadow-xl active:cursor-grabbing ${styles[t.status]}`}><Grip size={16} className="mb-1 text-zinc-500"/><div className="relative h-16 w-24"><Image src="/table-icons/table.svg" alt="Mesa" fill sizes="96px" className="object-contain"/><span className="absolute inset-0 flex items-center justify-center text-xl font-black text-white drop-shadow-md">{t.number}</span></div><span className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-300">{labels[t.status]}</span></div>:<Link href={`/admin/${slug}/tables/${t.id}`} className={`flex h-32 w-36 flex-col items-center justify-center rounded-2xl border-2 shadow-lg transition hover:scale-105 ${styles[t.status]}`}><div className="relative h-16 w-24"><Image src="/table-icons/table.svg" alt={`Mesa ${t.number}`} fill sizes="96px" className="object-contain"/><span className="absolute inset-0 flex items-center justify-center text-xl font-black text-white drop-shadow-md">{t.number}</span></div><div className="text-[11px] font-bold text-zinc-200">{labels[t.status]}{t.items>0&&` · ${t.items} · ${t.total.toFixed(2)}€`}</div></Link>}</div>})}
+   {tables.map(t=>{const p=positions[t.id];const occupied=t.status==="pending"||t.status==="preparing"||t.status==="served";return <div key={t.id} className="absolute -translate-x-1/2 -translate-y-1/2" style={{left:`${p.x}%`,top:`${p.y}%`}} onPointerDown={e=>startTableDrag(e,t.id)}>{editing?<div className={`relative flex h-32 w-36 cursor-grab select-none flex-col items-center justify-center rounded-2xl border-2 shadow-xl active:cursor-grabbing ${styles[t.status]}`}>{occupied&&<Diners/>}<Grip size={16} className="mb-1 text-zinc-500"/><div className="relative h-16 w-24"><Image src="/table-icons/table.svg" alt="Mesa" fill sizes="96px" className="object-contain"/><span className="absolute inset-0 flex items-center justify-center text-xl font-black text-white drop-shadow-md">{t.number}</span></div><span className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-300">{labels[t.status]}</span></div>:<Link href={`/admin/${slug}/tables/${t.id}`} className={`relative flex h-32 w-36 flex-col items-center justify-center rounded-2xl border-2 shadow-lg transition hover:scale-105 ${styles[t.status]}`}>{occupied&&<Diners/>}<div className="relative h-16 w-24"><Image src="/table-icons/table.svg" alt={`Mesa ${t.number}`} fill sizes="96px" className="object-contain"/><span className="absolute inset-0 flex items-center justify-center text-xl font-black text-white drop-shadow-md">{t.number}</span></div><div className="text-[11px] font-bold text-zinc-200">{labels[t.status]}{t.items>0&&` · ${t.items} · ${t.total.toFixed(2)}€`}</div></Link>}</div>})}
    {editing&&<div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-zinc-700 bg-zinc-950/90 px-4 py-2 text-xs text-zinc-400">Arrastra mesas y barra con ratón o dedo · usa el botón de giro para rotarla · después guarda</div>}
  </div></section>;
 }
