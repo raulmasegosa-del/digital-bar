@@ -17,7 +17,7 @@ export default function TablesGrid({
   }
 
   return (
-    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-5 md:grid-cols-2">
       {items.map((table) => (
         <TableCard
           key={table.number}
