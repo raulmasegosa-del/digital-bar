@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { Search } from "lucide-react";
 import { addTableItems } from "@/app/admin/[slug]/tables/[id]/actions";
 
 type MenuItem = { id: string; name: string; prices?: Array<{ price: number | string; active?: boolean }> };
@@ -18,7 +19,22 @@ export default function AddTableItems({
   categories: Category[];
 }) {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [search, setSearch] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  const filteredCategories = useMemo(() => {
+    const term = search.trim().toLocaleLowerCase("es");
+    if (!term) return categories;
+
+    return categories
+      .map((category) => ({
+        ...category,
+        items: category.items.filter((item) =>
+          item.name.toLocaleLowerCase("es").includes(term)
+        ),
+      }))
+      .filter((category) => category.items.length > 0);
+  }, [categories, search]);
 
   const selected = categories.flatMap((category) => category.items).filter((item) => (quantities[item.id] ?? 0) > 0);
   const total = selected.reduce((sum, item) => {
@@ -44,12 +60,13 @@ export default function AddTableItems({
         })),
       });
       setQuantities({});
+      setSearch("");
     });
   }
 
   return (
     <section className="rounded-2xl border border-zinc-800 bg-[#181716] p-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 className="text-xl font-semibold text-white">Añadir consumición</h2>
           <p className="mt-1 text-sm text-zinc-500">Añade productos directamente a la cuenta de la mesa.</p>
@@ -61,8 +78,24 @@ export default function AddTableItems({
         )}
       </div>
 
+      <div className="relative mt-5">
+        <Search size={17} strokeWidth={1.8} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
+        <input
+          type="search"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Buscar producto para añadir..."
+          aria-label="Buscar producto para añadir"
+          className="h-12 w-full rounded-xl border border-zinc-800 bg-[#11100f] pl-11 pr-4 text-sm text-white outline-none transition placeholder:text-zinc-600 focus:border-amber-500/50 focus:bg-[#151412]"
+        />
+      </div>
+
       <div className="mt-6 space-y-7">
-        {categories.map((category) => (
+        {filteredCategories.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-zinc-800 px-5 py-10 text-center text-sm text-zinc-600">
+            No se ha encontrado ningún producto.
+          </div>
+        ) : filteredCategories.map((category) => (
           <div key={category.id}>
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-amber-500">{category.name}</h3>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
