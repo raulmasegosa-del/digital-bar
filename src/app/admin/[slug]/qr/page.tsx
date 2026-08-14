@@ -27,6 +27,7 @@ export default async function QRPage({ params }: Props) {
       />
 
       <QRGrid
+        restaurantId={restaurant.id}
         slug={slug}
         tables={tables.map((table) => ({
           number: table.number,
