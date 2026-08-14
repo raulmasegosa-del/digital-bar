@@ -1,6 +1,6 @@
-import { createTestFiscalInvoice } from "@/app/actions/createTestFiscalInvoice";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { getRestaurant } from "@/lib/db/restaurants/getRestaurant";
+import TestFiscalInvoiceButton from "./TestFiscalInvoiceButton";
 
 const TEST_SERIES = "T";
 
@@ -55,14 +55,13 @@ export default async function VeriFactuTestPage({ params }: { params: Promise<{ 
         <p className="text-sm text-gray-600">Los pedidos ya facturados quedan fuera de la lista. La siguiente factura será <strong>{nextInvoiceNumber}</strong>.</p>
         <div className="space-y-3">
           {candidates.map((order) => (
-            <form key={order.id} action={createTestFiscalInvoice} className="flex items-center justify-between gap-4 rounded-lg border p-4">
+            <div key={order.id} className="flex items-center justify-between gap-4 rounded-lg border p-4">
               <div>
                 <div className="font-medium">Mesa {order.table_number} · {Number(order.total).toFixed(2)} €</div>
                 <div className="text-xs text-gray-500">{order.id} · {new Date(order.created_at).toLocaleString("es-ES")}</div>
               </div>
-              <input type="hidden" name="orderId" value={order.id} />
-              <button type="submit" className="cursor-pointer rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90">🧾 Generar {nextInvoiceNumber}</button>
-            </form>
+              <TestFiscalInvoiceButton orderId={order.id} invoiceNumber={nextInvoiceNumber} />
+            </div>
           ))}
           {!candidates.length && <p className="text-sm text-gray-500">No hay pedidos cobrados pendientes de facturar.</p>}
         </div>
