@@ -35,7 +35,6 @@ export function TableProvider({ children }: { children: ReactNode }) {
       const restaurantSlug = barFromUrl?.trim() || pathnameMatch?.[1] || "";
       const savedTable = window.localStorage.getItem(TABLE_KEY) ?? "";
       const savedRestaurant = window.localStorage.getItem(RESTAURANT_KEY) ?? "";
-      const savedToken = window.localStorage.getItem(SESSION_TOKEN_KEY) ?? "";
 
       const hasQrTable = Boolean(mesa?.trim());
       const nextTable = mesa?.trim() || savedTable;
@@ -49,23 +48,34 @@ export function TableProvider({ children }: { children: ReactNode }) {
       if (mesa?.trim()) window.localStorage.setItem(TABLE_KEY, mesa.trim());
       if (nextRestaurant) window.localStorage.setItem(RESTAURANT_KEY, nextRestaurant);
 
-      // A permanent QR has only ?mesa=. That is the only moment in which a
-      // new customer session may be created/reused. A URL carrying a token
-      // must never silently create another session after that token is closed.
-      if (tokenFromUrl) {
-        setSessionToken(tokenFromUrl);
-        window.localStorage.setItem(SESSION_TOKEN_KEY, tokenFromUrl);
-        return;
-      }
-
-      if (!hasQrTable || !nextTable || !nextRestaurant) {
-        if (savedToken && savedTable === nextTable && savedRestaurant === nextRestaurant) {
-          setSessionToken(savedToken);
-        }
-        return;
-      }
+      if (!nextTable || !nextRestaurant) return;
 
       try {
+        // A URL token can be either the permanent table QR token (legacy
+        // printed QR) or a temporary customer-session token. The server
+        // resolves which one it is and always returns the temporary token.
+        if (tokenFromUrl) {
+          const session = await createCustomerSession({
+            slug: nextRestaurant,
+            table: nextTable,
+            token: tokenFromUrl,
+          });
+
+          if (!active) return;
+          setSessionToken(session.token);
+          window.localStorage.setItem(SESSION_TOKEN_KEY, session.token);
+
+          const nextUrl = new URL(window.location.href);
+          nextUrl.searchParams.set("mesa", nextTable);
+          nextUrl.searchParams.set("token", session.token);
+          window.history.replaceState({}, "", nextUrl.toString());
+          return;
+        }
+
+        // Only a QR entry without a session token can create a new session.
+        // Refreshing an old customer URL never reaches this branch.
+        if (!hasQrTable) return;
+
         const session = await createCustomerSession({ slug: nextRestaurant, table: nextTable });
         if (!active) return;
 
