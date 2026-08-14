@@ -2,7 +2,6 @@
 
 import QRCard from "./QRCard";
 import QRPrintButton from "./QRPrintButton";
-import InvalidateQrsButton from "./InvalidateQrsButton";
 
 type Table = {
   number: number;
@@ -17,7 +16,7 @@ type Props = {
   tables: Table[];
 };
 
-export default function QRGrid({ restaurantId, slug, tables }: Props) {
+export default function QRGrid({ slug, tables }: Props) {
   return (
     <section className="space-y-8">
       <div className="flex flex-col gap-4 rounded-2xl border border-zinc-800 bg-[#181716] p-6 sm:flex-row sm:items-center sm:justify-between">
@@ -26,13 +25,10 @@ export default function QRGrid({ restaurantId, slug, tables }: Props) {
             {tables.length === 1 ? "1 mesa" : `${tables.length} mesas`} configuradas
           </p>
           <p className="mt-1 text-xs text-zinc-500">
-            Los QR corresponden a las mesas reales de este restaurante.
+            Los QR son permanentes. Al escanearlos se crea una sesión temporal para el cliente.
           </p>
         </div>
-        <div className="flex flex-col items-stretch gap-2 sm:items-end">
-          <QRPrintButton />
-          <InvalidateQrsButton restaurantId={restaurantId} slug={slug} />
-        </div>
+        <QRPrintButton />
       </div>
 
       {tables.length === 0 ? (
@@ -51,7 +47,6 @@ export default function QRGrid({ restaurantId, slug, tables }: Props) {
               table={table.number}
               name={table.name}
               zone={table.zone}
-              qrToken={table.qrToken}
             />
           ))}
         </div>
