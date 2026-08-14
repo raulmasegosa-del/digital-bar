@@ -15,6 +15,7 @@ export default function MenuItemCard({ item }: Props) {
   const { order } = useOrder();
   const { showToast } = useToast();
   const hasOptions = item.option_groups?.length > 0;
+  const imageUrl = typeof item.image === "string" ? item.image.trim() : "";
 
   function handleAdd() {
     if (hasOptions) {
@@ -36,10 +37,11 @@ export default function MenuItemCard({ item }: Props) {
   return (
     <>
       <article className="overflow-hidden rounded-2xl border border-zinc-800 bg-[#181716] shadow-sm transition-all duration-200 hover:border-zinc-700 hover:shadow-xl">
-        {item.image_url && (
+        {imageUrl && (
           <img
-            src={item.image_url}
+            src={imageUrl}
             alt={item.name}
+            loading="lazy"
             className="h-48 w-full object-cover sm:h-56"
           />
         )}
