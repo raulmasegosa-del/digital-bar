@@ -23,7 +23,7 @@ export default async function PublicRestaurantPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-[#11100f] text-white">
-      <Header restaurantName={restaurant.name} />
+      <Header restaurantName={restaurant.name} restaurantId={restaurant.id} />
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
         <WaiterActions />
