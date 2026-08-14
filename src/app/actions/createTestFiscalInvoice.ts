@@ -3,18 +3,27 @@
 import { revalidatePath } from "next/cache";
 import { createTestFiscalInvoiceFromOrder } from "@/lib/fiscal/testInvoice";
 
-export async function createTestFiscalInvoice(formData: FormData): Promise<void> {
+export type TestFiscalInvoiceActionState = {
+  ok: boolean;
+  message: string;
+};
+
+export async function createTestFiscalInvoice(
+  _previousState: TestFiscalInvoiceActionState,
+  formData: FormData,
+): Promise<TestFiscalInvoiceActionState> {
   try {
     const orderId = String(formData.get("orderId") ?? "");
-    if (!orderId) throw new Error("Falta el pedido de prueba.");
+    if (!orderId) return { ok: false, message: "Falta el pedido de prueba." };
 
     const result = await createTestFiscalInvoiceFromOrder(orderId);
     revalidatePath("/admin/[slug]/verifactu", "page");
 
     const invoiceNumber = "record" in result ? result.record.invoice_number : result.invoice_number;
-    console.log(`Factura ${invoiceNumber} generada correctamente.`);
+    return { ok: true, message: `Factura ${invoiceNumber} generada correctamente.` };
   } catch (error) {
     console.error("VERI*FACTU test invoice error", error);
-    throw error;
+    const message = error instanceof Error ? error.message : "No se pudo generar la factura de prueba.";
+    return { ok: false, message };
   }
 }
