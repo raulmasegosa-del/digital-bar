@@ -26,12 +26,9 @@ export default async function PublicRestaurantPage({ params }: Props) {
       <Header restaurantName={restaurant.name} restaurantId={restaurant.id} />
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-        <WaiterActions />
-
+        <WaiterActions restaurantId={restaurant.id} />
         <MenuClient menu={menu} />
-
         <CartUI restaurantId={restaurant.id} />
-
         <OrderRealtime />
       </div>
     </main>
