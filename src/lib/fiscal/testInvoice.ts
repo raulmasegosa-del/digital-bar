@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { supabaseAdmin as supabase } from "@/lib/supabase/server";
 
 const TEST_RESTAURANT_ID = "112104d6-d043-482b-bf2b-5121c4fb9749";
 const TEST_SERIES = "T";
@@ -9,8 +9,6 @@ function round2(value: number) {
 }
 
 export async function createTestFiscalInvoiceFromOrder(orderId: string) {
-  const supabase = createSupabaseAdminClient();
-
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .select("id, restaurant_id, total, status, created_at")
