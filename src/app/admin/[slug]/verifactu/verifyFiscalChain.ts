@@ -46,15 +46,17 @@ export async function verifyFiscalChain(slug: string): Promise<FiscalChainVerifi
       problems.push(`${current.invoice_number}: numeración esperada ${expectedNumber}`);
     }
 
-    const previous = index > 0 ? rows[index - 1] : null;
-    if (!previous) {
+    if (index === 0) {
       if (current.previous_hash !== null) problems.push(`${current.invoice_number}: el primer registro tiene previous_hash`);
-    } else if (current.previous_hash !== previous.hash) {
-      problems.push(`${current.invoice_number}: previous_hash no coincide con ${previous.invoice_number}`);
-    }
+    } else {
+      const previous = rows[index - 1];
+      if (current.previous_hash !== previous.hash) {
+        problems.push(`${current.invoice_number}: previous_hash no coincide con ${previous.invoice_number}`);
+      }
 
-    if (index > 0 && new Date(current.generated_at).getTime() < new Date(previous.generated_at).getTime()) {
-      problems.push(`${current.invoice_number}: generated_at anterior al registro previo`);
+      if (new Date(current.generated_at).getTime() < new Date(previous.generated_at).getTime()) {
+        problems.push(`${current.invoice_number}: generated_at anterior al registro previo`);
+      }
     }
 
     const canonical = (current.hash_input as { canonical?: unknown } | null)?.canonical;
