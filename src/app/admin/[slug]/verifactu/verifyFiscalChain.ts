@@ -6,6 +6,17 @@ import { getRestaurant } from "@/lib/db/restaurants/getRestaurant";
 
 const TEST_SERIES = "T";
 
+type FiscalChainRow = {
+  invoice_number: string;
+  invoice_type: string | null;
+  generated_at: string;
+  hash: string;
+  previous_hash: string | null;
+  hash_input: unknown;
+  environment: string;
+  record_type: string;
+};
+
 export type FiscalChainVerification = {
   ok: boolean;
   message: string;
@@ -14,22 +25,7 @@ export type FiscalChainVerification = {
   legacy: number;
 };
 
-export async function verifyFiscalChain(slug: string): Promise<FiscalChainVerification> {
-  const restaurant = await getRestaurant(slug);
-  if (!restaurant) throw new Error("Restaurante no encontrado");
-
-  const { data: records, error } = await supabaseAdmin
-    .from("fiscal_records")
-    .select("invoice_number, invoice_type, generated_at, hash, previous_hash, hash_input, environment, record_type")
-    .eq("restaurant_id", restaurant.id)
-    .eq("environment", "test")
-    .eq("record_type", "alta")
-    .like("invoice_number", `${TEST_SERIES}-%`)
-    .order("generated_at", { ascending: true });
-
-  if (error) throw error;
-
-  const rows = records ?? [];
+function verifyRows(rows: FiscalChainRow[]): FiscalChainVerification {
   if (!rows.length) {
     return { ok: true, message: "No hay registros de prueba que validar.", checked: 0, recomputed: 0, legacy: 0 };
   }
@@ -89,4 +85,40 @@ export async function verifyFiscalChain(slug: string): Promise<FiscalChainVerifi
     recomputed,
     legacy,
   };
+}
+
+async function getTestRows(slug: string): Promise<FiscalChainRow[]> {
+  const restaurant = await getRestaurant(slug);
+  if (!restaurant) throw new Error("Restaurante no encontrado");
+
+  const { data: records, error } = await supabaseAdmin
+    .from("fiscal_records")
+    .select("invoice_number, invoice_type, generated_at, hash, previous_hash, hash_input, environment, record_type")
+    .eq("restaurant_id", restaurant.id)
+    .eq("environment", "test")
+    .eq("record_type", "alta")
+    .like("invoice_number", `${TEST_SERIES}-%`)
+    .order("generated_at", { ascending: true });
+
+  if (error) throw error;
+  return (records ?? []) as FiscalChainRow[];
+}
+
+export async function verifyFiscalChain(slug: string): Promise<FiscalChainVerification> {
+  return verifyRows(await getTestRows(slug));
+}
+
+/**
+ * Safe test only: mutates an in-memory copy of a record's hash and verifies it.
+ * No database row is written or changed.
+ */
+export async function simulateFiscalChainCorruption(slug: string): Promise<FiscalChainVerification> {
+  const rows = await getTestRows(slug);
+  if (rows.length < 2) {
+    return { ok: false, message: "Se necesitan al menos 2 registros para simular una corrupción.", checked: rows.length, recomputed: 0, legacy: 0 };
+  }
+
+  const simulatedRows = rows.map((row) => ({ ...row }));
+  simulatedRows[1].hash = `CORRUPTED-${simulatedRows[1].hash}`;
+  return verifyRows(simulatedRows);
 }
