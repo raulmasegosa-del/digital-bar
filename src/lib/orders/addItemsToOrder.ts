@@ -2,8 +2,9 @@ import { supabase } from "@/lib/supabase/client";
 
 import type { CartItem } from "@/context/CartContext";
 
-function roundCurrency(value: number) {
-  return Math.round((value + Number.EPSILON) * 100) / 100;
+function calculateIncludedTax(total: number, taxRate: number) {
+  if (taxRate <= 0) return 0;
+  return Number(((total * taxRate) / (100 + taxRate)).toFixed(2));
 }
 
 export async function addItemsToOrder(
@@ -12,9 +13,9 @@ export async function addItemsToOrder(
   total: number,
   notes: string
 ) {
-  const productIds = [
-    ...new Set(items.map((item) => item.productId).filter(Boolean)),
-  ];
+  const productIds = Array.from(
+    new Set(items.map((item) => item.productId).filter(Boolean))
+  );
 
   const { data: products, error: productsError } = await supabase
     .from("menu_items")
@@ -25,7 +26,7 @@ export async function addItemsToOrder(
     throw productsError;
   }
 
-  const taxRates = new Map(
+  const taxByProductId = new Map(
     (products ?? []).map((product) => [
       product.id,
       Number(product.tax_rate ?? 10),
@@ -33,11 +34,8 @@ export async function addItemsToOrder(
   );
 
   const rows = items.map((item) => {
-    const taxRate = taxRates.get(item.productId) ?? 10;
-    const lineTotal = roundCurrency(item.price * item.quantity);
-    const taxAmount = roundCurrency(
-      lineTotal - lineTotal / (1 + taxRate / 100)
-    );
+    const taxRate = taxByProductId.get(item.productId) ?? 10;
+    const lineTotal = Number(item.price) * Number(item.quantity);
 
     return {
       order_id: orderId,
@@ -47,7 +45,7 @@ export async function addItemsToOrder(
       price: item.price,
       options: item.options,
       tax_rate: taxRate,
-      tax_amount: taxAmount,
+      tax_amount: calculateIncludedTax(lineTotal, taxRate),
     };
   });
 
