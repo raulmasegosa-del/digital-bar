@@ -6,15 +6,17 @@ import type { CartItem } from "@/context/CartContext";
 type Params = {
   restaurantId: string;
   table: string;
+  sessionToken: string;
   items: CartItem[];
   notes: string;
   total: number;
 };
 
-export async function createCustomerOrder({ restaurantId, table, items, notes, total }: Params) {
+export async function createCustomerOrder({ restaurantId, table, sessionToken, items, notes, total }: Params) {
   const tableNumber = table.trim();
-  if (!restaurantId || !tableNumber || !items.length) {
-    throw new Error("Faltan datos para enviar el pedido.");
+  const token = sessionToken.trim();
+  if (!restaurantId || !tableNumber || !token || !items.length) {
+    throw new Error("Esta sesión no es válida. Escanea de nuevo el QR de la mesa.");
   }
 
   const { data: restaurant, error: restaurantError } = await supabaseAdmin
@@ -35,34 +37,18 @@ export async function createCustomerOrder({ restaurantId, table, items, notes, t
   if (!tableRow) throw new Error("La mesa indicada no existe en este restaurante.");
   if (!tableRow.active) throw new Error("Esta mesa no está disponible.");
 
-  // Cada mesa tiene una única sesión abierta. Todos sus pedidos pertenecen
-  // a esa sesión, pero solo el pedido que está en Recibido puede acumular más
-  // artículos. Preparando/Servido quedan cerrados para nuevas incorporaciones.
-  let { data: session, error: sessionError } = await supabaseAdmin
+  // El token es la identidad temporal del cliente. Un token cerrado nunca
+  // puede crear una sesión nueva; solo un QR permanente puede abrir otra.
+  const { data: session, error: sessionError } = await supabaseAdmin
     .from("table_sessions")
-    .select("id, status")
+    .select("id, status, table_number")
     .eq("restaurant_id", restaurantId)
     .eq("table_number", tableNumber)
-    .eq("status", "open")
+    .eq("access_token", token)
     .maybeSingle();
-
   if (sessionError) throw sessionError;
-
-  // Compatibilidad con mesas activas que aún no tengan sesión abierta.
-  if (!session) {
-    const { data: newSession, error: createSessionError } = await supabaseAdmin
-      .from("table_sessions")
-      .insert({
-        restaurant_id: restaurantId,
-        table_number: tableNumber,
-        status: "open",
-      })
-      .select("id, status")
-      .single();
-
-    if (createSessionError) throw createSessionError;
-    session = newSession;
-  }
+  if (!session) throw new Error("Esta sesión ya no es válida. Escanea de nuevo el QR de la mesa.");
+  if (session.status !== "open") throw new Error("Esta mesa ya ha sido cerrada. Escanea de nuevo el QR para comenzar una nueva sesión.");
 
   const { data: pendingOrder, error: pendingOrderError } = await supabaseAdmin
     .from("orders")
