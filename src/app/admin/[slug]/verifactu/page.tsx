@@ -2,12 +2,6 @@ import { createTestFiscalInvoice } from "@/app/actions/createTestFiscalInvoice";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { getRestaurant } from "@/lib/db/restaurants/getRestaurant";
 
-async function generateInvoice(formData: FormData) {
-  "use server";
-  const orderId = String(formData.get("orderId") ?? "");
-  await createTestFiscalInvoice(orderId);
-}
-
 export default async function VeriFactuTestPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const restaurant = await getRestaurant(slug);
@@ -21,7 +15,7 @@ export default async function VeriFactuTestPage({ params }: { params: Promise<{ 
         <h2 className="text-lg font-semibold">Generar factura de prueba</h2>
         <p className="text-sm text-gray-600">Selecciona un pedido ya cobrado. La primera prueba utilizará la serie T y generará una F2.</p>
         <div className="space-y-3">{orders?.map((order) => (
-          <form key={order.id} action={generateInvoice} className="flex items-center justify-between gap-4 rounded-lg border p-4">
+          <form key={order.id} action={createTestFiscalInvoice} className="flex items-center justify-between gap-4 rounded-lg border p-4">
             <div><div className="font-medium">Mesa {order.table_number} · {Number(order.total).toFixed(2)} €</div><div className="text-xs text-gray-500">{order.id} · {new Date(order.created_at).toLocaleString("es-ES")}</div></div>
             <input type="hidden" name="orderId" value={order.id} />
             <button type="submit" className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white">Generar factura de prueba</button>
