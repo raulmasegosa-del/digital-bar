@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase/server";
 import { getRestaurant } from "@/lib/db/restaurants/getRestaurant";
 import TestFiscalInvoiceButton from "./TestFiscalInvoiceButton";
+import VerifyFiscalChainButton from "./VerifyFiscalChainButton";
 
 const TEST_SERIES = "T";
 
@@ -65,6 +66,11 @@ export default async function VeriFactuTestPage({ params }: { params: Promise<{ 
           ))}
           {!candidates.length && <p className="text-sm text-gray-500">No hay pedidos cobrados pendientes de facturar.</p>}
         </div>
+      </section>
+      <section className="rounded-xl border p-5 space-y-4">
+        <h2 className="text-lg font-semibold">Integridad de la cadena</h2>
+        <p className="text-sm text-gray-600">Comprueba el encadenamiento, la numeración, el orden temporal y los hashes verificables del entorno de pruebas.</p>
+        <VerifyFiscalChainButton slug={slug} />
       </section>
       <section className="rounded-xl border p-5 space-y-4">
         <h2 className="text-lg font-semibold">Registros fiscales generados</h2>
