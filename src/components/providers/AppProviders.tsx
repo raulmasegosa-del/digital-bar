@@ -19,9 +19,9 @@ export default function AppProviders({ settings, children }: Props) {
     <ToastProvider>
       <SettingsProvider settings={settings}>
         <OrderProvider restaurantId={settings.id}>
-          <CartProvider>
-            <TableProvider>{children}</TableProvider>
-          </CartProvider>
+          <TableProvider>
+            <CartProvider>{children}</CartProvider>
+          </TableProvider>
         </OrderProvider>
       </SettingsProvider>
     </ToastProvider>
