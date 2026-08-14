@@ -4,47 +4,14 @@ import { useState } from "react";
 
 import { useTable } from "@/context/TableContext";
 import { useToast } from "@/context/ToastContext";
-
 import { createServiceCall } from "@/lib/service/createServiceCall";
 
-export default function WaiterActions() {
+export default function WaiterActions({ restaurantId }: { restaurantId: string }) {
   const { table } = useTable();
   const { showToast } = useToast();
+  const [loading, setLoading] = useState(false);
 
-  const [loading, setLoading] =
-    useState(false);
-async function sendCall(
-  type: "waiter" | "bill"
-) {
-  if (!table) {
-    showToast("⚠️ No se ha detectado la mesa.");
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    await createServiceCall({
-      table,
-      type,
-    });
-
-    showToast(
-      type === "waiter"
-        ? `🙋 Camarero avisado para la mesa ${table}`
-        : `💶 Cuenta solicitada para la mesa ${table}`
-    );
-  } catch {
-    showToast(
-      type === "waiter"
-        ? "❌ No se pudo avisar al camarero."
-        : "❌ No se pudo solicitar la cuenta."
-    );
-  } finally {
-    setLoading(false);
-  }
-}
-  async function callWaiter() {
+  async function sendCall(type: "waiter" | "bill") {
     if (!table) {
       showToast("⚠️ No se ha detectado la mesa.");
       return;
@@ -52,44 +19,18 @@ async function sendCall(
 
     try {
       setLoading(true);
-
-      await createServiceCall({
-        table,
-        type: "waiter",
-      });
-
+      await createServiceCall({ table, type, restaurantId });
       showToast(
-        `🙋 Camarero avisado para la mesa ${table}`
+        type === "waiter"
+          ? `🙋 Camarero avisado para la mesa ${table}`
+          : `💶 Cuenta solicitada para la mesa ${table}`
       );
-    } catch {
+    } catch (error) {
+      console.error("No se pudo crear el aviso de servicio", error);
       showToast(
-        "❌ No se pudo avisar al camarero."
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function requestBill() {
-    if (!table) {
-      showToast("⚠️ No se ha detectado la mesa.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      await createServiceCall({
-        table,
-        type: "bill",
-      });
-
-      showToast(
-        `💶 Cuenta solicitada para la mesa ${table}`
-      );
-    } catch {
-      showToast(
-        "❌ No se pudo solicitar la cuenta."
+        type === "waiter"
+          ? "❌ No se pudo avisar al camarero."
+          : "❌ No se pudo solicitar la cuenta."
       );
     } finally {
       setLoading(false);
@@ -99,15 +40,14 @@ async function sendCall(
   return (
     <div className="mb-8 grid grid-cols-2 gap-3">
       <button
-        onClick={callWaiter}
+        onClick={() => void sendCall("waiter")}
         disabled={loading}
         className="rounded-xl bg-sky-600 py-3 font-semibold text-white hover:bg-sky-700 disabled:opacity-50"
       >
         🙋 Llamar al camarero
       </button>
-
       <button
-        onClick={requestBill}
+        onClick={() => void sendCall("bill")}
         disabled={loading}
         className="rounded-xl bg-emerald-600 py-3 font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
       >
