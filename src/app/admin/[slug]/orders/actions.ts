@@ -39,24 +39,15 @@ export async function updateRestaurantOrderStatus(slug: string, orderId: string,
     if (tableNumbers.length !== 1) throw new Error("No se pueden cobrar juntas mesas diferentes");
     const tableNumber = tableNumbers[0];
 
-    // Algunos pedidos creados desde administración pueden no tener session_id.
-    // Si todos pertenecen a la mesa activa y hay una única sesión abierta,
-    // la asociamos antes de cobrar para mantener la trazabilidad de la venta.
-    let sessionIds = Array.from(new Set(ordersToClose.map((order) => order.session_id).filter(Boolean))) as string[];
+    const sessionIds = Array.from(new Set(ordersToClose.map((order) => order.session_id).filter(Boolean))) as string[];
     const ordersWithoutSession = ordersToClose.filter((order) => !order.session_id);
-
     if (sessionIds.length > 1) throw new Error("Los pedidos agrupados no pertenecen a una única sesión de mesa");
 
     let sessionId: string;
     if (sessionIds.length === 1) {
       sessionId = sessionIds[0];
       if (ordersWithoutSession.length) {
-        const { error: attachError } = await supabaseAdmin
-          .from("orders")
-          .update({ session_id: sessionId })
-          .in("id", ordersWithoutSession.map((order) => order.id))
-          .eq("restaurant_id", restaurant.id)
-          .is("session_id", null);
+        const { error: attachError } = await supabaseAdmin.from("orders").update({ session_id: sessionId }).in("id", ordersWithoutSession.map((order) => order.id)).eq("restaurant_id", restaurant.id).is("session_id", null);
         if (attachError) throw attachError;
       }
     } else {
@@ -72,22 +63,11 @@ export async function updateRestaurantOrderStatus(slug: string, orderId: string,
       if (activeSessionError) throw activeSessionError;
       if (!activeSession) throw new Error("No hay una sesión abierta para esta mesa");
       sessionId = activeSession.id;
-
-      const { error: attachError } = await supabaseAdmin
-        .from("orders")
-        .update({ session_id: sessionId })
-        .in("id", ordersToClose.map((order) => order.id))
-        .eq("restaurant_id", restaurant.id)
-        .is("session_id", null);
+      const { error: attachError } = await supabaseAdmin.from("orders").update({ session_id: sessionId }).in("id", ordersToClose.map((order) => order.id)).eq("restaurant_id", restaurant.id).is("session_id", null);
       if (attachError) throw attachError;
     }
 
-    const { data: session, error: sessionError } = await supabaseAdmin
-      .from("table_sessions")
-      .select("id, status, table_number")
-      .eq("id", sessionId)
-      .eq("restaurant_id", restaurant.id)
-      .maybeSingle();
+    const { data: session, error: sessionError } = await supabaseAdmin.from("table_sessions").select("id, status, table_number").eq("id", sessionId).eq("restaurant_id", restaurant.id).maybeSingle();
     if (sessionError) throw sessionError;
     if (!session || session.status !== "open") throw new Error("La sesión de esta mesa ya está cerrada");
 
@@ -115,7 +95,7 @@ export async function updateRestaurantOrderStatus(slug: string, orderId: string,
     revalidatePath(`/admin/${slug}/orders`, "page");
     revalidatePath(`/admin/${slug}/tables`, "page");
     revalidatePath(`/admin/${slug}/cash`, "page");
-    revalidatePath(`/admin/${slug}`, "page`);
+    revalidatePath(`/admin/${slug}`, "page");
     return { id: orderId, status: "completed" as OrderStatus, updatedCount: updatedOrders.length, paymentMethod, total };
   }
 
