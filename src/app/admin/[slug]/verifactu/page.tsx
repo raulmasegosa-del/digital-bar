@@ -2,6 +2,7 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 import { getRestaurant } from "@/lib/db/restaurants/getRestaurant";
 import TestFiscalInvoiceButton from "./TestFiscalInvoiceButton";
 import VerifyFiscalChainButton from "./VerifyFiscalChainButton";
+import FiscalInvoiceQr from "./FiscalInvoiceQr";
 
 const TEST_SERIES = "T";
 
@@ -40,7 +41,7 @@ export default async function VeriFactuTestPage({ params }: { params: Promise<{ 
 
   const { data: records } = await supabaseAdmin
     .from("fiscal_records")
-    .select("id, invoice_number, invoice_type, total_amount, total_tax, hash, previous_hash, status, environment, generated_at")
+    .select("id, invoice_number, invoice_type, total_amount, total_tax, hash, previous_hash, status, environment, generated_at, issuer_nif, issued_at")
     .eq("restaurant_id", restaurant.id)
     .order("generated_at", { ascending: false })
     .limit(10);
@@ -80,6 +81,12 @@ export default async function VeriFactuTestPage({ params }: { params: Promise<{ 
             <div>IVA: {Number(record.total_tax).toFixed(2)} € · {record.environment} · {record.status}</div>
             <div className="break-all text-xs">Hash: {record.hash}</div>
             <div className="break-all text-xs">Hash anterior: {record.previous_hash ?? "(primero de la cadena)"}</div>
+            <FiscalInvoiceQr
+              issuerNif={record.issuer_nif}
+              invoiceNumber={record.invoice_number}
+              issuedAt={record.issued_at}
+              totalAmount={Number(record.total_amount)}
+            />
           </div>
         )) : <p className="text-sm text-gray-500">Todavía no hay registros fiscales.</p>}
       </section>
