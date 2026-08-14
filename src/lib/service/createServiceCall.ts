@@ -3,14 +3,19 @@ import { supabase } from "@/lib/supabase/client";
 export async function createServiceCall({
   table,
   type,
+  restaurantId,
 }: {
   table: string;
   type: "waiter" | "bill";
+  restaurantId: string;
 }) {
   const tableNumber = table.trim();
 
   if (!tableNumber) {
     throw new Error("No se ha identificado la mesa.");
+  }
+  if (!restaurantId) {
+    throw new Error("No se ha identificado el restaurante.");
   }
 
   const { error } = await supabase
@@ -19,9 +24,8 @@ export async function createServiceCall({
       table_number: tableNumber,
       type,
       status: "pending",
+      restaurant_id: restaurantId,
     });
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 }
