@@ -8,6 +8,7 @@ import {
   useState,
   ReactNode,
 } from "react";
+import { useTable } from "@/context/TableContext";
 
 export type CartOption = {
   groupId: string;
@@ -27,35 +28,25 @@ export type CartItem = {
 
 type CartContextType = {
   items: CartItem[];
-
   notes: string;
   setNotes: (value: string) => void;
-
   addItem: (item: CartItem) => void;
   removeItem: (index: number) => void;
   increaseQuantity: (index: number) => void;
   decreaseQuantity: (index: number) => void;
   clearCart: () => void;
-
   totalItems: number;
   total: number;
 };
 
 const CartContext = createContext<CartContextType | null>(null);
-const CART_STORAGE_KEY = "digital-bar-cart";
+const CART_STORAGE_PREFIX = "digital-bar-cart:";
 
 function sameOptions(first: CartOption[], second: CartOption[]) {
-  if (first.length !== second.length) {
-    return false;
-  }
+  if (first.length !== second.length) return false;
 
-  const firstSorted = [...first].sort((a, b) =>
-    a.optionId.localeCompare(b.optionId)
-  );
-
-  const secondSorted = [...second].sort((a, b) =>
-    a.optionId.localeCompare(b.optionId)
-  );
+  const firstSorted = [...first].sort((a, b) => a.optionId.localeCompare(b.optionId));
+  const secondSorted = [...second].sort((a, b) => a.optionId.localeCompare(b.optionId));
 
   return firstSorted.every(
     (option, index) => option.optionId === secondSorted[index]?.optionId
@@ -63,19 +54,22 @@ function sameOptions(first: CartOption[], second: CartOption[]) {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { sessionToken } = useTable();
   const [items, setItems] = useState<CartItem[]>([]);
   const [notes, setNotes] = useState("");
   const [loadedStorageKey, setLoadedStorageKey] = useState<string | null>(null);
 
-  // Hydrate the cart before allowing the persistence effect to write anything.
-  // Without this guard, a full page load starts with [] and can immediately
-  // overwrite the existing localStorage cart before the saved items are read.
+  const storageKey = sessionToken ? `${CART_STORAGE_PREFIX}${sessionToken}` : null;
+
   useEffect(() => {
     setLoadedStorageKey(null);
+    setItems([]);
+    setNotes("");
+
+    if (!storageKey) return;
 
     try {
-      const saved = localStorage.getItem(CART_STORAGE_KEY);
-
+      const saved = localStorage.getItem(storageKey);
       if (!saved) {
         setItems([]);
       } else {
@@ -83,24 +77,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setItems(Array.isArray(parsed) ? parsed : []);
       }
     } catch (error) {
-      console.error("Error restaurando el carrito", error);
+      console.error("Error restaurando el carrito de la sesión", error);
       setItems([]);
     }
 
-    setLoadedStorageKey(CART_STORAGE_KEY);
-  }, []);
+    setLoadedStorageKey(storageKey);
+  }, [storageKey]);
 
   useEffect(() => {
-    if (loadedStorageKey !== CART_STORAGE_KEY) {
-      return;
-    }
+    if (!storageKey || loadedStorageKey !== storageKey) return;
 
     try {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+      if (items.length === 0) {
+        localStorage.removeItem(storageKey);
+      } else {
+        localStorage.setItem(storageKey, JSON.stringify(items));
+      }
     } catch (error) {
       console.error("Error guardando el carrito", error);
     }
-  }, [items, loadedStorageKey]);
+  }, [items, loadedStorageKey, storageKey]);
 
   function addItem(item: CartItem) {
     setItems((current) => {
@@ -110,17 +106,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
           sameOptions(existing.options, item.options)
       );
 
-      if (index === -1) {
-        return [...current, item];
-      }
+      if (index === -1) return [...current, item];
 
       const updated = [...current];
-
       updated[index] = {
         ...updated[index],
         quantity: updated[index].quantity + item.quantity,
       };
-
       return updated;
     });
   }
@@ -128,12 +120,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   function increaseQuantity(index: number) {
     setItems((current) =>
       current.map((item, i) =>
-        i === index
-          ? {
-              ...item,
-              quantity: item.quantity + 1,
-            }
-          : item
+        i === index ? { ...item, quantity: item.quantity + 1 } : item
       )
     );
   }
@@ -141,18 +128,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   function decreaseQuantity(index: number) {
     setItems((current) =>
       current.flatMap((item, i) => {
-        if (i !== index) {
-          return item;
-        }
-
-        if (item.quantity <= 1) {
-          return [];
-        }
-
-        return {
-          ...item,
-          quantity: item.quantity - 1,
-        };
+        if (i !== index) return item;
+        if (item.quantity <= 1) return [];
+        return { ...item, quantity: item.quantity - 1 };
       })
     );
   }
@@ -164,9 +142,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   function clearCart() {
     setItems([]);
     setNotes("");
+    if (!storageKey) return;
 
     try {
-      localStorage.removeItem(CART_STORAGE_KEY);
+      localStorage.removeItem(storageKey);
     } catch (error) {
       console.error("Error vaciando el carrito", error);
     }
@@ -183,7 +162,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         (extra, option) => extra + option.extraPrice,
         0
       );
-
       return sum + (item.price + extras) * item.quantity;
     }, 0);
   }, [items]);
@@ -210,10 +188,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
 export function useCart() {
   const context = useContext(CartContext);
-
-  if (!context) {
-    throw new Error("useCart debe usarse dentro de CartProvider");
-  }
-
+  if (!context) throw new Error("useCart debe usarse dentro de CartProvider");
   return context;
 }
