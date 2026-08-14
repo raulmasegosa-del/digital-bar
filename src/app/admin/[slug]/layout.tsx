@@ -17,6 +17,7 @@ export default async function AdminLayout({ children, params }: Props) {
     { href: `/admin/${slug}/tables`, label: "Mesas", icon: "tables" },
     { href: `/admin/${slug}/cash`, label: "Caja", icon: "cash" },
     { href: `/admin/${slug}/reports`, label: "Informes", icon: "reports" },
+    { href: `/admin/${slug}/verifactu`, label: "VERI*FACTU", icon: "settings" },
     { href: `/admin/${slug}/qr`, label: "QR", icon: "qr" },
     { href: `/admin/${slug}/settings`, label: "Ajustes", icon: "settings" },
   ];
