@@ -12,12 +12,30 @@ import type { Order, OrderStatus } from "@/types/orders";
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string }> };
-
 const statusLabels: Record<OrderStatus, string> = { pending: "Recibido", preparing: "Preparando", ready: "Listo", served: "Servido", bill: "Cuenta", completed: "Finalizado", cancelled: "Cancelado" };
 const statusClasses: Record<OrderStatus, string> = { pending: "border-yellow-500/30 bg-yellow-500/15 text-yellow-300", preparing: "border-blue-500/30 bg-blue-500/15 text-blue-300", ready: "border-emerald-500/30 bg-emerald-500/15 text-emerald-300", served: "border-emerald-500/30 bg-emerald-500/15 text-emerald-300", bill: "border-amber-500/30 bg-amber-500/15 text-amber-300", completed: "border-zinc-600 bg-zinc-700/60 text-zinc-200", cancelled: "border-red-500/30 bg-red-500/15 text-red-300" };
 
-type OrderSection = { key: string; title: string; description: string; orders: Order[]; accent: string; dot: string };
-function sortByCreatedAt(orders: Order[]) { return [...orders].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()); }
+type DisplayOrder = Order & { sourceOrderIds?: string[] };
+type OrderSection = { key: string; title: string; description: string; orders: DisplayOrder[]; accent: string; dot: string };
+function sortByCreatedAt(orders: DisplayOrder[]) { return [...orders].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()); }
+
+function groupServedByTable(orders: Order[]): DisplayOrder[] {
+  const grouped = new Map<string, DisplayOrder>();
+  for (const order of sortByCreatedAt(orders)) {
+    const existing = grouped.get(order.table_number);
+    if (!existing) {
+      grouped.set(order.table_number, { ...order, sourceOrderIds: [order.id] });
+      continue;
+    }
+    existing.sourceOrderIds = [...(existing.sourceOrderIds ?? [existing.id]), order.id];
+    existing.order_items = [...existing.order_items, ...order.order_items];
+    existing.total += Number(order.total);
+    existing.notes = [existing.notes, order.notes].filter(Boolean).join("\n");
+    existing.created_at = order.created_at;
+    existing.status = order.status;
+  }
+  return sortByCreatedAt(Array.from(grouped.values()));
+}
 
 export default async function OrdersPage({ params }: Props) {
   const { slug } = await params;
@@ -36,12 +54,12 @@ export default async function OrdersPage({ params }: Props) {
   const orders = await getRestaurantOrders(restaurant.id);
   const received = orders.filter((order) => order.status === "pending");
   const preparing = orders.filter((order) => order.status === "preparing" || order.status === "ready");
-  const served = orders.filter((order) => order.status === "served" || order.status === "bill");
+  const served = groupServedByTable(orders.filter((order) => order.status === "served" || order.status === "bill"));
   const historical = orders.filter((order) => order.status === "completed" || order.status === "cancelled");
   const sections: OrderSection[] = [
     { key: "received", title: "Recibido", description: "Pedidos nuevos", orders: sortByCreatedAt(received), accent: "border-yellow-500/30 bg-yellow-500/[0.055]", dot: "bg-yellow-400" },
     { key: "preparing", title: "Preparando", description: "En cocina o listos", orders: sortByCreatedAt(preparing), accent: "border-blue-500/30 bg-blue-500/[0.055]", dot: "bg-blue-400" },
-    { key: "served", title: "Servido", description: "Entregados o pendientes de cierre", orders: sortByCreatedAt(served), accent: "border-emerald-500/30 bg-emerald-500/[0.055]", dot: "bg-emerald-400" },
+    { key: "served", title: "Servido", description: "Agrupado por mesa", orders: served, accent: "border-emerald-500/30 bg-emerald-500/[0.055]", dot: "bg-emerald-400" },
   ];
   const activeCount = received.length + preparing.length + served.length;
 
@@ -60,10 +78,10 @@ export default async function OrdersPage({ params }: Props) {
   );
 }
 
-function OrderCard({ order, slug, restaurantName, compact = false, alternate = false }: { order: Order; slug: string; restaurantName: string; compact?: boolean; alternate?: boolean }) {
+function OrderCard({ order, slug, restaurantName, compact = false, alternate = false }: { order: DisplayOrder; slug: string; restaurantName: string; compact?: boolean; alternate?: boolean }) {
   const itemCount = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
   const cardTone = alternate ? "border-orange-400/35 bg-orange-500/[0.10]" : "border-zinc-600/80 bg-[#292724]";
   const headerTone = alternate ? "border-orange-400/25 bg-orange-500/[0.075]" : "border-zinc-600/80 bg-[#322f2b]";
   const itemTone = alternate ? "border-orange-400/20 bg-orange-500/[0.055]" : "border-zinc-600/70 bg-[#37332f]";
-  return <article className={`overflow-hidden rounded-2xl border shadow-[0_12px_30px_rgba(0,0,0,0.28)] ring-1 ring-black/20 ${cardTone}`}><div className={`border-b px-4 py-3.5 sm:px-5 ${headerTone}`}><div className="flex items-center justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><div className="flex h-14 min-w-[92px] items-center justify-center gap-1.5 rounded-xl border-2 border-amber-400/50 bg-amber-400/10 px-3 shadow-inner shadow-amber-500/10"><span className="text-[9px] font-bold uppercase tracking-[0.18em] text-amber-400">Mesa</span><span className="text-3xl font-black leading-none tracking-tight text-white">{order.table_number}</span></div><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Pedido</p><p className="mt-0.5 truncate text-xs text-zinc-400">#{order.id.slice(0, 8)} · {new Date(order.created_at).toLocaleString("es-ES")}</p></div></div><span className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-bold ${statusClasses[order.status]}`}>{statusLabels[order.status]}</span></div></div><div className="p-4 sm:p-5"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Artículos</p><p className="mt-1 text-base font-semibold text-zinc-100">{itemCount}</p></div><div className="text-left sm:text-right"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Total</p><p className="mt-0.5 text-3xl font-black tracking-tight text-white">{order.total.toFixed(2)} €</p></div></div>{!compact && <><div className="my-4 h-px bg-zinc-600/70" /><div className="grid gap-2.5 sm:grid-cols-2">{order.order_items.map((item) => <div key={item.id} className={`rounded-lg border px-3.5 py-3 ${itemTone}`}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-semibold text-white">{item.quantity} × {item.name}</p>{item.options.length > 0 && <p className="mt-1 text-xs leading-5 text-zinc-400">{item.options.map((option) => option.optionName).join(" · ")}</p>}</div><span className="shrink-0 text-xs font-medium text-zinc-300">{(item.price * item.quantity).toFixed(2)} €</span></div></div>)}</div>{order.notes && <div className="mt-3 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3.5 py-2.5"><p className="text-[10px] font-bold uppercase tracking-wider text-amber-400">Nota</p><p className="mt-1 text-sm text-zinc-200">{order.notes}</p></div>}</>}{<div className="mt-4 flex flex-col gap-3 border-t border-zinc-600/70 pt-4 sm:flex-row sm:items-center sm:justify-between"><p className="text-[10px] text-zinc-500">Pedido de {restaurantName}</p><RestaurantOrderActions slug={slug} orderId={order.id} status={order.status} /></div>}</div></article>;
+  return <article className={`overflow-hidden rounded-2xl border shadow-[0_12px_30px_rgba(0,0,0,0.28)] ring-1 ring-black/20 ${cardTone}`}><div className={`border-b px-4 py-3.5 sm:px-5 ${headerTone}`}><div className="flex items-center justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><div className="flex h-14 min-w-[92px] items-center justify-center gap-1.5 rounded-xl border-2 border-amber-400/50 bg-amber-400/10 px-3 shadow-inner shadow-amber-500/10"><span className="text-[9px] font-bold uppercase tracking-[0.18em] text-amber-400">Mesa</span><span className="text-3xl font-black leading-none tracking-tight text-white">{order.table_number}</span></div><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">{order.sourceOrderIds && order.sourceOrderIds.length > 1 ? `${order.sourceOrderIds.length} pedidos agrupados` : "Pedido"}</p><p className="mt-0.5 truncate text-xs text-zinc-400">{order.sourceOrderIds && order.sourceOrderIds.length > 1 ? "Todo lo servido de esta mesa" : `#${order.id.slice(0, 8)} · ${new Date(order.created_at).toLocaleString("es-ES")}`}</p></div></div><span className={`shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-bold ${statusClasses[order.status]}`}>{statusLabels[order.status]}</span></div></div><div className="p-4 sm:p-5"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Artículos</p><p className="mt-1 text-base font-semibold text-zinc-100">{itemCount}</p></div><div className="text-left sm:text-right"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Total</p><p className="mt-0.5 text-3xl font-black tracking-tight text-white">{order.total.toFixed(2)} €</p></div></div>{!compact && <><div className="my-4 h-px bg-zinc-600/70" /><div className="grid gap-2.5 sm:grid-cols-2">{order.order_items.map((item) => <div key={item.id} className={`rounded-lg border px-3.5 py-3 ${itemTone}`}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-semibold text-white">{item.quantity} × {item.name}</p>{item.options.length > 0 && <p className="mt-1 text-xs leading-5 text-zinc-400">{item.options.map((option) => option.optionName).join(" · ")}</p>}</div><span className="shrink-0 text-xs font-medium text-zinc-300">{(item.price * item.quantity).toFixed(2)} €</span></div></div>)}</div>{order.notes && <div className="mt-3 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3.5 py-2.5"><p className="text-[10px] font-bold uppercase tracking-wider text-amber-400">Nota</p><p className="mt-1 text-sm text-zinc-200">{order.notes}</p></div>}</>}{<div className="mt-4 flex flex-col gap-3 border-t border-zinc-600/70 pt-4 sm:flex-row sm:items-center sm:justify-between"><p className="text-[10px] text-zinc-500">Pedido de {restaurantName}</p><RestaurantOrderActions slug={slug} orderId={order.id} orderIds={order.sourceOrderIds ?? []} status={order.status} /></div>}</div></article>;
 }
