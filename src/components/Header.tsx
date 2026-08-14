@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useOrder } from "@/context/OrderContext";
 import { useTable } from "@/context/TableContext";
 import { getCustomerOrderCounts, type CustomerOrderCounts } from "@/app/actions/getCustomerOrderCounts";
 
@@ -10,20 +9,8 @@ type Props = {
   restaurantId: string;
 };
 
-const status = {
-  pending: { text: "Pedido recibido", color: "border-amber-500/30 bg-amber-500/10 text-amber-300", icon: "🟡" },
-  preparing: { text: "Preparando", color: "border-blue-500/30 bg-blue-500/10 text-blue-300", icon: "👨‍🍳" },
-  ready: { text: "Pedido listo", color: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300", icon: "🍽️" },
-  served: { text: "Servido", color: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300", icon: "✅" },
-  bill: { text: "Pendiente de cobro", color: "border-orange-500/30 bg-orange-500/10 text-orange-300", icon: "💰" },
-  completed: { text: "Finalizado", color: "border-zinc-700 bg-zinc-900 text-zinc-300", icon: "✔️" },
-  cancelled: { text: "Cancelado", color: "border-red-500/30 bg-red-500/10 text-red-300", icon: "❌" },
-} as const;
-
 export default function Header({ restaurantName, restaurantId }: Props) {
-  const { table } = useTable();
-  const { order } = useOrder();
-  const currentStatus = order ? status[order.status] : null;
+  const { table, sessionError } = useTable();
   const [counts, setCounts] = useState<CustomerOrderCounts>({ received: 0, preparing: 0, served: 0 });
 
   useEffect(() => {
@@ -45,7 +32,7 @@ export default function Header({ restaurantName, restaurantId }: Props) {
       active = false;
       clearInterval(timer);
     };
-  }, [restaurantId, table, order?.id, order?.status]);
+  }, [restaurantId, table]);
 
   return (
     <header className="border-b border-zinc-800 bg-[#181716] text-white">
@@ -73,14 +60,14 @@ export default function Header({ restaurantName, restaurantId }: Props) {
                 <span className="text-emerald-300">✅ {counts.served} servido{counts.served === 1 ? "" : "s"}</span>
               </div>
             )}
-
-            {currentStatus && (
-              <div className={`rounded-full border px-4 py-2 text-sm font-semibold ${currentStatus.color}`}>
-                {currentStatus.icon} {currentStatus.text}
-              </div>
-            )}
           </div>
         </div>
+
+        {sessionError && table && (
+          <div className="mt-4 rounded-xl border border-red-500/30 bg-red-950/40 px-4 py-3 text-sm text-red-300">
+            {sessionError}
+          </div>
+        )}
       </div>
     </header>
   );
