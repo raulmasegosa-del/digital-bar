@@ -11,6 +11,8 @@ const SIF = {
   version: "0.1.0-test",
   installationId: "DIGITAL-BAR-TEST-01",
   onlyVerifactu: false,
+  multiOt: true,
+  multipleOtIndicator: false,
 };
 
 function round2(value: number) {
@@ -214,13 +216,18 @@ export async function createTestFiscalInvoiceFromOrder(orderId: string) {
           : null,
       },
       SistemaInformatico: {
-        IdSistemaInformatico: SIF.identifier,
+        NombreRazon: SIF.producerName,
+        NIF: SIF.producerTaxId,
         NombreSistemaInformatico: SIF.name,
+        IdSistemaInformatico: SIF.identifier,
         Version: SIF.version,
         NumeroInstalacion: SIF.installationId,
-        TipoUsoPosibleSoloVERI_FACTU: SIF.onlyVerifactu ? "S" : "N",
+        TipoUsoPosibleSoloVerifactu: SIF.onlyVerifactu ? "S" : "N",
+        TipoUsoPosibleMultiOT: SIF.multiOt ? "S" : "N",
+        IndicadorMultiplesOT: SIF.multipleOtIndicator ? "S" : "N",
       },
       FechaHoraHusoGenRegistro: generatedAtLocal,
+      TipoHuella: "01",
       Huella: hash,
     },
   };
