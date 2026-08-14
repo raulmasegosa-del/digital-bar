@@ -29,7 +29,7 @@ export async function validateCustomerSession({ slug, table, token }: { slug: st
   if (sessionError) throw sessionError;
 
   return {
-    valid: session?.status === "open" as boolean,
+    valid: Boolean(session && session.status === "open"),
     status: session?.status ?? "closed",
   };
 }
