@@ -4,7 +4,8 @@ import { supabaseAdmin as supabase } from "@/lib/supabase/server";
 const TEST_RESTAURANT_ID = "112104d6-d043-482b-bf2b-5121c4fb9749";
 const TEST_SERIES = "T";
 const SIF = {
-  identifier: "DIGITAL-BAR",
+  // AEAT XSD: IdSistemaInformatico is TextMax2Type.
+  identifier: "DB",
   producerName: "DIGITAL BAR PRUEBAS, S.L.",
   producerTaxId: "B12345678",
   name: "DIGITAL BAR",
@@ -253,7 +254,6 @@ export async function createTestFiscalInvoiceFromOrder(orderId: string) {
       previous_issuer_nif: previous?.issuer_nif ?? null,
       previous_invoice_number: previous?.invoice_number ?? null,
       previous_issued_at: previous?.issued_at ?? null,
-      previous_hash: previous?.hash ?? null,
       previous_chain_record_type: previous?.record_type ?? null,
       generated_at: generatedAt,
       generated_at_local: generatedAtLocal,
