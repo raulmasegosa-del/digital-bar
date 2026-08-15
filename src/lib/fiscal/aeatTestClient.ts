@@ -1,6 +1,5 @@
 import https from "node:https";
 import fs from "node:fs";
-import { XMLParser } from "fast-xml-parser";
 
 /**
  * Transport boundary for the AEAT VERI*FACTU test service.
@@ -25,7 +24,6 @@ export type AeatSubmissionResult = {
   httpStatus: number;
   contentType: string | undefined;
   body: string;
-  parsed: unknown;
 };
 
 function escapeXml(value: string) {
@@ -94,17 +92,10 @@ export async function submitAeatTest(
         response.on("data", (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
         response.on("end", () => {
           const responseBody = Buffer.concat(chunks).toString("utf8");
-          let parsed: unknown = undefined;
-          try {
-            parsed = new XMLParser({ ignoreAttributes: false }).parse(responseBody);
-          } catch {
-            // Preserve the raw response; AEAT SOAP faults can still be useful.
-          }
           resolve({
             httpStatus: response.statusCode ?? 0,
             contentType: response.headers["content-type"],
             body: responseBody,
-            parsed,
           });
         });
       },
