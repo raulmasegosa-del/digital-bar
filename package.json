@@ -9,7 +9,8 @@
     "lint": "eslint",
     "import:niko": "tsx scripts/import-niko.ts",
     "repair:niko-categories": "tsx scripts/repair-niko-categories.ts",
-    "test:verifactu": "tsx scripts/verify-verifactu-test.ts"
+    "test:verifactu": "tsx scripts/verify-verifactu-test.ts",
+    "test:aeat-registro-alta": "tsx scripts/verify-aeat-registro-alta.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.4",
@@ -30,7 +31,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
     "tailwindcss": "^4",
-    "tsx": "^4.20.6",
     "typescript": "^5"
   }
 }
