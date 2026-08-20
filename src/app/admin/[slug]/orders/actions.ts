@@ -40,9 +40,8 @@ export async function updateRestaurantOrderStatus(slug: string, orderId: string,
     if (sessionIds.length > 1) throw new Error("Los pedidos agrupados no pertenecen a una única sesión de mesa");
 
     let sessionId: string;
-    if (sessionIds.length === 1) {
-      sessionId = sessionIds[0];
-    } else {
+    if (sessionIds.length === 1) sessionId = sessionIds[0];
+    else {
       const { data: activeSession, error: activeSessionError } = await supabaseAdmin.from("table_sessions").select("id, status, table_number").eq("restaurant_id", restaurant.id).eq("table_number", tableNumber).eq("status", "open").order("opened_at", { ascending: false }).limit(1).maybeSingle();
       if (activeSessionError) throw activeSessionError;
       if (!activeSession) throw new Error("No hay una sesión abierta para esta mesa");
@@ -88,7 +87,7 @@ export async function updateRestaurantOrderStatus(slug: string, orderId: string,
     revalidatePath(`/admin/${slug}/orders`, "page");
     revalidatePath(`/admin/${slug}/tables`, "page");
     revalidatePath(`/admin/${slug}/cash`, "page");
-    revalidatePath(`/admin/${slug}`, "page`);
+    revalidatePath(`/admin/${slug}`, "page");
     return { id: orderId, status: "completed" as OrderStatus, updatedCount: updatedOrders.length, paymentMethod: paymentMethodForInsert, total };
   }
 
