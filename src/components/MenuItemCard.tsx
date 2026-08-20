@@ -13,13 +13,16 @@ const CLOSED_MESSAGE = "La sesión ha finalizado. Lee de nuevo el QR de la mesa 
 
 export default function MenuItemCard({ item }: Props) {
   const [open, setOpen] = useState(false);
-  const { addItem } = useCart();
+  const { addItem, items: cartItems } = useCart();
   const { order } = useOrder();
   const { sessionToken, sessionError } = useTable();
   const { showToast } = useToast();
   const hasOptions = item.option_groups?.length > 0;
   const imageUrl = typeof item.image === "string" ? item.image.trim() : "";
   const sessionActive = Boolean(sessionToken);
+  const cartQuantity = cartItems
+    .filter((cartItem) => cartItem.productId === item.id)
+    .reduce((sum, cartItem) => sum + cartItem.quantity, 0);
 
   function handleAdd() {
     if (!sessionActive) {
@@ -59,7 +62,14 @@ export default function MenuItemCard({ item }: Props) {
                 <h3 className="text-lg font-bold tracking-tight text-white sm:text-xl">{item.name}</h3>
                 {item.description && <p className="mt-1.5 line-clamp-2 text-sm leading-5 text-zinc-400">{item.description}</p>}
               </div>
-              <div className="shrink-0 text-right"><div className="text-lg font-extrabold text-amber-500 sm:text-xl">{Number(item.prices?.[0]?.price ?? 0).toFixed(2)}€</div></div>
+              <div className="flex shrink-0 items-center gap-2 text-right">
+                {cartQuantity > 0 && (
+                  <span className="flex h-8 min-w-8 items-center justify-center rounded-full bg-red-600 px-2.5 text-sm font-black text-white shadow-lg shadow-red-900/30" aria-label={`${cartQuantity} en el carrito`}>
+                    {cartQuantity}
+                  </span>
+                )}
+                <div className="text-lg font-extrabold text-amber-500 sm:text-xl">{Number(item.prices?.[0]?.price ?? 0).toFixed(2)}€</div>
+              </div>
             </div>
 
             <button
