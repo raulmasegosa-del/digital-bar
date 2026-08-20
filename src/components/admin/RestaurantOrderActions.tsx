@@ -30,8 +30,13 @@ export default function RestaurantOrderActions({ slug, orderId, status, orderIds
   const hasOtherOrders = allIds.length > 1;
 
   function changeStatus(nextStatus: OrderStatus, paymentMethod?: PaymentMethod) {
+    // Los cambios de estado operativos afectan SOLO al pedido sobre cuya tarjeta
+    // ha pulsado el camarero. La agrupación por mesa se reserva exclusivamente
+    // para el cobro final de la mesa.
+    const idsToUpdate = nextStatus === "completed" ? allIds : [orderId];
+
     startTransition(async () => {
-      try { await updateRestaurantOrderStatus(slug, orderId, nextStatus, allIds, paymentMethod); setShowPayment(false); setShowConfirm(false); window.location.reload(); }
+      try { await updateRestaurantOrderStatus(slug, orderId, nextStatus, idsToUpdate, paymentMethod); setShowPayment(false); setShowConfirm(false); window.location.reload(); }
       catch (error) { window.alert(error instanceof Error ? error.message : "No se pudo actualizar el pedido"); }
     });
   }
