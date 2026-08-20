@@ -94,12 +94,16 @@ export async function resolveBillServiceCall(
     .eq("status", "open");
   if (sessionCloseError) throw sessionCloseError;
 
-  const { error: callsUpdateError } = await supabaseAdmin
+  // Closing the table ends the whole customer session. Any waiter/bill
+  // notifications still pending for this table must therefore disappear from
+  // the live service board so they can never leak into the next session.
+  const { error: pendingCallsError } = await supabaseAdmin
     .from("service_calls")
     .update({ status: "done" })
-    .in("id", calls.map((call) => call.id))
-    .eq("restaurant_id", restaurantId);
-  if (callsUpdateError) throw callsUpdateError;
+    .eq("restaurant_id", restaurantId)
+    .eq("table_number", tableNumber)
+    .eq("status", "pending");
+  if (pendingCallsError) throw pendingCallsError;
 
   return { tableNumber, total, paymentMethod, sessionId };
 }
