@@ -11,7 +11,8 @@ type PaymentMethod = "cash" | "card";
 
 export async function updateRestaurantOrderStatus(slug: string, orderId: string, status: OrderStatus, orderIds: string[] = [], paymentMethod?: PaymentMethod) {
   if (!allowedStatuses.includes(status)) throw new Error("Estado de pedido no válido");
-  if (status === "completed" && paymentMethod !== "cash" && paymentMethod !== "card") throw new Error("Debes indicar si el pago es en efectivo o con tarjeta");
+  const selectedPaymentMethod: PaymentMethod | undefined = paymentMethod === "cash" || paymentMethod === "card" ? paymentMethod : undefined;
+  if (status === "completed" && !selectedPaymentMethod) throw new Error("Debes indicar si el pago es en efectivo o con tarjeta");
 
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -27,6 +28,7 @@ export async function updateRestaurantOrderStatus(slug: string, orderId: string,
 
   const ids = Array.from(new Set([orderId, ...orderIds].filter(Boolean)));
   if (status === "completed") {
+    const paymentMethodForInsert = selectedPaymentMethod as PaymentMethod;
     const { data: ordersToClose, error: ordersError } = await supabaseAdmin.from("orders").select("id, total, table_number, session_id, status").in("id", ids).eq("restaurant_id", restaurant.id);
     if (ordersError) throw ordersError;
     if (!ordersToClose?.length) throw new Error("No se encontraron los pedidos para cobrar");
@@ -54,8 +56,6 @@ export async function updateRestaurantOrderStatus(slug: string, orderId: string,
     const total = ordersToClose.reduce((sum, order) => sum + Number(order.total ?? 0), 0);
     if (total <= 0) throw new Error("El importe a cobrar debe ser superior a 0 €");
 
-    // La caja es opcional para poder cerrar una mesa. Si existe una caja abierta,
-    // asociamos el pago a ella; si no existe, registramos igualmente el pago.
     const { data: cashRegister, error: cashError } = await supabaseAdmin.from("cash_registers").select("id").eq("restaurant_id", restaurant.id).is("closed_at", null).maybeSingle();
     if (cashError) throw cashError;
 
@@ -71,7 +71,7 @@ export async function updateRestaurantOrderStatus(slug: string, orderId: string,
       table_session_id: sessionId,
       table_number: session.table_number,
       amount: total,
-      payment_method: paymentMethod,
+      payment_method: paymentMethodForInsert,
     };
     if (cashRegister?.id) paymentPayload.cash_register_id = cashRegister.id;
 
@@ -88,8 +88,8 @@ export async function updateRestaurantOrderStatus(slug: string, orderId: string,
     revalidatePath(`/admin/${slug}/orders`, "page");
     revalidatePath(`/admin/${slug}/tables`, "page");
     revalidatePath(`/admin/${slug}/cash`, "page");
-    revalidatePath(`/admin/${slug}`, "page");
-    return { id: orderId, status: "completed" as OrderStatus, updatedCount: updatedOrders.length, paymentMethod, total };
+    revalidatePath(`/admin/${slug}`, "page`);
+    return { id: orderId, status: "completed" as OrderStatus, updatedCount: updatedOrders.length, paymentMethod: paymentMethodForInsert, total };
   }
 
   const { data: updatedOrders, error } = await supabaseAdmin.from("orders").update({ status }).in("id", ids).eq("restaurant_id", restaurant.id).select("id, status");
