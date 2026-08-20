@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useOrder } from "@/context/OrderContext";
 import { useTable } from "@/context/TableContext";
@@ -13,76 +13,61 @@ const CLOSED_MESSAGE = "La sesión ha finalizado. Lee de nuevo el QR de la mesa 
 
 export default function MenuItemCard({ item }: Props) {
   const [open, setOpen] = useState(false);
-  const { addItem, items: cartItems } = useCart();
+  const { addItem, items: cartItems, decreaseQuantity, increaseQuantity } = useCart();
   const { order } = useOrder();
   const { sessionToken, sessionError } = useTable();
   const { showToast } = useToast();
   const hasOptions = item.option_groups?.length > 0;
   const imageUrl = typeof item.image === "string" ? item.image.trim() : "";
   const sessionActive = Boolean(sessionToken);
-  const cartQuantity = cartItems
-    .filter((cartItem) => cartItem.productId === item.id)
-    .reduce((sum, cartItem) => sum + cartItem.quantity, 0);
+  const cartEntries = cartItems
+    .map((cartItem, index) => ({ cartItem, index }))
+    .filter(({ cartItem }) => cartItem.productId === item.id);
+  const cartQuantity = cartEntries.reduce((sum, { cartItem }) => sum + cartItem.quantity, 0);
 
   function handleAdd() {
     if (!sessionActive) {
       showToast(sessionError || CLOSED_MESSAGE);
       return;
     }
-
     if (hasOptions) {
       setOpen(true);
       return;
     }
-
-    addItem({
-      productId: item.id,
-      name: item.name,
-      price: Number(item.prices?.[0]?.price ?? 0),
-      quantity: 1,
-      options: [],
-    });
-
+    addItem({ productId: item.id, name: item.name, price: Number(item.prices?.[0]?.price ?? 0), quantity: 1, options: [] });
     showToast(`✅ ${item.name} añadido al carrito`);
+  }
+
+  function handleDecrease() {
+    if (!sessionActive || cartEntries.length === 0) return;
+    decreaseQuantity(cartEntries[cartEntries.length - 1].index);
+  }
+
+  function handleIncrease() {
+    if (!sessionActive || cartEntries.length === 0) return;
+    increaseQuantity(cartEntries[cartEntries.length - 1].index);
   }
 
   return (
     <>
       <article className="overflow-hidden rounded-2xl border border-zinc-800 bg-[#181716] shadow-sm transition-all duration-200 hover:border-zinc-700 hover:shadow-xl">
         <div className="flex min-h-32 items-stretch">
-          {imageUrl && (
-            <div className="w-28 shrink-0 self-stretch sm:w-36">
-              <img src={imageUrl} alt={item.name} loading="lazy" className="h-full w-full object-cover" />
-            </div>
-          )}
-
+          {imageUrl && <div className="w-28 shrink-0 self-stretch sm:w-36"><img src={imageUrl} alt={item.name} loading="lazy" className="h-full w-full object-cover" /></div>}
           <div className="flex min-w-0 flex-1 flex-col justify-between p-4 sm:p-5">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <h3 className="text-lg font-bold tracking-tight text-white sm:text-xl">{item.name}</h3>
                 {item.description && <p className="mt-1.5 line-clamp-2 text-sm leading-5 text-zinc-400">{item.description}</p>}
               </div>
-              <div className="flex shrink-0 items-center gap-2 text-right">
-                {cartQuantity > 0 && (
-                  <span className="flex h-8 min-w-8 items-center justify-center rounded-full bg-red-600 px-2.5 text-sm font-black text-white shadow-lg shadow-red-900/30" aria-label={`${cartQuantity} en el carrito`}>
-                    {cartQuantity}
-                  </span>
-                )}
+              <div className="flex shrink-0 flex-col items-end gap-1">
                 <div className="text-lg font-extrabold text-amber-500 sm:text-xl">{Number(item.prices?.[0]?.price ?? 0).toFixed(2)}€</div>
+                {cartQuantity > 0 && <div className="flex items-center gap-1.5"><button type="button" onClick={handleDecrease} aria-label={`Quitar una unidad de ${item.name}`} className="flex h-8 w-8 items-center justify-center rounded-full border border-red-500/50 bg-red-500/10 text-red-400 transition hover:bg-red-500/20"><Minus size={15} /></button><span className="flex h-8 min-w-8 items-center justify-center rounded-full bg-red-600 px-2 text-sm font-black text-white shadow-lg shadow-red-900/30">{cartQuantity}</span><button type="button" onClick={handleIncrease} aria-label={`Añadir una unidad de ${item.name}`} className="flex h-8 w-8 items-center justify-center rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-400 transition hover:bg-amber-500/20"><Plus size={15} /></button></div>}
               </div>
             </div>
-
-            <button
-              onClick={handleAdd}
-              className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500 px-4 py-2.5 font-semibold text-black transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Plus size={18} />
-              {sessionActive ? (order ? "Añadir al carrito" : "Añadir al pedido") : "Sesión finalizada — leer QR"}
-            </button>
+            <button onClick={handleAdd} className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500 px-4 py-2.5 font-semibold text-black transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"><Plus size={18} />{sessionActive ? (order ? "Añadir al carrito" : "Añadir al pedido") : "Sesión finalizada — leer QR"}</button>
           </div>
         </div>
       </article>
-
       {hasOptions && <ProductOptionsModal open={open} onClose={() => setOpen(false)} item={item} />}
     </>
   );
