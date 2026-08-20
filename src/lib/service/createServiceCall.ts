@@ -4,10 +4,12 @@ export async function createServiceCall({
   table,
   type,
   restaurantId,
+  description,
 }: {
   table: string;
   type: "waiter" | "bill";
   restaurantId: string;
+  description?: string;
 }) {
   const tableNumber = table.trim();
 
@@ -25,6 +27,7 @@ export async function createServiceCall({
       type,
       status: "pending",
       restaurant_id: restaurantId,
+      description: description?.trim() || null,
     });
 
   if (error) throw error;
