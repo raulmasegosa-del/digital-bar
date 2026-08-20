@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTable } from "@/context/TableContext";
+import { useOrder } from "@/context/OrderContext";
 import { useToast } from "@/context/ToastContext";
 import { createServiceCall } from "@/lib/db/restaurants/service/createServiceCall";
 
@@ -9,16 +10,20 @@ type Props = { restaurantId: string };
 
 export default function WaiterActions({ restaurantId }: Props) {
   const { table, sessionToken, sessionError } = useTable();
+  const { order } = useOrder();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showWaiterDialog, setShowWaiterDialog] = useState(false);
   const [description, setDescription] = useState("");
   const canCall = Boolean(table && sessionToken && restaurantId);
+  const canRequestBill = canCall && Boolean(order);
 
   async function sendCall(type: "waiter" | "bill", waiterDescription = "") {
     if (!table) return showToast("⚠️ No se ha detectado la mesa.");
     if (!sessionToken) return showToast(sessionError || "⚠️ La sesión de la mesa no está activa. Lee de nuevo el QR.");
     if (!restaurantId) return showToast("⚠️ No se ha identificado el restaurante.");
+    if (type === "bill" && !order) return showToast("⚠️ No hay ningún pedido en curso para solicitar la cuenta.");
+
     try {
       setLoading(true);
       await createServiceCall({ restaurantId, table, type, description: type === "waiter" ? waiterDescription : "" });
@@ -37,7 +42,7 @@ export default function WaiterActions({ restaurantId }: Props) {
     <>
       <div className="mb-8 grid grid-cols-2 gap-3">
         <button type="button" onClick={() => setShowWaiterDialog(true)} disabled={loading || !canCall} className="rounded-xl bg-sky-600 py-3 font-semibold text-white hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50">🙋 Llamar al camarero</button>
-        <button type="button" onClick={() => void sendCall("bill")} disabled={loading || !canCall} title={!canCall ? "Espera a que se abra la sesión de la mesa" : "Pedir la cuenta"} className="rounded-xl bg-emerald-600 py-3 font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">💶 Pedir la cuenta</button>
+        <button type="button" onClick={() => void sendCall("bill")} disabled={loading || !canRequestBill} title={!canRequestBill ? "Primero debes tener un pedido en curso" : "Pedir la cuenta"} className="rounded-xl bg-emerald-600 py-3 font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40">💶 Pedir la cuenta</button>
       </div>
       {showWaiterDialog && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
