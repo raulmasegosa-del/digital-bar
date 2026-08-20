@@ -21,7 +21,7 @@ export default function WaiterActions({ restaurantId }: Props) {
     if (!restaurantId) return showToast("⚠️ No se ha identificado el restaurante.");
     try {
       setLoading(true);
-      await createServiceCall({ table, type });
+      await createServiceCall({ restaurantId, table, type, description: type === "waiter" ? waiterDescription : "" });
       setDescription("");
       setShowWaiterDialog(false);
       showToast(type === "waiter" ? `🙋 Camarero avisado para la mesa ${table}` : `💶 Cuenta solicitada para la mesa ${table}`);
