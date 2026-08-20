@@ -4,11 +4,11 @@ import fs from "node:fs";
 /**
  * Transport boundary for the AEAT VERI*FACTU test service.
  *
- * This module deliberately does not contain credentials and does not submit
- * anything by itself. It prepares a SOAP 1.1 request and exposes a single
- * transport function so credentials can later be supplied as infrastructure
- * secrets (never committed to the repository).
+ * The endpoint is taken from AEAT's current test WSDL. Credentials are never
+ * committed and submission remains disabled until the certificate is supplied.
  */
+export const AEAT_TEST_VERIFACTU_ENDPOINT =
+  "https://prewww1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP";
 
 const SOAP_ENV = "http://schemas.xmlsoap.org/soap/envelope/";
 
@@ -26,36 +26,25 @@ export type AeatSubmissionResult = {
   body: string;
 };
 
-function escapeXml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&apos;");
-}
-
 export function buildSoap11Envelope(xmlBody: string) {
-  return `<?xml version="1.0" encoding="UTF-8"?>\n` +
+  return (
+    `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<soapenv:Envelope xmlns:soapenv="${SOAP_ENV}">` +
+    `<soapenv:Header/>` +
     `<soapenv:Body>${xmlBody}</soapenv:Body>` +
-    `</soapenv:Envelope>`;
+    `</soapenv:Envelope>`
+  );
 }
 
 /**
- * Build the VERI*FACTU RegistroFacturacion request wrapper.
- *
- * The exact operation/body namespace and inner RegistroAlta XML must be taken
- * from the current AEAT WSDL/XSD before enabling submission. Keeping this
- * function explicit avoids silently guessing the contract.
+ * Wraps the document/literal operation expected by the AEAT WSDL.
  */
 export function buildAeatRequestBody(args: {
   operationNamespace: string;
   operationName: string;
   registroFacturacionXml: string;
 }) {
-  const namespace = escapeXml(args.operationNamespace);
-  return `<v:${escapeXml(args.operationName)} xmlns:v="${namespace}">${args.registroFacturacionXml}</v:${escapeXml(args.operationName)}>`;
+  return `<v:${args.operationName} xmlns:v="${args.operationNamespace}">${args.registroFacturacionXml}</v:${args.operationName}>`;
 }
 
 export async function submitAeatTest(
@@ -91,11 +80,10 @@ export async function submitAeatTest(
         const chunks: Buffer[] = [];
         response.on("data", (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
         response.on("end", () => {
-          const responseBody = Buffer.concat(chunks).toString("utf8");
           resolve({
             httpStatus: response.statusCode ?? 0,
             contentType: response.headers["content-type"],
-            body: responseBody,
+            body: Buffer.concat(chunks).toString("utf8"),
           });
         });
       },
@@ -108,9 +96,6 @@ export async function submitAeatTest(
   });
 }
 
-/**
- * Validates the minimum infrastructure configuration without making a call.
- */
 export function validateAeatTestConfig(config: Partial<AeatTestClientConfig>) {
   const missing: string[] = [];
   if (!config.endpoint) missing.push("AEAT_TEST_ENDPOINT");
