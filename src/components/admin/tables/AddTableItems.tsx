@@ -29,9 +29,7 @@ export default function AddTableItems({
     return categories
       .map((category) => ({
         ...category,
-        items: category.items.filter((item) =>
-          item.name.toLocaleLowerCase("es").includes(term)
-        ),
+        items: category.items.filter((item) => item.name.toLocaleLowerCase("es").includes(term)),
       }))
       .filter((category) => category.items.length > 0);
   }, [categories, search]);
@@ -47,6 +45,7 @@ export default function AddTableItems({
   }
 
   function submit() {
+    if (!selected.length) return;
     startTransition(async () => {
       await addTableItems({
         slug,
@@ -69,13 +68,15 @@ export default function AddTableItems({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 className="text-xl font-semibold text-white">Añadir consumición</h2>
-          <p className="mt-1 text-sm text-zinc-500">Añade productos directamente a la cuenta de la mesa.</p>
+          <p className="mt-1 text-sm text-zinc-500">Selecciona los productos y confirma el pedido para enviarlo a Recibido.</p>
         </div>
-        {selected.length > 0 && (
-          <button onClick={submit} disabled={isPending} className="rounded-xl bg-amber-600 px-5 py-3 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-50">
-            {isPending ? "Añadiendo..." : `Añadir · ${total.toFixed(2)} €`}
-          </button>
-        )}
+        <button
+          onClick={submit}
+          disabled={isPending || selected.length === 0}
+          className="rounded-xl bg-amber-600 px-5 py-3 text-sm font-semibold text-white hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {isPending ? "Confirmando..." : `Confirmar Pedido${selected.length > 0 ? ` · ${total.toFixed(2)} €` : ""}`}
+        </button>
       </div>
 
       <div className="relative mt-5">
@@ -92,9 +93,7 @@ export default function AddTableItems({
 
       <div className="mt-6 space-y-7">
         {filteredCategories.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-zinc-800 px-5 py-10 text-center text-sm text-zinc-600">
-            No se ha encontrado ningún producto.
-          </div>
+          <div className="rounded-xl border border-dashed border-zinc-800 px-5 py-10 text-center text-sm text-zinc-600">No se ha encontrado ningún producto.</div>
         ) : filteredCategories.map((category) => (
           <div key={category.id}>
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-amber-500">{category.name}</h3>
@@ -109,9 +108,9 @@ export default function AddTableItems({
                       <p className="text-xs text-zinc-500">{price.toFixed(2)} €</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => change(item.id, -1)} disabled={!quantity} className="h-8 w-8 rounded-lg border border-zinc-700 text-zinc-300 disabled:opacity-30">−</button>
+                      <button onClick={() => change(item.id, -1)} disabled={!quantity || isPending} className="h-8 w-8 rounded-lg border border-zinc-700 text-zinc-300 disabled:opacity-30">−</button>
                       <span className="w-5 text-center text-sm text-white">{quantity}</span>
-                      <button onClick={() => change(item.id, 1)} className="h-8 w-8 rounded-lg bg-amber-600 text-white">+</button>
+                      <button onClick={() => change(item.id, 1)} disabled={isPending} className="h-8 w-8 rounded-lg bg-amber-600 text-white disabled:opacity-50">+</button>
                     </div>
                   </div>
                 );
