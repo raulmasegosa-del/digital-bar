@@ -7,7 +7,8 @@ type PaymentMethod = "cash" | "card";
 export async function resolveBillServiceCall(
   restaurantId: string,
   callIds: string[],
-  paymentMethod: PaymentMethod
+  paymentMethod: PaymentMethod,
+  confirmGrouped = false
 ) {
   if (!restaurantId || !callIds.length) throw new Error("Aviso de cuenta no identificado.");
   if (paymentMethod !== "cash" && paymentMethod !== "card") throw new Error("Método de pago no válido.");
@@ -58,6 +59,19 @@ export async function resolveBillServiceCall(
   if (ordersError) throw ordersError;
   if (!orders?.length) throw new Error("No hay pedidos pendientes para cobrar en esta mesa.");
 
+  const statusLabels: Record<string, string> = { pending: "Recibido", preparing: "Preparando", ready: "Listo", served: "Servido", bill: "Cuenta" };
+  const statuses = Array.from(new Set(orders.map((order) => order.status))).filter(Boolean);
+  if (statuses.length > 1 && !confirmGrouped) {
+    return {
+      requiresConfirmation: true as const,
+      tableNumber,
+      statuses: statuses.map((status) => statusLabels[status] ?? status),
+      orderCount: orders.length,
+      total: orders.reduce((sum, order) => sum + Number(order.total ?? 0), 0),
+      paymentMethod,
+    };
+  }
+
   const total = orders.reduce((sum, order) => sum + Number(order.total ?? 0), 0);
   if (total <= 0) throw new Error("El importe a cobrar debe ser superior a 0 €.");
 
@@ -101,5 +115,5 @@ export async function resolveBillServiceCall(
     .eq("restaurant_id", restaurantId);
   if (callsUpdateError) throw callsUpdateError;
 
-  return { tableNumber, total, paymentMethod, sessionId };
+  return { requiresConfirmation: false as const, tableNumber, total, paymentMethod, sessionId };
 }
