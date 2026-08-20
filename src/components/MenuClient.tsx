@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import SearchBar from "@/components/SearchBar";
 import CategoryNavigation from "@/components/CategoryNavigation";
@@ -32,6 +32,29 @@ export default function MenuClient({ menu }: Props) {
     0
   );
 
+  useEffect(() => {
+    if (search.trim() || filteredMenu.length === 0) return;
+
+    const handleScroll = () => {
+      const documentHeight = document.documentElement.scrollHeight;
+      const viewportBottom = window.scrollY + window.innerHeight;
+      const reachedEnd = viewportBottom >= documentHeight - 24;
+
+      if (!reachedEnd) return;
+
+      const firstCategory = document.getElementById(`menu-category-${filteredMenu[0].id}`);
+      if (!firstCategory) return;
+
+      window.scrollTo({
+        top: Math.max(0, firstCategory.offsetTop - 110),
+        behavior: "instant" as ScrollBehavior,
+      });
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [filteredMenu, search]);
+
   return (
     <>
       <div className="mb-5">
@@ -50,14 +73,18 @@ export default function MenuClient({ menu }: Props) {
         </p>
       )}
 
-      <div className="space-y-10">
+      <div className="space-y-12">
         {filteredMenu.map((category) => (
-          <section key={category.id} id={category.id} className="scroll-mt-28">
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <h2 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+          <section
+            key={category.id}
+            id={`menu-category-${category.id}`}
+            className="scroll-mt-28"
+          >
+            <div className="mb-5 border-b border-zinc-800/80 pb-4">
+              <h2 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
                 {category.icon} {category.name}
               </h2>
-              <span className="text-xs font-medium text-zinc-600">
+              <span className="mt-1 block text-xs font-medium uppercase tracking-[0.16em] text-zinc-600">
                 {category.items.length} {category.items.length === 1 ? "producto" : "productos"}
               </span>
             </div>
