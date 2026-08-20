@@ -27,8 +27,6 @@ export async function updateRestaurantOrderStatus(slug: string, orderId: string,
 
   const ids = Array.from(new Set([orderId, ...orderIds].filter(Boolean)));
   if (status === "completed") {
-    // Primero obtenemos la información de todos los pedidos seleccionados y validamos que
-    // pertenecen a una única mesa/sesión antes de modificar cualquier dato.
     const { data: ordersToClose, error: ordersError } = await supabaseAdmin.from("orders").select("id, total, table_number, session_id, status").in("id", ids).eq("restaurant_id", restaurant.id);
     if (ordersError) throw ordersError;
     if (!ordersToClose?.length) throw new Error("No se encontraron los pedidos para cobrar");
@@ -36,7 +34,6 @@ export async function updateRestaurantOrderStatus(slug: string, orderId: string,
     const tableNumbers = Array.from(new Set(ordersToClose.map((order) => String(order.table_number ?? "")).filter(Boolean)));
     if (tableNumbers.length !== 1) throw new Error("No se pueden cobrar juntas mesas diferentes");
     const tableNumber = tableNumbers[0];
-
     const sessionIds = Array.from(new Set(ordersToClose.map((order) => order.session_id).filter(Boolean))) as string[];
     if (sessionIds.length > 1) throw new Error("Los pedidos agrupados no pertenecen a una única sesión de mesa");
 
@@ -57,20 +54,28 @@ export async function updateRestaurantOrderStatus(slug: string, orderId: string,
     const total = ordersToClose.reduce((sum, order) => sum + Number(order.total ?? 0), 0);
     if (total <= 0) throw new Error("El importe a cobrar debe ser superior a 0 €");
 
+    // La caja es opcional para poder cerrar una mesa. Si existe una caja abierta,
+    // asociamos el pago a ella; si no existe, registramos igualmente el pago.
     const { data: cashRegister, error: cashError } = await supabaseAdmin.from("cash_registers").select("id").eq("restaurant_id", restaurant.id).is("closed_at", null).maybeSingle();
     if (cashError) throw cashError;
-    if (!cashRegister) throw new Error("No hay una caja abierta. Inicia la caja antes de cobrar mesas.");
 
     const { data: existingPayment, error: existingPaymentError } = await supabaseAdmin.from("payments").select("id").eq("table_session_id", sessionId).maybeSingle();
     if (existingPaymentError) throw existingPaymentError;
     if (existingPayment) throw new Error("Esta mesa ya tiene registrado un pago");
 
-    // Los pedidos sin sesión pueden existir por datos antiguos. En lugar de reasignarlos
-    // silenciosamente, se rechaza el cobro agrupado para evitar cerrar la sesión equivocada.
     const mismatchedSessionOrders = ordersToClose.filter((order) => order.session_id !== sessionId);
     if (mismatchedSessionOrders.length) throw new Error("Hay un pedido de esta mesa que pertenece a otra sesión. Actualiza la ventana de Pedidos y vuelve a cobrar.");
 
-    const { error: paymentError } = await supabaseAdmin.from("payments").insert({ restaurant_id: restaurant.id, table_session_id: sessionId, cash_register_id: cashRegister.id, table_number: session.table_number, amount: total, payment_method: paymentMethod });
+    const paymentPayload: { restaurant_id: string; table_session_id: string; cash_register_id?: string; table_number: string; amount: number; payment_method: PaymentMethod } = {
+      restaurant_id: restaurant.id,
+      table_session_id: sessionId,
+      table_number: session.table_number,
+      amount: total,
+      payment_method: paymentMethod,
+    };
+    if (cashRegister?.id) paymentPayload.cash_register_id = cashRegister.id;
+
+    const { error: paymentError } = await supabaseAdmin.from("payments").insert(paymentPayload);
     if (paymentError) throw paymentError;
 
     const { data: updatedOrders, error: updateError } = await supabaseAdmin.from("orders").update({ status: "completed" }).in("id", ids).eq("restaurant_id", restaurant.id).eq("session_id", sessionId).select("id, status");
