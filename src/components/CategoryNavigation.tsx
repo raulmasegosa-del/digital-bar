@@ -54,6 +54,11 @@ export default function CategoryNavigation({ categories }: Props) {
     const element = document.getElementById(sectionId(categoryId));
     if (!element) return;
 
+    // Tell the menu's infinite-scroll handler that this scroll was initiated
+    // by the category selector. Otherwise clicking the last category can reach
+    // the bottom and immediately wrap back to the first category.
+    window.dispatchEvent(new CustomEvent("digital-bar:category-navigation"));
+
     setActive(categoryId);
     const top = element.getBoundingClientRect().top + window.scrollY - 110;
     window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
