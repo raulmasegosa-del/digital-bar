@@ -8,7 +8,7 @@ type Props = { slug: string; orderId: string; status: OrderStatus; orderIds?: st
 type Action = { label: string; status: OrderStatus; tone: string };
 type PaymentMethod = "cash" | "card";
 
-const actionsByStatus: Partial<Record<OrderStatus, Action[]>> = {
+const statusActions: Partial<Record<OrderStatus, Action[]>> = {
   pending: [
     { label: "Preparando", status: "preparing", tone: "border-blue-500/30 bg-blue-500/10 text-blue-300 hover:border-blue-400/50 hover:bg-blue-500/15" },
     { label: "Listo", status: "ready", tone: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:border-emerald-400/50 hover:bg-emerald-500/15" },
@@ -17,17 +17,8 @@ const actionsByStatus: Partial<Record<OrderStatus, Action[]>> = {
   preparing: [
     { label: "Listo", status: "ready", tone: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:border-emerald-400/50 hover:bg-emerald-500/15" },
     { label: "Servido", status: "served", tone: "border-purple-500/30 bg-purple-500/10 text-purple-300 hover:border-purple-400/50 hover:bg-purple-500/15" },
-    { label: "Recibido", status: "pending", tone: "border-yellow-500/30 bg-yellow-500/10 text-yellow-300 hover:border-yellow-400/50 hover:bg-yellow-500/15" },
   ],
-  ready: [
-    { label: "Servido", status: "served", tone: "border-purple-500/30 bg-purple-500/10 text-purple-300 hover:border-purple-400/50 hover:bg-purple-500/15" },
-    { label: "Preparando", status: "preparing", tone: "border-blue-500/30 bg-blue-500/10 text-blue-300 hover:border-blue-400/50 hover:bg-blue-500/15" },
-  ],
-  served: [
-    { label: "Preparando", status: "preparing", tone: "border-blue-500/30 bg-blue-500/10 text-blue-300 hover:border-blue-400/50 hover:bg-blue-500/15" },
-    { label: "Recibido", status: "pending", tone: "border-yellow-500/30 bg-yellow-500/10 text-yellow-300 hover:border-yellow-400/50 hover:bg-yellow-500/15" },
-  ],
-  bill: [{ label: "Servido", status: "served", tone: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:border-emerald-400/50 hover:bg-emerald-500/15" }],
+  ready: [{ label: "Servido", status: "served", tone: "border-purple-500/30 bg-purple-500/10 text-purple-300 hover:border-purple-400/50 hover:bg-purple-500/15" }],
 };
 
 export default function RestaurantOrderActions({ slug, orderId, status, orderIds = [], total, tableOrderIds = [], tableTotal }: Props) {
@@ -40,19 +31,18 @@ export default function RestaurantOrderActions({ slug, orderId, status, orderIds
 
   function changeStatus(nextStatus: OrderStatus, paymentMethod?: PaymentMethod) {
     startTransition(async () => {
-      try {
-        await updateRestaurantOrderStatus(slug, orderId, nextStatus, allIds, paymentMethod);
-        setShowPayment(false); setShowConfirm(false); window.location.reload();
-      } catch (error) { window.alert(error instanceof Error ? error.message : "No se pudo actualizar el pedido"); }
+      try { await updateRestaurantOrderStatus(slug, orderId, nextStatus, allIds, paymentMethod); setShowPayment(false); setShowConfirm(false); window.location.reload(); }
+      catch (error) { window.alert(error instanceof Error ? error.message : "No se pudo actualizar el pedido"); }
     });
   }
   function startPayment() { if (hasOtherOrders) setShowConfirm(true); else setShowPayment(true); }
-  const actions = actionsByStatus[status] ?? [];
+  const actions = statusActions[status] ?? [];
   const isClosed = status === "completed" || status === "cancelled";
 
   return <>
-    <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
+    <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
       {!isClosed && actions.map((action) => <button key={action.status} type="button" disabled={isPending} onClick={() => changeStatus(action.status)} className={`min-h-10 rounded-lg border px-4 py-2.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${action.tone}`}>{isPending ? "Actualizando…" : action.label}</button>)}
+      {!isClosed && <span className="mx-1 hidden h-7 w-px bg-zinc-700 sm:block" aria-hidden="true" />}
       {!isClosed && <button type="button" disabled={isPending} onClick={startPayment} className="min-h-10 rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-5 py-2.5 text-xs font-bold text-emerald-200 transition hover:border-emerald-400/60 hover:bg-emerald-500/25 disabled:opacity-40">Pagado</button>}
       {!isClosed && <button type="button" disabled={isPending} onClick={() => changeStatus("cancelled")} className="min-h-10 rounded-lg border border-red-500/25 bg-red-500/5 px-4 py-2.5 text-xs font-semibold text-red-300 transition hover:border-red-400/40 hover:bg-red-500/10 disabled:opacity-40">Cancelar</button>}
     </div>
