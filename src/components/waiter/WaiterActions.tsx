@@ -38,8 +38,6 @@ export default function WaiterActions({ restaurantId }: Props) {
       await createServiceCall({
         table,
         type,
-        restaurantId,
-        description: type === "waiter" ? waiterDescription : undefined,
       });
       setDescription("");
       setShowWaiterDialog(false);
