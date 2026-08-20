@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import SearchBar from "@/components/SearchBar";
 import CategoryNavigation from "@/components/CategoryNavigation";
@@ -11,6 +11,7 @@ type Props = { menu: any[] };
 
 export default function MenuClient({ menu }: Props) {
   const [search, setSearch] = useState("");
+  const categoryNavigationUntil = useRef(0);
 
   const filteredMenu = useMemo(() => {
     if (!search.trim()) return menu;
@@ -35,12 +36,18 @@ export default function MenuClient({ menu }: Props) {
   useEffect(() => {
     if (search.trim() || filteredMenu.length === 0) return;
 
+    const markCategoryNavigation = () => {
+      // Keep the infinite-scroll wrap disabled while a category button is
+      // performing its smooth scroll, especially for the last category.
+      categoryNavigationUntil.current = Date.now() + 1200;
+    };
+
     const handleScroll = () => {
       const documentHeight = document.documentElement.scrollHeight;
       const viewportBottom = window.scrollY + window.innerHeight;
       const reachedEnd = viewportBottom >= documentHeight - 24;
 
-      if (!reachedEnd) return;
+      if (!reachedEnd || Date.now() < categoryNavigationUntil.current) return;
 
       const firstCategory = document.getElementById(`menu-category-${filteredMenu[0].id}`);
       if (!firstCategory) return;
@@ -51,8 +58,13 @@ export default function MenuClient({ menu }: Props) {
       });
     };
 
+    window.addEventListener("digital-bar:category-navigation", markCategoryNavigation);
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("digital-bar:category-navigation", markCategoryNavigation);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, [filteredMenu, search]);
 
   return (
