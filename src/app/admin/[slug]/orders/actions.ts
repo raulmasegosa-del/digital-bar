@@ -27,6 +27,8 @@ export async function updateRestaurantOrderStatus(slug: string, orderId: string,
 
   const ids = Array.from(new Set([orderId, ...orderIds].filter(Boolean)));
   if (status === "completed") {
+    // Primero obtenemos la información de todos los pedidos seleccionados y validamos que
+    // pertenecen a una única mesa/sesión antes de modificar cualquier dato.
     const { data: ordersToClose, error: ordersError } = await supabaseAdmin.from("orders").select("id, total, table_number, session_id, status").in("id", ids).eq("restaurant_id", restaurant.id);
     if (ordersError) throw ordersError;
     if (!ordersToClose?.length) throw new Error("No se encontraron los pedidos para cobrar");
@@ -48,13 +50,6 @@ export async function updateRestaurantOrderStatus(slug: string, orderId: string,
       sessionId = activeSession.id;
     }
 
-    // Todos los pedidos que se cobran deben quedar vinculados a la sesión que estamos cerrando.
-    const ordersNeedingSession = ordersToClose.filter((order) => order.session_id !== sessionId).map((order) => order.id);
-    if (ordersNeedingSession.length) {
-      const { error: attachError } = await supabaseAdmin.from("orders").update({ session_id: sessionId }).in("id", ordersNeedingSession).eq("restaurant_id", restaurant.id);
-      if (attachError) throw attachError;
-    }
-
     const { data: session, error: sessionError } = await supabaseAdmin.from("table_sessions").select("id, status, table_number").eq("id", sessionId).eq("restaurant_id", restaurant.id).maybeSingle();
     if (sessionError) throw sessionError;
     if (!session || session.status !== "open") throw new Error("La sesión de esta mesa ya está cerrada");
@@ -70,12 +65,17 @@ export async function updateRestaurantOrderStatus(slug: string, orderId: string,
     if (existingPaymentError) throw existingPaymentError;
     if (existingPayment) throw new Error("Esta mesa ya tiene registrado un pago");
 
+    // Los pedidos sin sesión pueden existir por datos antiguos. En lugar de reasignarlos
+    // silenciosamente, se rechaza el cobro agrupado para evitar cerrar la sesión equivocada.
+    const mismatchedSessionOrders = ordersToClose.filter((order) => order.session_id !== sessionId);
+    if (mismatchedSessionOrders.length) throw new Error("Hay un pedido de esta mesa que pertenece a otra sesión. Actualiza la ventana de Pedidos y vuelve a cobrar.");
+
     const { error: paymentError } = await supabaseAdmin.from("payments").insert({ restaurant_id: restaurant.id, table_session_id: sessionId, cash_register_id: cashRegister.id, table_number: session.table_number, amount: total, payment_method: paymentMethod });
     if (paymentError) throw paymentError;
 
-    const { data: updatedOrders, error: updateError } = await supabaseAdmin.from("orders").update({ status: "completed" }).in("id", ids).eq("restaurant_id", restaurant.id).select("id, status");
+    const { data: updatedOrders, error: updateError } = await supabaseAdmin.from("orders").update({ status: "completed" }).in("id", ids).eq("restaurant_id", restaurant.id).eq("session_id", sessionId).select("id, status");
     if (updateError) throw updateError;
-    if (!updatedOrders?.length) throw new Error("No se pudieron cerrar los pedidos");
+    if (updatedOrders.length !== ids.length) throw new Error("No se pudieron cerrar todos los pedidos de la sesión");
 
     const { error: closeError } = await supabaseAdmin.from("table_sessions").update({ status: "closed", closed_at: new Date().toISOString() }).eq("id", sessionId).eq("restaurant_id", restaurant.id).eq("status", "open");
     if (closeError) throw closeError;
