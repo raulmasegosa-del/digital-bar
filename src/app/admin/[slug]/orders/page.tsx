@@ -19,12 +19,31 @@ function sortByCreatedAt(orders: DisplayOrder[]) { return [...orders].sort((a, b
 function groupServedByTable(orders: Order[]): DisplayOrder[] { const grouped = new Map<string, DisplayOrder>(); for (const order of sortByCreatedAt(orders)) { const existing = grouped.get(order.table_number); if (!existing) { grouped.set(order.table_number, { ...order, sourceOrderIds: [order.id] }); continue; } existing.sourceOrderIds = [...(existing.sourceOrderIds ?? [existing.id]), order.id]; existing.order_items = [...existing.order_items, ...order.order_items]; existing.total += Number(order.total); existing.notes = [existing.notes, order.notes].filter(Boolean).join("\n"); existing.created_at = order.created_at; existing.status = order.status; } return sortByCreatedAt(Array.from(grouped.values())); }
 
 export default async function OrdersPage({ params }: Props) {
-  const { slug } = await params; const supabase = await createSupabaseServerClient(); const { data: { user } } = await supabase.auth.getUser(); if (!user) notFound(); const restaurant = await getRestaurant(slug); if (!restaurant) notFound(); const superAdmin = await isSuperAdmin(user.id);
-  if (!superAdmin) { const { data: membership, error } = await supabase.from("restaurant_users").select("restaurant_id, role").eq("user_id", user.id).eq("restaurant_id", restaurant.id).in("role", ["owner", "staff"]).maybeSingle(); if (error) throw error; if (!membership) notFound(); }
-  const orders = await getRestaurantOrders(restaurant.id); const received = orders.filter((o) => o.status === "pending"); const preparing = orders.filter((o) => o.status === "preparing" || o.status === "ready"); const served = groupServedByTable(orders.filter((o) => o.status === "served" || o.status === "bill")); const historical = orders.filter((o) => o.status === "completed" || o.status === "cancelled");
+  const { slug } = await params;
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) notFound();
+  const restaurant = await getRestaurant(slug);
+  if (!restaurant) notFound();
+  const superAdmin = await isSuperAdmin(user.id);
+  if (!superAdmin) {
+    const { data: membership, error } = await supabase.from("restaurant_users").select("restaurant_id, role").eq("user_id", user.id).eq("restaurant_id", restaurant.id).in("role", ["owner", "staff"]).maybeSingle();
+    if (error) throw error;
+    if (!membership) notFound();
+  }
+  const orders = await getRestaurantOrders(restaurant.id);
+  const received = orders.filter((o) => o.status === "pending");
+  const preparing = orders.filter((o) => o.status === "preparing" || o.status === "ready");
+  const served = groupServedByTable(orders.filter((o) => o.status === "served" || o.status === "bill"));
+  const historical = orders.filter((o) => o.status === "completed" || o.status === "cancelled");
   const activeForPayment = orders.filter((o) => ["pending", "preparing", "ready", "served", "bill"].includes(o.status));
   const tableGroups = new Map<string, { ids: string[]; total: number }>();
-  for (const order of activeForPayment) { const g = tableGroups.get(order.table_number) ?? { ids: [], total: 0 }; g.ids.push(order.id); g.total += Number(order.total ?? 0); tableGroups.set(order.table_number, g); }
+  for (const order of activeForPayment) {
+    const g = tableGroups.get(order.table_number) ?? { ids: [], total: 0 };
+    g.ids.push(order.id);
+    g.total += Number(order.total ?? 0);
+    tableGroups.set(order.table_number, g);
+  }
   const sections: OrderSection[] = [
     { key: "received", title: "Recibido", description: "Pedidos nuevos", orders: sortByCreatedAt(received), accent: "border-yellow-500/30 bg-yellow-500/[0.055]", dot: "bg-yellow-400" },
     { key: "preparing", title: "Preparando", description: "En cocina o listos", orders: sortByCreatedAt(preparing), accent: "border-blue-500/30 bg-blue-500/[0.055]", dot: "bg-blue-400" },
@@ -35,7 +54,56 @@ export default async function OrdersPage({ params }: Props) {
 }
 
 function OrderCard({ order, slug, restaurantName, compact = false, alternate = false, tableGroup }: { order: DisplayOrder; slug: string; restaurantName: string; compact?: boolean; alternate?: boolean; tableGroup?: { ids: string[]; total: number } }) {
-  const itemCount = order.order_items.reduce((sum, item) => sum + item.quantity, 0); const cardTone = alternate ? "border-orange-400/35 bg-orange-500/[0.10]" : "border-zinc-600/80 bg-[#292724]"; const headerTone = alternate ? "border-orange-400/25 bg-orange-500/[0.075]" : "border-zinc-600/80 bg-[#322f2b]"; const itemTone = alternate ? "border-orange-400/20 bg-orange-500/[0.055]" : "border-zinc-600/70 bg-[#37332f]";
-  const showTimer = order.status === "pending" || order.status === "preparing" || order.status === "ready";
-  return <article className={`overflow-hidden rounded-2xl border shadow-[0_12px_30px_rgba(0,0,0,0.28)] ring-1 ring-black/20 ${cardTone}`}><div className={`border-b px-4 py-3.5 sm:px-5 ${headerTone}`}><div className="flex items-center justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><div className="flex h-14 min-w-[92px] items-center justify-center gap-1.5 rounded-xl border-2 border-amber-400/50 bg-amber-400/10 px-3 shadow-inner shadow-amber-500/10"><span className="text-[9px] font-bold uppercase tracking-[0.18em] text-amber-400">Mesa</span><span className="text-3xl font-black leading-none tracking-tight text-white">{order.table_number}</span></div><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">{order.sourceOrderIds && order.sourceOrderIds.length > 1 ? `${order.sourceOrderIds.length} pedidos agrupados` : "Pedido"}</p><p className="mt-0.5 truncate text-xs text-zinc-400">{order.sourceOrderIds && order.sourceOrderIds.length > 1 ? "Todo lo servido de esta mesa" : `#${order.id.slice(0, 8)} · ${new Date(order.created_at).toLocaleString("es-ES")}`}</p></div></div><div className="flex shrink-0 flex-col items-end gap-1.5"><span className={`rounded-full border px-3 py-1.5 text-[11px] font-bold ${statusClasses[order.status]}`}>{statusLabels[order.status]}</span>{showTimer && <OrderElapsedTime createdAt={order.created_at} />}</div></div></div><div className="p-4 sm:p-5"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Artículos</p><p className="mt-1 text-base font-semibold text-zinc-100">{itemCount}</p></div><div className="text-left sm:text-right"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Total</p><p className="mt-0.5 text-3xl font-black tracking-tight text-white">{order.total.toFixed(2)} €</p></div></div>{!compact && <><div className="my-4 h-px bg-zinc-600/70" /><div className="grid gap-2.5 sm:grid-cols-2">{order.order_items.map((item) => <div key={item.id} className={`rounded-lg border px-3.5 py-3 ${itemTone}`}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-sm font-semibold text-white">{item.quantity} × {item.name}</p>{item.options.length > 0 && <p className="mt-1 text-xs leading-5 text-zinc-400">{item.options.map((option) => option.optionName).join(" · ")}</p>}</div><span className="shrink-0 text-xs font-medium text-zinc-300">{(item.price * item.quantity).toFixed(2)} €</span></div></div>)}</div>{order.notes && <div className="mt-3 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3.5 py-2.5"><p className="text-[10px] font-bold uppercase tracking-wider text-amber-400">Nota</p><p className="mt-1 text-sm text-zinc-200">{order.notes}</p></div></>}{!compact && <div className="mt-4 flex flex-col gap-3 border-t border-zinc-600/70 pt-4 sm:flex-row sm:items-center sm:justify-between"><p className="text-[10px] text-zinc-500">Pedido de {restaurantName}</p><RestaurantOrderActions slug={slug} orderId={order.id} orderIds={order.sourceOrderIds ?? []} status={order.status} total={order.total} tableOrderIds={tableGroup?.ids} tableTotal={tableGroup?.total} /></div>}</div></article>;
+  const itemCount = order.order_items.reduce((sum, item) => sum + item.quantity, 0);
+  const cardTone = alternate ? "border-orange-400/35 bg-orange-500/[0.10]" : "border-zinc-600/80 bg-[#292724]";
+  const headerTone = alternate ? "border-orange-400/25 bg-orange-500/[0.075]" : "border-zinc-600/80 bg-[#322f2b]";
+  const itemTone = alternate ? "border-orange-400/20 bg-orange-500/[0.055]" : "border-zinc-600/70 bg-[#37332f]";
+  const showTimer = order.status === "pending" || order.status === "preparing";
+
+  return (
+    <article className={`overflow-hidden rounded-2xl border shadow-[0_12px_30px_rgba(0,0,0,0.28)] ring-1 ring-black/20 ${cardTone}`}>
+      <div className={`border-b px-4 py-3.5 sm:px-5 ${headerTone}`}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-14 min-w-[92px] items-center justify-center gap-1.5 rounded-xl border-2 border-amber-400/50 bg-amber-400/10 px-3 shadow-inner shadow-amber-500/10">
+              <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-amber-400">Mesa</span>
+              <span className="text-3xl font-black leading-none tracking-tight text-white">{order.table_number}</span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">{order.sourceOrderIds && order.sourceOrderIds.length > 1 ? `${order.sourceOrderIds.length} pedidos agrupados` : "Pedido"}</p>
+              <p className="mt-0.5 truncate text-xs text-zinc-400">{order.sourceOrderIds && order.sourceOrderIds.length > 1 ? "Todo lo servido de esta mesa" : `#${order.id.slice(0, 8)} · ${new Date(order.created_at).toLocaleString("es-ES")}`}</p>
+            </div>
+          </div>
+          <div className="flex shrink-0 flex-col items-end gap-1.5">
+            <span className={`rounded-full border px-3 py-1.5 text-[11px] font-bold ${statusClasses[order.status]}`}>{statusLabels[order.status]}</span>
+            {showTimer && <OrderElapsedTime createdAt={order.created_at} />}
+          </div>
+        </div>
+      </div>
+      <div className="p-4 sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Artículos</p><p className="mt-1 text-base font-semibold text-zinc-100">{itemCount}</p></div>
+          <div className="text-left sm:text-right"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-500">Total</p><p className="mt-0.5 text-3xl font-black tracking-tight text-white">{order.total.toFixed(2)} €</p></div>
+        </div>
+        {!compact && <>
+          <div className="my-4 h-px bg-zinc-600/70" />
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {order.order_items.map((item) => (
+              <div key={item.id} className={`rounded-lg border px-3.5 py-3 ${itemTone}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-white">{item.quantity} × {item.name}</p>
+                    {item.options.length > 0 && <p className="mt-1 text-xs leading-5 text-zinc-400">{item.options.map((option) => option.optionName).join(" · ")}</p>}
+                  </div>
+                  <span className="shrink-0 text-xs font-medium text-zinc-300">{(item.price * item.quantity).toFixed(2)} €</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          {order.notes && <div className="mt-3 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3.5 py-2.5"><p className="text-[10px] font-bold uppercase tracking-wider text-amber-400">Nota</p><p className="mt-1 text-sm text-zinc-200">{order.notes}</p></div>}
+        </>}
+        {!compact && <div className="mt-4 flex flex-col gap-3 border-t border-zinc-600/70 pt-4 sm:flex-row sm:items-center sm:justify-between"><p className="text-[10px] text-zinc-500">Pedido de {restaurantName}</p><RestaurantOrderActions slug={slug} orderId={order.id} orderIds={order.sourceOrderIds ?? []} status={order.status} total={order.total} tableOrderIds={tableGroup?.ids} tableTotal={tableGroup?.total} /></div>}
+      </div>
+    </article>
+  );
 }
