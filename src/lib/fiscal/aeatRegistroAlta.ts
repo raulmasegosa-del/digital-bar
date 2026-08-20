@@ -58,7 +58,7 @@ function tag(name: string, value: string) {
 }
 
 function money(value: number) {
-  return String(value);
+  return value.toFixed(2);
 }
 
 function dateDDMMYYYY(value: string) {
@@ -71,33 +71,46 @@ function boolFlag(value: boolean) {
   return value ? "S" : "N";
 }
 
-/**
- * Serializes the current AEAT 1.0 RegistroAlta contract documented by AEAT.
- * This is deliberately a pure function: it does not send anything to AEAT.
- */
-export function buildRegistroAltaXml(input: AeatAltaInput) {
-  const breakdown = input.taxBreakdown
-    .map(
-      (row) =>
+function buildDesglose(input: AeatAltaInput) {
+  if (!input.taxBreakdown.length) throw new Error("AEAT exige al menos un DetalleDesglose");
+
+  return input.taxBreakdown
+    .map((row) => {
+      const qualification = row.qualification;
+      if (!["S1", "S2", "N1", "N2"].includes(qualification)) {
+        throw new Error(`CalificacionOperacion AEAT no válida: ${qualification}`);
+      }
+      if (row.rate < 0 || row.rate > 999) throw new Error("TipoImpositivo AEAT no válido");
+      return (
         `<sum1:DetalleDesglose>` +
         tag("ClaveRegimen", row.regime) +
-        tag("CalificacionOperacion", row.qualification) +
+        tag("CalificacionOperacion", qualification) +
         tag("TipoImpositivo", money(row.rate)) +
         tag("BaseImponibleOimporteNoSujeto", money(row.base)) +
         tag("CuotaRepercutida", money(row.tax)) +
-        `</sum1:DetalleDesglose>`,
-    )
+        `</sum1:DetalleDesglose>`
+      );
+    })
     .join("");
+}
 
-  const previous = input.previous
-    ? `<sum1:RegistroAnterior>` +
-      tag("IDEmisorFactura", input.previous.issuerNif) +
-      tag("NumSerieFactura", input.previous.invoiceNumber) +
-      tag("FechaExpedicionFactura", dateDDMMYYYY(input.previous.issueDate)) +
-      tag("Huella", input.previous.hash) +
-      `</sum1:RegistroAnterior>`
-    : `<sum1:PrimerRegistro>S</sum1:PrimerRegistro>`;
+function buildEncadenamiento(input: AeatAltaInput) {
+  if (!input.previous) return `<sum1:PrimerRegistro>S</sum1:PrimerRegistro>`;
+  return (
+    `<sum1:RegistroAnterior>` +
+    tag("IDEmisorFactura", input.previous.issuerNif) +
+    tag("NumSerieFactura", input.previous.invoiceNumber) +
+    tag("FechaExpedicionFactura", dateDDMMYYYY(input.previous.issueDate)) +
+    tag("Huella", input.previous.hash) +
+    `</sum1:RegistroAnterior>`
+  );
+}
 
+/**
+ * Serializes only the document payload expected by the AEAT WSDL operation
+ * RegFactuSistemaFacturacion. It deliberately does not send anything.
+ */
+export function buildRegistroAltaBodyXml(input: AeatAltaInput) {
   const registro =
     `<sum1:RegistroAlta>` +
     tag("IDVersion", "1.0") +
@@ -109,10 +122,10 @@ export function buildRegistroAltaXml(input: AeatAltaInput) {
     tag("NombreRazonEmisor", input.issuerName) +
     tag("TipoFactura", input.invoiceType) +
     tag("DescripcionOperacion", input.operationDescription) +
-    `<sum1:Desglose>${breakdown}</sum1:Desglose>` +
+    `<sum1:Desglose>${buildDesglose(input)}</sum1:Desglose>` +
     tag("CuotaTotal", money(input.totalTax)) +
     tag("ImporteTotal", money(input.totalAmount)) +
-    `<sum1:Encadenamiento>${previous}</sum1:Encadenamiento>` +
+    `<sum1:Encadenamiento>${buildEncadenamiento(input)}</sum1:Encadenamiento>` +
     `<sum1:SistemaInformatico>` +
     tag("NombreRazon", input.sif.producerName) +
     tag("NIF", input.sif.producerNif) +
@@ -130,17 +143,26 @@ export function buildRegistroAltaXml(input: AeatAltaInput) {
     `</sum1:RegistroAlta>`;
 
   return (
-    `<?xml version="1.0" encoding="UTF-8"?>` +
-    `<soapenv:Envelope xmlns:soapenv="${SOAP_ENV_NS}" xmlns:sum="${SUM_NS}" xmlns:sum1="${SUM1_NS}">` +
-    `<soapenv:Header/>` +
-    `<soapenv:Body>` +
-    `<sum:RegFactuSistemaFacturacion>` +
+    `<sum:RegFactuSistemaFacturacion xmlns:sum="${SUM_NS}" xmlns:sum1="${SUM1_NS}">` +
     `<sum:Cabecera><sum1:ObligadoEmision>` +
     tag("NombreRazon", input.issuerName) +
     tag("NIF", input.issuerNif) +
     `</sum1:ObligadoEmision></sum:Cabecera>` +
     `<sum:RegistroFactura>${registro}</sum:RegistroFactura>` +
-    `</sum:RegFactuSistemaFacturacion>` +
+    `</sum:RegFactuSistemaFacturacion>`
+  );
+}
+
+/**
+ * Full SOAP 1.1 envelope, useful for inspection and test snapshots.
+ */
+export function buildRegistroAltaXml(input: AeatAltaInput) {
+  return (
+    `<?xml version="1.0" encoding="UTF-8"?>` +
+    `<soapenv:Envelope xmlns:soapenv="${SOAP_ENV_NS}">` +
+    `<soapenv:Header/>` +
+    `<soapenv:Body>` +
+    buildRegistroAltaBodyXml(input) +
     `</soapenv:Body>` +
     `</soapenv:Envelope>`
   );
