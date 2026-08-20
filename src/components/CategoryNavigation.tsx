@@ -12,28 +12,36 @@ type Props = {
   categories: Category[];
 };
 
-export default function CategoryNavigation({
-  categories,
-}: Props) {
+function sectionId(categoryId: string) {
+  return `menu-category-${categoryId}`;
+}
+
+export default function CategoryNavigation({ categories }: Props) {
   const [active, setActive] = useState(categories[0]?.id);
 
   useEffect(() => {
+    setActive(categories[0]?.id);
+
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActive(entry.target.id);
-          }
-        });
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+        const firstVisible = visible[0];
+        if (firstVisible) {
+          const categoryId = firstVisible.target.id.replace(/^menu-category-/, "");
+          setActive(categoryId);
+        }
       },
       {
-        rootMargin: "-40% 0px -50% 0px",
+        rootMargin: "-25% 0px -60% 0px",
         threshold: 0,
       }
     );
 
     categories.forEach((category) => {
-      const element = document.getElementById(category.id);
+      const element = document.getElementById(sectionId(category.id));
       if (element) observer.observe(element);
     });
 
@@ -41,6 +49,15 @@ export default function CategoryNavigation({
   }, [categories]);
 
   if (!categories.length) return null;
+
+  function goToCategory(categoryId: string) {
+    const element = document.getElementById(sectionId(categoryId));
+    if (!element) return;
+
+    setActive(categoryId);
+    const top = element.getBoundingClientRect().top + window.scrollY - 110;
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+  }
 
   return (
     <nav className="sticky top-0 z-30 mb-8 border-y border-white/10 bg-[#151515]/95 py-3 backdrop-blur-md">
@@ -52,9 +69,10 @@ export default function CategoryNavigation({
           const isActive = active === category.id;
 
           return (
-            <a
+            <button
               key={category.id}
-              href={`#${category.id}`}
+              type="button"
+              onClick={() => goToCategory(category.id)}
               aria-current={isActive ? "location" : undefined}
               className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
                 isActive
@@ -68,7 +86,7 @@ export default function CategoryNavigation({
                 </span>
               )}
               {category.name}
-            </a>
+            </button>
           );
         })}
       </div>
