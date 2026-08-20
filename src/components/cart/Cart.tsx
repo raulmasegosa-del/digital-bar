@@ -6,6 +6,7 @@ import { useCart } from "@/context/CartContext";
 import { useTable } from "@/context/TableContext";
 import { useOrder } from "@/context/OrderContext";
 import { createOrder } from "@/lib/orders/createOrder";
+import CustomerOrderHistory from "@/components/cart/CustomerOrderHistory";
 
 type Props = { open: boolean; onClose: () => void; restaurantId: string };
 
@@ -15,8 +16,10 @@ export default function Cart({ open, onClose, restaurantId }: Props) {
   const { order: currentOrder, setOrder } = useOrder();
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const [showHistory, setShowHistory] = useState(false);
 
   if (!open) return null;
+  if (showHistory) return <CustomerOrderHistory restaurantId={restaurantId} onBack={() => setShowHistory(false)} />;
 
   async function sendOrder() {
     if (!items.length) return;
@@ -44,7 +47,7 @@ export default function Cart({ open, onClose, restaurantId }: Props) {
         </header>
 
         <div className="flex-1 overflow-y-auto p-5">
-          <button type="button" onClick={() => alert("La vista de todos tus pedidos estará disponible en breve.")} className="mb-5 flex w-full items-center justify-between rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-left transition hover:bg-amber-500/15">
+          <button type="button" onClick={() => setShowHistory(true)} className="mb-5 flex w-full items-center justify-between rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-left transition hover:bg-amber-500/15">
             <div><p className="text-xs font-medium uppercase tracking-[0.16em] text-amber-500">Historial</p><p className="mt-1 text-base font-bold text-white">Ver todos mis Pedidos</p></div>
             <ClipboardList size={24} className="text-amber-400" />
           </button>
