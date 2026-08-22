@@ -15,9 +15,6 @@ export async function createServiceCall({
 
   const cleanDescription = description.trim();
 
-  // Las nuevas peticiones del camarero se acumulan en un único aviso pendiente
-  // de la mesa, separando cada nota en un párrafo. Una petición sin texto sigue
-  // funcionando y no borra las notas anteriores.
   if (type === "waiter") {
     const { data: existing, error: existingError } = await supabase
       .from("service_calls")
