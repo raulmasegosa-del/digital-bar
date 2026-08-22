@@ -14,7 +14,8 @@ const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ??
   "https://digital-bar-orpin.vercel.app";
 
-const LOGO_URL = `${APP_URL}/brand/digital-bar-logo.png`;
+const LOGO_URL =
+  "https://raw.githubusercontent.com/raulmasegosa-del/digital-bar/main/brand/digital-bar-logo.png";
 
 export default function QRCard({
   slug,
