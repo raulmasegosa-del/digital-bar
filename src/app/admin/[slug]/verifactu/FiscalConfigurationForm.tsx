@@ -28,23 +28,23 @@ export default function FiscalConfigurationForm({ slug, initial }: Props) {
       <div className="grid gap-4 md:grid-cols-2">
         <label className="space-y-1">
           <span className="text-sm font-medium">Razón social / nombre fiscal</span>
-          <input name="fiscalName" defaultValue={initial.fiscalName} required className="w-full rounded-lg border px-3 py-2" />
+          <input name="fiscalName" defaultValue={initial.fiscalName} placeholder="Ej.: Restaurante El Tapeo, S.L." required className="w-full rounded-lg border px-3 py-2" />
         </label>
         <label className="space-y-1">
           <span className="text-sm font-medium">NIF</span>
-          <input name="fiscalNif" defaultValue={initial.fiscalNif} required className="w-full rounded-lg border px-3 py-2 uppercase" />
+          <input name="fiscalNif" defaultValue={initial.fiscalNif} placeholder="Ej.: B12345678" required className="w-full rounded-lg border px-3 py-2 uppercase" />
         </label>
         <label className="space-y-1 md:col-span-2">
           <span className="text-sm font-medium">Domicilio fiscal</span>
-          <input name="fiscalAddress" defaultValue={initial.fiscalAddress} required className="w-full rounded-lg border px-3 py-2" />
+          <input name="fiscalAddress" defaultValue={initial.fiscalAddress} placeholder="Ej.: Calle Mayor, 25, 1º" required className="w-full rounded-lg border px-3 py-2" />
         </label>
         <label className="space-y-1">
           <span className="text-sm font-medium">Código postal</span>
-          <input name="fiscalPostalCode" defaultValue={initial.fiscalPostalCode} className="w-full rounded-lg border px-3 py-2" />
+          <input name="fiscalPostalCode" defaultValue={initial.fiscalPostalCode} placeholder="Ej.: 28001" className="w-full rounded-lg border px-3 py-2" />
         </label>
         <label className="space-y-1">
           <span className="text-sm font-medium">Ciudad</span>
-          <input name="fiscalCity" defaultValue={initial.fiscalCity} className="w-full rounded-lg border px-3 py-2" />
+          <input name="fiscalCity" defaultValue={initial.fiscalCity} placeholder="Ej.: Madrid" className="w-full rounded-lg border px-3 py-2" />
         </label>
       </div>
 
@@ -58,11 +58,11 @@ export default function FiscalConfigurationForm({ slug, initial }: Props) {
         <div className="grid gap-4 md:grid-cols-2">
           <label className="space-y-1">
             <span className="text-sm font-medium">Serie</span>
-            <input name="testSeries" defaultValue={initial.testSeries} placeholder="T" maxLength={20} className="w-full rounded-lg border bg-white px-3 py-2 uppercase" />
+            <input name="testSeries" defaultValue={initial.testSeries} placeholder="Ej.: T" maxLength={20} className="w-full rounded-lg border bg-white px-3 py-2 uppercase" />
           </label>
           <label className="space-y-1">
             <span className="text-sm font-medium">Próximo número</span>
-            <input name="testNextNumber" type="number" min={1} defaultValue={initial.testNextNumber ?? ""} placeholder="1" className="w-full rounded-lg border bg-white px-3 py-2" />
+            <input name="testNextNumber" type="number" min={1} defaultValue={initial.testNextNumber ?? ""} placeholder="Ej.: 1" className="w-full rounded-lg border bg-white px-3 py-2" />
           </label>
         </div>
         <p className="text-xs text-gray-500">El número debe introducirse expresamente; Digital Bar no lo deduce de facturas anteriores.</p>
