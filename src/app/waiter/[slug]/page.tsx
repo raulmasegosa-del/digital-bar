@@ -1,7 +1,9 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getRestaurant } from "@/lib/db/restaurants/getRestaurant";
 import { getRestaurantTables } from "@/lib/db/restaurants/tables/getRestaurantTables";
 import { getTablesStatus } from "@/lib/tables/getTablesStatus";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/server";
 import WaiterTablesBoard from "@/components/waiter/WaiterTablesBoard";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +14,21 @@ export default async function WaiterPage({ params }: Props) {
   const { slug } = await params;
   const restaurant = await getRestaurant(slug);
   if (!restaurant) notFound();
+
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect(`/waiter/${slug}/login`);
+
+  const { data: membership, error: membershipError } = await supabaseAdmin
+    .from("restaurant_users")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("restaurant_id", restaurant.id)
+    .in("role", ["owner", "staff"])
+    .maybeSingle();
+
+  if (membershipError) throw membershipError;
+  if (!membership) redirect(`/waiter/${slug}/login`);
 
   const [tables, statuses] = await Promise.all([
     getRestaurantTables(restaurant.id),
