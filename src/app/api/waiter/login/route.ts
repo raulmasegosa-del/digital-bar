@@ -1,50 +1,43 @@
 import { NextResponse } from "next/server";
-import { createHash } from "crypto";
-
+import { createSupabaseServerClient, supabaseAdmin } from "@/lib/supabase/server";
 import { getRestaurant } from "@/lib/db/restaurants/getRestaurant";
-import { supabaseAdmin } from "@/lib/supabase/server";
-
-function hashPin(pin: string) {
-  return createHash("sha256").update(pin).digest("hex");
-}
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const slug = typeof body?.slug === "string" ? body.slug.trim() : "";
-    const pin = typeof body?.pin === "string" ? body.pin.trim() : "";
+    const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
+    const password = typeof body?.password === "string" ? body.password : "";
 
-    if (!slug || !/^\d{4,8}$/.test(pin)) {
-      return NextResponse.json({ error: "Credenciales no válidas." }, { status: 400 });
+    if (!slug || !email || !password) {
+      return NextResponse.json({ error: "Introduce usuario y contraseña." }, { status: 400 });
     }
 
     const restaurant = await getRestaurant(slug);
-    if (!restaurant) {
-      return NextResponse.json({ error: "Credenciales no válidas." }, { status: 401 });
-    }
+    if (!restaurant) return NextResponse.json({ error: "Credenciales no válidas." }, { status: 401 });
 
-    const { data: settings, error } = await supabaseAdmin
-      .from("restaurant_settings")
-      .select("waiter_pin_hash")
+    const supabase = await createSupabaseServerClient();
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    if (signInError) return NextResponse.json({ error: "Usuario o contraseña incorrectos." }, { status: 401 });
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "No se ha podido validar la sesión." }, { status: 401 });
+
+    const { data: membership, error: membershipError } = await supabaseAdmin
+      .from("restaurant_users")
+      .select("role")
+      .eq("user_id", user.id)
       .eq("restaurant_id", restaurant.id)
+      .in("role", ["owner", "staff"])
       .maybeSingle();
 
-    if (error) throw error;
-
-    if (!settings?.waiter_pin_hash || settings.waiter_pin_hash !== hashPin(pin)) {
-      return NextResponse.json({ error: "Credenciales no válidas." }, { status: 401 });
+    if (membershipError) throw membershipError;
+    if (!membership) {
+      await supabase.auth.signOut();
+      return NextResponse.json({ error: "Este usuario no tiene acceso a este restaurante." }, { status: 403 });
     }
 
-    const response = NextResponse.json({ ok: true });
-    response.cookies.set("digital_bar_waiter", `${restaurant.id}:${hashPin(pin)}`, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: `/waiter/${slug}`,
-      maxAge: 60 * 60 * 12,
-    });
-
-    return response;
+    return NextResponse.json({ ok: true, role: membership.role });
   } catch (error) {
     console.error("Waiter login error", error);
     return NextResponse.json({ error: "No se ha podido iniciar sesión." }, { status: 500 });
