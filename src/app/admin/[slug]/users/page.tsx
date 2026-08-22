@@ -6,6 +6,7 @@ import { isSuperAdmin } from "@/lib/auth/isSuperAdmin";
 import UsersManager from "@/components/admin/UsersManager";
 
 type Props = { params: Promise<{ slug: string }> };
+type UserItem = { id: string; userId: string; email: string; name: string; role: "admin" | "waiter"; createdAt: string };
 
 export const dynamic = "force-dynamic";
 
@@ -35,17 +36,13 @@ export default async function RestaurantUsersPage({ params }: Props) {
     .select("id, user_id, role, created_at")
     .eq("restaurant_id", restaurant.id)
     .order("created_at", { ascending: true });
-
   if (membershipsError) throw membershipsError;
 
-  const { data: authUsers, error: authError } = await supabaseAdmin.auth.admin.listUsers({
-    page: 1,
-    perPage: 1000,
-  });
+  const { data: authUsers, error: authError } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
   if (authError) throw authError;
 
   const authById = new Map(authUsers.users.map((item) => [item.id, item]));
-  const users = (memberships ?? []).map((membership) => {
+  const users: UserItem[] = (memberships ?? []).map((membership) => {
     const authUser = authById.get(membership.user_id);
     return {
       id: membership.id,
@@ -61,16 +58,13 @@ export default async function RestaurantUsersPage({ params }: Props) {
     <main className="min-h-screen bg-[#11100f] text-white">
       <div className="mx-auto max-w-5xl px-6 py-10 lg:px-10">
         <div className="mb-8 flex items-start gap-4">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-400">
-            <Users size={20} />
-          </div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-400"><Users size={20} /></div>
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-amber-500">Administración</p>
             <h1 className="mt-1 text-3xl font-semibold">Usuarios</h1>
             <p className="mt-2 text-sm text-zinc-400">Gestiona quién puede entrar en {restaurant.name} y con qué rol.</p>
           </div>
         </div>
-
         <UsersManager slug={slug} initialUsers={users} />
       </div>
     </main>
