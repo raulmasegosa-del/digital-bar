@@ -14,6 +14,8 @@ const APP_URL =
   process.env.NEXT_PUBLIC_APP_URL ??
   "https://digital-bar-orpin.vercel.app";
 
+const LOGO_URL = `${APP_URL}/icon-192.png`;
+
 export default function QRCard({
   slug,
   table,
@@ -27,7 +29,10 @@ export default function QRCard({
   return (
     <article className="rounded-2xl border border-zinc-800 bg-[#181716] p-6 text-white shadow-sm print:border-zinc-300 print:bg-white print:text-black">
       <div className="text-center">
-        <h3 className="text-xl font-semibold">🍻 Digital Bar</h3>
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl bg-white p-1 shadow-sm">
+          <img src={LOGO_URL} alt="Digital Bar" className="h-full w-full object-contain" />
+        </div>
+        <h3 className="text-xl font-semibold">Digital Bar</h3>
         <p className="mt-1 text-sm text-zinc-500 print:text-gray-500">
           {name || `Mesa ${table}`}
         </p>
@@ -37,7 +42,19 @@ export default function QRCard({
       </div>
 
       <div className="my-6 flex justify-center rounded-xl bg-white p-4">
-        <QRCodeSVG value={url} size={180} includeMargin />
+        <QRCodeSVG
+          value={url}
+          size={180}
+          includeMargin
+          level="H"
+          imageSettings={{
+            src: LOGO_URL,
+            height: 42,
+            width: 42,
+            excavate: true,
+            opacity: 1,
+          }}
+        />
       </div>
 
       <div className="text-center">
